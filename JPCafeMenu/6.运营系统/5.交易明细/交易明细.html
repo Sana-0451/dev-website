@@ -1,0 +1,2390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交易明細</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 0;
+            margin-top: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .search-first-row {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .search-additional-rows {
+            padding: 0 20px 20px 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            transition: all 0.3s ease;
+        }
+
+        .search-section.collapsed .search-additional-rows {
+            display: none;
+        }
+
+        .collapse-toggle {
+            font-size: 14px;
+            color: #409eff;
+            cursor: pointer;
+            transition: color 0.2s;
+            margin-left: auto;
+        }
+
+        .collapse-toggle:hover {
+            color: #337ecc;
+        }
+
+        .search-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-label {
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .search-input {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 120px;
+            transition: all 0.2s ease;
+            background: white;
+            color: #606266;
+            outline: none;
+        }
+
+        .search-input:hover {
+            border-color: #c0c4cc;
+        }
+
+        .search-input:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+
+        .search-select {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 120px;
+            transition: all 0.2s ease;
+            background: white;
+            color: #606266;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23909399' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 8px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 32px;
+        }
+
+        .search-select:hover {
+            border-color: #c0c4cc;
+        }
+
+        .search-select:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+
+        .date-range {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .date-input {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 150px;
+        }
+
+        .search-buttons {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+            padding: 0 20px 20px 20px;
+        }
+
+        .search-btn, .reset-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+            min-width: 70px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .search-btn {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .search-btn:hover {
+            background: #66b1ff;
+            border-color: #66b1ff;
+        }
+
+        .search-btn:active {
+            background: #3a8ee6;
+            border-color: #3a8ee6;
+        }
+
+        .reset-btn {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .reset-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .reset-btn:active {
+            background: #d9ecff;
+            border-color: #3a8ee6;
+            color: #3a8ee6;
+        }
+
+        /* Table Header */
+        .table-header {
+            background: #fafafa;
+            border-radius: 8px 8px 0 0;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8e8e8;
+            margin-bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .status-summary {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+        }
+
+        .status-item.processing .status-label {
+            color: #f57c00;
+        }
+
+        .status-item.cancelled .status-label {
+            color: #c62828;
+        }
+
+        .status-count {
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 13px;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .status-item.processing .status-count {
+            background: #fff8e1;
+            color: #f57c00;
+        }
+
+        .status-item.cancelled .status-count {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .header-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .table-header-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+            min-width: 70px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .table-header-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .table-header-btn:active {
+            background: #d9ecff;
+            border-color: #3a8ee6;
+            color: #3a8ee6;
+        }
+
+        .table-header-btn.notification-dot::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 8px;
+            height: 8px;
+            background: #f56c6c;
+            border-radius: 50%;
+        }
+
+        /* Game Report Table */
+        .report-table {
+            background: white;
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            overflow-y: visible;
+            max-width: 100%;
+        }
+
+        .table-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1400px;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        /* 設定特定欄位的最小寬度 */
+        th:nth-child(7), td:nth-child(7) { /* 注單編號 */
+            min-width: 200px;
+        }
+
+        th:nth-child(6), td:nth-child(6) { /* 遊戲名稱 */
+            min-width: 180px;
+        }
+
+        th:nth-child(11), td:nth-child(11), /* 種類 */
+        th:nth-child(12), td:nth-child(12) { /* 狀態 */
+            min-width: 100px;
+        }
+
+        th:nth-child(13), td:nth-child(13), /* 異動前餘額 */
+        th:nth-child(14), td:nth-child(14), /* 異動金額 */
+        th:nth-child(15), td:nth-child(15) { /* 異動後餘額 */
+            min-width: 120px;
+        }
+
+        th:nth-child(16), td:nth-child(16) { /* 注單更新時間 */
+            min-width: 140px;
+        }
+
+        th, td {
+            padding: 12px 8px;
+            text-align: center;
+            border-bottom: 1px solid #e8e8e8;
+            border-right: 1px solid #e8e8e8;
+            white-space: nowrap;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #606266;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+
+        .sortable:hover {
+            color: #409eff;
+        }
+
+        .sortable::after {
+            content: '⇅';
+            position: absolute;
+            right: 5px;
+            color: #ccc;
+            font-size: 12px;
+        }
+
+        .game-name {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .game-id {
+            color: #333;
+            text-decoration: none;
+            font-weight: normal;
+        }
+
+        .provider-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .status-tag {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .status-revoked {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .amount {
+            font-weight: 600;
+            text-align: right !important;
+            color: #333;
+        }
+
+        .total-row {
+            background: #666 !important;
+            color: white;
+            font-weight: 600;
+        }
+
+        .total-row td {
+            color: white;
+        }
+
+        .timezone {
+            color: #666;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .date-range-display {
+            color: #666;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .page-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .page-btn.active {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 20px;
+        }
+
+        .page-size-select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .jump-page {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 20px;
+        }
+
+        .jump-input {
+            width: 60px;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* System Info Section */
+        .system-info-section {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .info-card h3 {
+            background: #f8f9fa;
+            margin: 0;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: white;
+        }
+
+        .info-table th {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            text-align: center;
+            font-weight: 600;
+            color: #606266;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #666;
+            line-height: 1.4;
+            vertical-align: top;
+            text-align: center;
+        }
+
+        .info-table td:first-child {
+            font-weight: 500;
+        }
+
+        .info-table td:last-child {
+            text-align: left;
+        }
+
+        .info-table td:nth-child(2) {
+            text-align: left;
+        }
+
+        .info-table td:nth-child(3) {
+            text-align: left;
+        }
+
+        .info-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .info-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 8px;
+            width: 800px;
+            max-width: 90vw;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8e8e8;
+            background: #fafafa;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        /* History Reports Modal Styles */
+        .history-table-container {
+            height: 200px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+            background: white;
+            width: 100%;
+            max-width: 750px;
+        }
+
+        .history-table {
+            width: 100%;
+            max-width: 720px;
+            border-collapse: collapse;
+            font-size: 12px;
+            background: white;
+            table-layout: fixed;
+        }
+
+        .history-table thead {
+            background: #f8f9fa;
+        }
+
+        .history-table th {
+            background: #f8f9fa;
+            padding: 8px 6px;
+            text-align: center;
+            font-weight: 600;
+            color: #606266;
+            border-bottom: 1px solid #e8e8e8;
+            border-right: 1px solid #e8e8e8;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 12px;
+        }
+
+        .history-table td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #f0f0f0;
+            border-right: 1px solid #f0f0f0;
+            color: #666;
+            background: white;
+            font-size: 12px;
+        }
+
+        /* 重點：設定歷史報表表格欄位寬度和對齊 */
+        .history-table th:nth-child(1),
+        .history-table td:nth-child(1) {
+            width: 10%;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .history-table th:nth-child(2),
+        .history-table td:nth-child(2) {
+            width: 20%;
+            min-width: 100px;
+            text-align: left;
+        }
+
+        .history-table th:nth-child(3),
+        .history-table td:nth-child(3) {
+            width: 50%;
+            min-width: 300px;
+            text-align: left;
+        }
+
+        .history-table th:nth-child(4),
+        .history-table td:nth-child(4) {
+            width: 20%;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .history-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+        }
+
+        .action-btn-small {
+            padding: 3px 8px;
+            border: 1px solid #dcdfe6;
+            background: white;
+            color: #606266;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .action-btn-small:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .action-btn-small.download {
+            background: #67c23a;
+            color: white;
+            border-color: #67c23a;
+        }
+
+        .action-btn-small.download:hover {
+            background: #85ce61;
+            border-color: #85ce61;
+        }
+
+        /* Column Settings Modal */
+        .column-modal .modal-body {
+            padding: 0;
+        }
+
+        .column-settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8e8e8;
+            background: #fafafa;
+        }
+
+        .select-all {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .column-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .column-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+
+        .column-item:hover {
+            background: #fafafa;
+        }
+
+        .drag-handle {
+            display: flex;
+            flex-direction: column;
+            margin-right: 12px;
+            cursor: grab;
+        }
+
+        .arrow-up, .arrow-down {
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+        }
+
+        .arrow-up {
+            border-bottom: 6px solid #ccc;
+            margin-bottom: 2px;
+        }
+
+        .arrow-down {
+            border-top: 6px solid #ccc;
+        }
+
+        .drag-handle:hover .arrow-up {
+            border-bottom-color: #409eff;
+        }
+
+        .drag-handle:hover .arrow-down {
+            border-top-color: #409eff;
+        }
+
+        .column-checkbox {
+            margin-right: 12px;
+        }
+
+        .column-name {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .column-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            border: 1px solid #dcdfe6;
+            background: white;
+            color: #606266;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 16px 20px;
+            border-top: 1px solid #e8e8e8;
+            background: #fafafa;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .btn-secondary:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .btn-primary {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .btn-primary:hover {
+            background: #66b1ff;
+            border-color: #66b1ff;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            z-index: 10001;
+            transition: all 0.3s ease;
+            background: #67c23a;
+        }
+
+        .notification.error {
+            background: #f56c6c;
+        }
+
+        .report-preview {
+            background: #fafafa;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .report-preview-content {
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            max-width: 600px;
+            width: 600px;
+            margin: 0 auto;
+        }
+
+        .preview-header {
+            background: #fafafa;
+            padding: 10px 16px;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .preview-body {
+            padding: 16px;
+        }
+
+        .preview-tip {
+            background: #f0f9ff;
+            border: 1px solid #b3d8ff;
+            border-radius: 4px;
+            padding: 8px;
+            margin-bottom: 12px;
+            font-size: 11px;
+            color: #1565c0;
+        }
+
+        .preview-table {
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .preview-table-header {
+            background: #f8f9fa;
+            display: grid;
+            grid-template-columns: 1fr 2fr 3fr 1.5fr;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .preview-table-cell {
+            padding: 8px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #606266;
+            text-align: center;
+            border-right: 1px solid #e8e8e8;
+        }
+
+        .preview-table-cell:last-child {
+            border-right: none;
+        }
+
+        .preview-table-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr 3fr 1.5fr;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .preview-table-row:last-child {
+            border-bottom: none;
+        }
+
+        .preview-table-data {
+            padding: 8px 6px;
+            font-size: 10px;
+            text-align: center;
+            border-right: 1px solid #f0f0f0;
+            color: #333;
+        }
+
+        .preview-table-data:last-child {
+            border-right: none;
+        }
+
+        .preview-table-data.info {
+            font-size: 9px;
+            color: #666;
+            line-height: 1.3;
+        }
+
+        .preview-table-data .status-btn {
+            background: #67c23a;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 9px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .preview-table-data .status-processing {
+            color: #999;
+            font-size: 9px;
+        }
+
+        .preview-table-data .status-failed {
+            color: #c62828;
+            font-size: 9px;
+        }
+
+        .preview-note {
+            margin: 10px;
+            font-size: 12px;
+            color: #999999;
+            text-align: center;
+        }
+
+        /* 重點：讓預覽圖表格的生成時間和時間範圍左對齊 */
+        .preview-table-data:nth-child(2),
+        .preview-table-data:nth-child(3) {
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <div class="container">
+            <div class="header">
+                <h1>交易明細</h1>
+            </div>
+
+            <!-- Search Section -->
+            <div class="search-section" id="searchSection">
+                <div class="search-first-row">
+                    <div class="search-item">
+                        <label class="search-label">資料來源：</label>
+                        <select id="dataType" class="search-select">
+                            <option value="交易明細" selected>交易明細</option>
+                            <option value="交易明細">交易明細-體育</option>
+                        </select>
+                    </div>
+
+                    <div class="search-item">
+                        <label class="search-label">注單統計時區：</label>
+                        <select id="timezone" class="search-select">
+                            <option value=""> </option>
+                            <option value="UTC-4">UTC-4</option>
+                            <option value="UTC+0">UTC+0</option>
+                            <option value="UTC+4">UTC+4</option>
+                            <option value="UTC+7">UTC+7</option>
+                            <option value="UTC+8">UTC+8</option>
+                            <option value="UTC+9">UTC+9</option>
+                        </select>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">🕐</label>
+                        <div class="date-range">
+                            <input type="date" id="startDate" class="date-input" value="2025-05-25">
+                            <span>~</span>
+                            <input type="date" id="endDate" class="date-input" value="2025-05-25">
+                        </div>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">種類：</label>
+                        <select id="category" class="search-select">
+                            <option value=""> </option>
+                            <option value="遊戲上分">遊戲上分</option>
+                            <option value="遊戲下分">遊戲下分</option>
+                            <option value="取消投注">取消投注</option>
+                        </select>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">狀態：</label>
+                        <select id="status" class="search-select">
+                            <option value=""></option>
+                            <option value="成功">成功</option>
+                            <option value="撤銷">撤銷</option>
+                        </select>
+                    </div>
+                    <div class="collapse-toggle" id="collapseToggle" onclick="toggleSearchSection()">收起</div>
+                </div>
+                <div class="search-additional-rows">
+                    <div class="search-item">
+                        <label class="search-label">遊戲局號：</label>
+                        <input type="text" id="gameRoundId" class="search-input" placeholder=" ">
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">注單編號：</label>
+                        <input type="text" id="betId" class="search-input" placeholder=" ">
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">所屬代理：</label>
+                        <select id="agent" class="search-select">
+                            <option value=""></option>
+                            <option value="ivLv4UAT">ivLv4UAT</option>
+                            <option value="System">System</option>
+                            <option value="Agent001">Agent001</option>
+                        </select>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">玩家賬號：</label>
+                        <input type="text" id="playerAccount" class="search-input" placeholder=" ">
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">集成商：</label>
+                        <select id="integrator" class="search-select">
+                            <option value=""> </option>
+                            <option value="zf">ZF</option>
+                            <option value="ops">OPS</option>
+                            <option value="kuma">Kuma</option>
+                        </select>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">遊戲商：</label>
+                        <select id="provider" class="search-select">
+                            <option value=""> </option>
+                            <option value="Pragmatic Play">Pragmatic Play</option>
+                            <option value="Play'n GO">Play'n GO</option>
+                            <option value="Hacksaw">Hacksaw</option>
+                            <option value="Relax Gaming">Relax Gaming</option>
+                            <option value="BNG">BNG</option>
+                        </select>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">遊戲名稱：</label>
+                        <select id="gameName" class="search-select">
+                            <option value=""> </option>
+                            <option value="Big Bass Reel Repeat">Big Bass Reel Repeat</option>
+                            <option value="Lady of Fortune Destiny Spins">Lady of Fortune Destiny Spins</option>
+                            <option value="Fred's Food Truck">Fred's Food Truck</option>
+                            <option value="Money Train 3">Money Train 3</option>
+                            <option value="King of the Sky: Hit the Bonus">King of the Sky: Hit the Bonus</option>
+                            <option value="Booze Bash">Booze Bash</option>
+                            <option value="5 Wild Wolves">5 Wild Wolves</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="search-buttons">
+                    <button class="search-btn" onclick="searchReports()">🔍 搜索</button>
+                    <button class="reset-btn" onclick="resetSearch()">重置</button>
+                </div>
+            </div>
+
+            <!-- Table Header -->
+            <div class="table-header">
+                <div class="status-summary">
+                    <span class="status-item processing">
+                        <span class="status-label">公司輸贏：</span>
+                        <span class="status-count" id="winLossTotal">72,877,978.76</span>
+                    </span>
+                </div>
+                <div class="header-buttons">
+                    <button class="table-header-btn" onclick="generateReport()">報表生成</button>
+                    <button class="table-header-btn" id="downloadBtn" onclick="downloadHistory()">報表下載</button>
+                    <button class="table-header-btn" onclick="columnSettings()">列設置</button>
+                </div>
+            </div>
+
+            <div class="report-table">
+                <div class="table-container">
+                    <table>
+                    <thead>
+                        <tr>
+                            <th>代理賬戶</th>
+                            <th>玩家序號</th>
+                            <th>玩家賬號</th>
+                            <th>幣種</th>
+                            <th>集成商名稱</th>
+                            <th>遊戲商名稱</th>
+                            <th>遊戲名稱</th>
+                            <th style="min-width: 180px;">注單編號</th>
+                            <th>遊戲局號</th>
+                            <th class="sortable" onclick="sortTable('gameDown')">遊戲下分</th>
+                            <th class="sortable" onclick="sortTable('gameUp')">遊戲上分</th>
+                            <th>種類</th>
+                            <th>狀態</th>
+                            <th class="sortable" onclick="sortTable('beforeBalance')">異動前餘額</th>
+                            <th class="sortable" onclick="sortTable('changeAmount')">異動金額</th>
+                            <th class="sortable" onclick="sortTable('afterBalance')">異動後餘額</th>
+                            <th class="sortable" onclick="sortTable('updateTime')">注單更新時間</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTableBody">
+                        <tr class="total-row">
+                            <td>總計</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td class="amount">3,146,602,890.10</td>
+                            <td class="amount">3,073,724,911.34</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td>ivLv4UAT</td>
+                            <td>10000282</td>
+                            <td>testiven01</td>
+                            <td>JPY</td>
+                            <td>kuma</td>
+                            <td class="provider-name">Pragmatic Play</td>
+                            <td><span class="game-name">Big Bass Reel Repeat</span></td>
+                            <td style="font-family: monospace; font-size: 12px;">BET202508110001234567890123</td>
+                            <td>765144704000</td>
+                            <td class="amount">-</td>
+                            <td class="amount">2,000.00</td>
+                            <td>投注返還</td>
+                            <td><span class="status-tag status-revoked">撤銷</span></td>
+                            <td class="amount">50,000.00</td>
+                            <td class="amount">2,000.00</td>
+                            <td class="amount">52,000.00</td>
+                            <td class="date-range-display">2025-08-11 13:21:05</td>
+                        </tr>
+<tr>
+                            <td>ivLv4UAT</td>
+                            <td>10000282</td>
+                            <td>testiven01</td>
+                            <td>JPY</td>
+                            <td>kuma</td>
+                            <td class="provider-name">Pragmatic Play</td>
+                            <td><span class="game-name">Big Bass Reel Repeat</span></td>
+                            <td style="font-family: monospace; font-size: 12px;">BET202508110001234567890123</td>
+                            <td>765144704000</td>
+                            <td class="amount">-2,000.00</td>
+                            <td class="amount">-</td>
+                            <td>遊戲下分</td>
+                            <td><span class="status-tag status-revoked">撤銷</span></td>
+                            <td class="amount">50,000.00</td>
+                            <td class="amount">-2,000.00</td>
+                            <td class="amount">48,000.00</td>
+                            <td class="date-range-display">2025-08-11 13:21:05</td>
+                        </tr>
+                        <tr>
+                            <td>ivLv4UAT</td>
+                            <td>10000282</td>
+                            <td>testiven01</td>
+                            <td>JPY</td>
+                            <td>zf</td>
+                            <td class="provider-name">Play'n GO</td>
+                            <td><span class="game-name">Lady of Fortune Destiny Spins</span></td>
+                            <td style="font-family: monospace; font-size: 12px;">BET202508110001234567890124</td>
+                            <td>PnG007-2088985</td>
+                            <td class="amount">-</td>
+                            <td class="amount">2,000.00</td>
+                            <td>遊戲上分</td>
+                            <td><span class="status-tag status-success">成功</span></td>
+                            <td class="amount">48,000.00</td>
+                            <td class="amount">2000.00</td>
+                            <td class="amount">50,000.00</td>
+                            <td class="date-range-display">2025-08-11 13:11:14</td>
+                        </tr>
+                        <tr>
+                            <td>ivLv4UAT</td>
+                            <td>10000282</td>
+                            <td>testiven01</td>
+                            <td>JPY</td>
+                            <td>zf</td>
+                            <td class="provider-name">Play'n GO</td>
+                            <td><span class="game-name">Lady of Fortune Destiny Spins</span></td>
+                            <td style="font-family: monospace; font-size: 12px;">BET202508110001234567890125</td>
+                            <td>PnG007-2088985</td>
+                            <td class="amount">-2,400.00</td>
+                            <td class="amount">-</td>
+                            <td>遊戲下分</td>
+                            <td><span class="status-tag status-success">成功</span></td>
+                            <td class="amount">48,000.00</td>
+                            <td class="amount">-2,400.00</td>
+                            <td class="amount">45,600.00</td>
+                            <td class="date-range-display">2025-08-11 13:11:10</td>
+                        </tr>
+                        <tr>
+                            <td>ivLv4UAT</td>
+                            <td>10000282</td>
+                            <td>testiven01</td>
+                            <td>JPY</td>
+                            <td>zf</td>
+                            <td class="provider-name">Play'n GO</td>
+                            <td><span class="game-name">Lady of Fortune Destiny Spins</span></td>
+                            <td style="font-family: monospace; font-size: 12px;">BET202508110001234567890126</td>
+                            <td>PnG007-2088982</td>
+                            <td class="amount">-</td>
+                            <td class="amount">1,800.00</td>
+                            <td>投注返還</td>
+                            <td><span class="status-tag status-revoked">撤銷</span></td>
+                            <td class="amount">45,600.00</td>
+                            <td class="amount">1800.00</td>
+                            <td class="amount">47,400.00</td>
+                            <td class="date-range-display">2025-08-11 13:11:04</td>
+                        </tr>
+                        <tr>
+                            <td>ivLv4UAT</td>
+                            <td>10000282</td>
+                            <td>testiven01</td>
+                            <td>JPY</td>
+                            <td>zf</td>
+                            <td class="provider-name">Play'n GO</td>
+                            <td><span class="game-name">Lady of Fortune Destiny Spins</span></td>
+                            <td style="font-family: monospace; font-size: 12px;">BET202508110001234567890127</td>
+                            <td>PnG007-2088982</td>
+                            <td class="amount">-960.00</td>
+                            <td class="amount">-</td>
+                            <td>遊戲下分</td>
+                            <td><span class="status-tag status-revoked">撤銷</span></td>
+                            <td class="amount">45,000.00</td>
+                            <td class="amount">-960.00</td>
+                            <td class="amount">44,040.00</td>
+                            <td class="date-range-display">2025-08-11 13:11:02</td>
+                        </tr>
+                        <tr>
+                            <td>ivLv4UAT</td>
+                            <td>10000398</td>
+                            <td>testgoogle01</td>
+                            <td>JPY</td>
+                            <td>zf</td>
+                            <td class="provider-name">Hacksaw</td>
+                            <td><span class="game-name">Booze Bash</span></td>
+                            <td style="font-family: monospace; font-size: 12px;">BET202508110001234567890129</td>
+                            <td>765144704002</td>
+                            <td class="amount">-</td>
+                            <td class="amount">3,200.00</td>
+                            <td>遊戲上分</td>
+                            <td><span class="status-tag status-success">成功</span></td>
+                            <td class="amount">43,000.00</td>
+                            <td class="amount">3,200.00</td>
+                            <td class="amount">46,200.00</td>
+                            <td class="date-range-display">2025-08-11 11:57:22</td>
+                        </tr>
+                        <tr>
+                            <td>ivLv4UAT</td>
+                            <td>10000399</td>
+                            <td>testgoogle03</td>
+                            <td>JPY</td>
+                            <td>zf</td>
+                            <td class="provider-name">Pragmatic Play</td>
+                            <td><span class="game-name">Gates of Olympus</span></td>
+                            <td style="font-family: monospace; font-size: 12px;">BET202508110001234567890131</td>
+                            <td>765144704002</td>
+                            <td class="amount">-15,000.00</td>
+                            <td class="amount">-</td>
+                            <td>遊戲下分</td>
+                            <td><span class="status-tag status-success">成功</span></td>
+                            <td class="amount">39,800.00</td>
+                            <td class="amount">-15,000.00</td>
+                            <td class="amount">24,800.00</td>
+                            <td class="date-range-display">2025-08-11 10:30:45</td>
+                        </tr>
+                        <tr>
+                            <td>ivLv4UAT</td>
+                            <td>10000932</td>
+                            <td>testgoogle02</td>
+                            <td>JPY</td>
+                            <td>ops</td>
+                            <td class="provider-name">Relax Gaming</td>
+                            <td><span class="game-name">Money Train 3</span></td>
+                            <td style="font-family: monospace; font-size: 12px;">BET202508110001234567890130</td>
+                            <td>PnG007-2088990</td>
+                            <td class="amount">-</td>
+                            <td class="amount">600.00</td>
+                            <td>遊戲上分</td>
+                            <td><span class="status-tag status-success">成功</span></td>
+                            <td class="amount">44,200.00</td>
+                            <td class="amount">600.00</td>
+                            <td class="amount">44,800.00</td>
+                            <td class="date-range-display">2025-08-11 10:45:12</td>
+                        </tr>
+                        <tr>
+                            <td>ivLv4UAT</td>
+                            <td>10000400</td>
+                            <td>testgoogle04</td>
+                            <td>JPY</td>
+                            <td>kuma</td>
+                            <td class="provider-name">Play'n GO</td>
+                            <td><span class="game-name">Book of Dead</span></td>
+                            <td style="font-family: monospace; font-size: 12px;">BET202508110001234567890132</td>
+                            <td>PnG007-2088990</td>
+                            <td class="amount">-1,200.00</td>
+                            <td class="amount">-</td>
+                            <td>遊戲下分</td>
+                            <td><span class="status-tag status-success">成功</span></td>
+                            <td class="amount">24,800.00</td>
+                            <td class="amount">-1,200.00</td>
+                            <td class="amount">23,600.00</td>
+                            <td class="date-range-display">2025-08-11 09:15:33</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="pagination">
+                    <div class="pagination-info">
+                        共 1 頁 10 條，共計 9580 條
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" disabled>‹</button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn">3</button>
+                        <button class="page-btn">4</button>
+                        <button class="page-btn">5</button>
+                        <span>...</span>
+                        <button class="page-btn">958</button>
+                        <button class="page-btn">›</button>
+                        <div class="page-size-selector">
+                            <select class="page-size-select">
+                                <option value="10" selected>10</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                        <div class="jump-page">
+                            <input type="number" class="jump-input" placeholder="1" min="1" max="958">
+                            <button class="page-btn">跳轉</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 系統說明區域 -->
+            <div class="system-info-section">
+                <div class="info-card">
+                    <h3>系統規則</h3>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="20%">規則類型</th>
+                                <th width="80%">規則內容</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>資料來源</td>
+                                <td>交易明細的資料為每一局遊戲中所有的金額變化紀錄。<br>
+                                    可選擇原本的交易明細或體育的交易明細。<br>
+                                    體育的交易明細不列入財務報表計算。
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>搜尋限制</td>
+                                <td>最多僅限查詢3個月(含本月)，一次最多查詢31天。</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="info-card">
+                    <h3>搜尋功能列</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>重要提醒：</strong><br>
+                        一進畫面就帶入預設值，並顯示搜索出來的資料。<br>
+                        點擊「重置」按鈕回到預設值，如果按下搜尋時是空值，則自動帶入預設值。<br>
+                        <br>
+                        搜索條件如在二行以上，右方會出現「展開/收起」按鈕(一行則不顯示按鈕)。<br>
+                        收起時為一行搜索條件＋一行搜索、重置按鈕。
+                    </div>
+
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">欄位</th>
+                                <th width="60%">內容說明</th>
+                                <th width="25%">模式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>資料來源</td>
+                                <td>
+                                    點擊可選擇交易明細呈現資料<br>
+                                    <strong style="color: #ba6cf5;">預設為交易明細</strong><br>
+                                    下拉選單：交易明細、交易明細-體育
+                                </td>
+                                <td>下拉選單，必填</td>
+                            </tr>
+                            <tr>
+                                <td>注單統計時區</td>
+                                <td>
+                                    點擊可選擇不同時區進行數據統計<br>
+                                    預設空值，代表當前電腦時區<br>
+                                    下拉選單：UTC-4、+0、+4、+7、+8、+9
+                                </td>
+                                <td>下拉選單，非必填</td>
+                            </tr>
+                            <tr>
+                                <td>時間</td>
+                                <td>
+                                    點擊選擇搜尋的時間範圍<br>                                  
+                                    預設為今天<br>
+                                    例：今天2025/5/26顯示：2025/5/26 00:00 ~ 2025/5/26 23:59
+                                </td>
+                                <td>時間選擇器</td>
+                            </tr>
+                            <tr>
+                                <td>種類</td>
+                                <td>
+                                    點擊可選擇不同交易種類進行查詢<br>
+                                    預設為全部<br>
+                                    下拉選單：遊戲上分、遊戲下分、取消投注
+                                </td>
+                                <td>下拉選單，非必填</td>
+                            </tr>
+                            <tr>
+                                <td>狀態</td>
+                                <td>
+                                    點擊可選擇不同注單狀態進行查詢<br>
+                                    預設為全部<br>
+                                    下拉選單：成功、撤銷
+                                </td>
+                                <td>下拉選單，非必填</td>
+                            </tr>
+                            <tr>
+                                <td>遊戲局號</td>
+                                <td>
+                                    點擊輸入遊戲局號進行查詢<br>
+                                    預設空值，代表全部<br>
+                                </td>
+                                <td>輸入框，非必填</td>
+                            </tr>
+                            <tr>
+                                <td>注單編號</td>
+                                <td>
+                                    點擊輸入注單編號進行查詢<br>
+                                    預設空值，代表全部<br>
+                                </td>
+                                <td>輸入框，非必填</td>
+                            </tr>
+                            <tr>
+                                <td>所屬代理</td>
+                                <td>
+                                    點擊選擇所屬代理<br>
+                                    預設空值，代表全部<br>
+                                    所選代理的資料一定包含下級代理數據<br>
+                                </td>
+                                <td>下拉選單，非必填</td>
+                            </tr>
+                            <tr>
+                                <td>玩家賬號</td>
+                                <td>
+                                    點擊輸入玩家賬號進行查詢<br>
+                                    預設空值，代表全部<br>
+                                </td>
+                                <td>輸入框，非必填</td>
+                            </tr>
+                            <tr>
+                                <td>集成商名稱</td>
+                                <td>
+                                    點擊選擇集成商，可複選<br>
+                                    預設空值，代表全部<br>
+                                </td>
+                                <td>下拉選單，非必填</td>
+                            </tr>
+                            <tr>
+                                <td>遊戲商名稱</td>
+                                <td>
+                                    點擊選擇遊戲商，可複選<br>
+                                    預設空值，代表全部<br>
+                                </td>
+                                <td>下拉選單，非必填</td>
+                            </tr>
+                            <tr>
+                                <td>遊戲名稱</td>
+                                <td>
+                                    點擊選擇遊戲，可複選<br>
+                                    預設空值，代表全部<br>
+                                </td>
+                                <td>下拉選單，非必填</td>
+                            </tr>
+                            <tr>
+                                <td>搜索</td>
+                                <td>點擊觸發搜尋</td>
+                                <td>按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>重置</td>
+                                <td>點擊將搜尋條件回到預設值</td>
+                                <td>按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>報表生成與下載</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>重要提醒：</strong><br>
+                        導出功能為兩步驟導出：生成報表和歷史下載。<br>
+                        1.篩選資料後點擊「報表生成」，按鈕會呈現生成中狀態，此時不可生成第二份報表。<br>
+                        2.報表生成完成，可在報表下載列表中取得。<br><br>
+                        提示：當有「新生成且未被查看」的資料產生時，報表下載按鈕會有紅點提示。(如重斷線、重登等因素則紅點消失)<br>
+                        保留：生成後的資料會保留在系統中供後續下載，最多保存10份。
+                    </div>
+
+                    <!-- 歷史報表下載預覽圖 -->
+                    <div class="report-preview">
+                        <div class="report-preview-content">
+                            <div class="preview-header">
+                                <span>報表下載</span>
+                                <span style="color: #999;">×</span>
+                            </div>
+                            <div class="preview-body">
+                                <div class="preview-tip">
+                                    <strong>提示：</strong>最多10筆資料，超出則從最舊的自動刪除
+                                </div>
+                                <div class="preview-table">
+                                    <div class="preview-table-header">
+                                        <div class="preview-table-cell">編號</div>
+                                        <div class="preview-table-cell">生成時間</div>
+                                        <div class="preview-table-cell">時間範圍</div>
+                                        <div class="preview-table-cell">操作</div>
+                                    </div>
+                                    <div class="preview-table-row">
+                                        <div class="preview-table-data">01</div>
+                                        <div class="preview-table-data">2025-08-20<br>14:30:25</div>
+                                        <div class="preview-table-data">統計時區：UTC+8<br>時間範圍：2025-08-11 ~ 2025-08-20</div>
+                                        <div class="preview-table-data">
+                                            <button class="status-btn">下載</button>
+                                        </div>
+                                    </div>
+                                    <div class="preview-table-row">
+                                        <div class="preview-table-data">02</div>
+                                        <div class="preview-table-data">2025-08-19<br>10:15:42</div>
+                                        <div class="preview-table-data">統計時區：UTC+8<br>時間範圍：2025-08-01 ~ 2025-08-31</div>
+                                        <div class="preview-table-data">
+                                            <span class="status-processing">生成中</span>
+                                        </div>
+                                    </div>
+                                    <div class="preview-table-row">
+                                        <div class="preview-table-data">03</div>
+                                        <div class="preview-table-data">2025-08-17<br>13:28:17</div>
+                                        <div class="preview-table-data">統計時區：UTC+7<br>時間範圍：2025-08-12 ~ 2025-08-19</div>
+                                        <div class="preview-table-data">
+                                            <span class="status-failed">失敗</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="preview-note">報表下載預覽，功能達成即可，最終以uat操作畫面為準。</p>
+                    </div>
+
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">欄位</th>
+                                <th width="60%">內容說明</th>
+                                <th width="25%">模式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>編號</td>
+                                <td>
+                                    流水號1-10<br>
+                                    代表目前保留的檔案數量<br>
+                                </td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>生成時間</td>
+                                <td>
+                                    顯示該檔案的實際生成時間<br>                                  
+                                    例：2025-08-20 14:30:25
+                                </td>
+                                <td>時間格式</td>
+                            </tr>
+                            <tr>
+                                <td>時間範圍</td>
+                                <td>
+                                    顯示該檔案所生成的統計時間範圍<br>
+                                    例：統計時區：UTC+8<br>
+                                    時間範圍：2025-08-11 ~ 2025-08-20
+                                </td>
+                                <td>時間格式</td>
+                            </tr>
+                            <tr>
+                                <td>操作</td>
+                                <td>
+                                    已完成：提供「下載」按鈕<br>
+                                    （檔名例：2025-08-11-2025-08-20 交易明細）<br><br>
+                                    生成中：顯示「生成中」，不可點擊<br>
+                                    失敗：顯示「失敗」，不可點擊<br>
+                                </td>
+                                <td>文字按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>列設置功能</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>功能說明：</strong><br>
+                        點擊表格右上方的「列設置」按鈕，可調整表格顯示的欄位、順序和釘選位置。<br>
+                        設定會即時生效，並在當前頁面中保持。<br>
+                        導出則是原始欄位和順序不受列設置影響。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">功能項目</th>
+                                <th width="60%">功能說明</th>
+                                <th width="25%">操作方式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>全選控制</td>
+                                <td>
+                                    一鍵選擇或取消選擇所有欄位<br>
+                                    當部分欄位被選中時，顯示半選狀態<br>
+                                </td>
+                                <td>點擊「全選」勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>欄位顯示控制</td>
+                                <td>
+                                    控制每個欄位是否在表格中顯示<br>
+                                    未勾選的欄位將在表格中隱藏<br>
+                                    表格中的第一欄為鎖定，不可隱藏
+                                </td>
+                                <td>點擊欄位名稱前的勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>拖拽排序</td>
+                                <td>
+                                    點擊左側的上下箭頭調整欄位在表格中的顯示順序<br>
+                                    調整後的順序會即時反映在表格中
+                                </td>
+                                <td>點擊左側的「↑↓」箭頭圖示</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到左側</td>
+                                <td>
+                                    將選中的欄位固定在表格最左側<br>
+                                    釘選的欄位在橫向滾動時保持可見
+                                </td>
+                                <td>點擊「釘選到左側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到右側</td>
+                                <td>
+                                    將選中的欄位固定在表格最右側<br>
+                                    釘選的欄位在橫向滾動時保持可見<br>
+                                </td>
+                                <td>點擊「釘選到右側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消釘選</td>
+                                <td>
+                                    移除欄位的左側或右側釘選狀態<br>
+                                    欄位將回到正常的滾動區域<br>
+                                </td>
+                                <td>點擊「取消釘選」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>重置設定</td>
+                                <td>
+                                    清除所有自定義的排序和釘選設定<br>
+                                    回到系統初始的欄位配置
+                                </td>
+                                <td>點擊「重置」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>保存設定</td>
+                                <td>
+                                    應用當前的欄位配置到表格顯示<br>
+                                    設定在當前瀏覽器頁面中保持有效<br>
+                                </td>
+                                <td>點擊「保存」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消操作</td>
+                                <td>
+                                    放棄當前的所有配置更改<br>
+                                    回到進入設定前的狀態
+                                </td>
+                                <td>點擊「取消」按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>資料表說明</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>重要提醒：</strong><br>
+                        總計列和標題列為置頂固定不可上下拖動，可左右拖曳。<br>
+                        總計列為所有頁數中<strong style="color: #ba6cf5;"> 成功 </strong>狀態訂單的數據加總，部分欄位不顯示。<br>
+                        撤銷訂單不加入總計列。
+                    </div>
+                    <table class="info-table four-column">
+                        <thead>
+                            <tr>
+                                <th width="8%">排序</th>
+                                <th width="15%">欄位</th>
+                                <th width="57%">內容說明</th>
+                                <th width="20%">顯示模式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>-</td>
+                                <td>公司輸贏</td>
+                                <td>
+                                    表格左上方顯示搜索條件內，公司輸贏統計<br>
+                                    公式：總計遊戲下分-總計遊戲上分
+                                </td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>所屬代理</td>
+                                <td>顯示該注單的所屬代理帳號</td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>玩家序號</td>
+                                <td>顯示該注單的玩家序號，為玩家唯一碼ID</td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>玩家帳號</td>
+                                <td>顯示該注單的玩家帳號</td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>幣種</td>
+                                <td>顯示該注單的幣種</td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>集成商名稱</td>
+                                <td>顯示該注單的集成商名稱</td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>遊戲商名稱</td>
+                                <td>顯示該注單的遊戲商名稱</td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>遊戲名稱</td>
+                                <td>顯示該注單的遊戲名稱</td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>注單編號</td>
+                                <td>
+                                    顯示該注單的注單編號<br>
+                                </td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>遊戲局號</td>
+                                <td>
+                                    顯示該注單的遊戲局號<br>
+                                </td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>遊戲下分</td>
+                                <td>顯示該注單扣除錢包的金額</td>
+                                <td>數字顯示<br>最多小數點2位，需補0</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>遊戲上分</td>
+                                <td>顯示該注單的進入錢包的金額</td>
+                                <td>數字顯示<br>最多小數點2位，需補0</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>種類</td>
+                                <td>顯示該筆注單的動作種類<br>
+                                    遊戲下分：代表投注遊戲時扣除的金額<br>
+                                    遊戲上分：代表遊戲結束後，派彩進錢包的金額<br>
+                                    投注返還：代表投注取消後，返回錢包的金額
+                                </td>
+                                <td>tag顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>狀態</td>
+                                <td>顯示該注單的結算狀態<br>
+                                    成功：代表完成的注單<br>
+                                    撤銷：代表取消的注單，總計列不計算撤銷注單<br>
+                                </td>
+                                <td>tag顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>異動前餘額</td>
+                                <td>顯示該注單發生前，該玩家的錢包餘額</td>
+                                <td>數字顯示<br>最多小數點2位，需補0</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>異動金額</td>
+                                <td>顯示該注單所改變的金額</td>
+                                <td>數字顯示<br>最多小數點2位，需補0</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>異動後餘額</td>
+                                <td>顯示該注單發生後，該玩家的錢包餘額</td>
+                                <td>數字顯示<br>最多小數點2位，需補0</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>注單更新時間</td>
+                                <td>顯示該注單發生的時間<br>
+                                    例：2024-05-31 00:00</td>
+                                <td>時區格式</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 列設置彈窗 -->
+    <div class="modal-overlay" id="columnModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">列設置</div>
+                <button class="modal-close" onclick="closeColumnModal()">×</button>
+            </div>
+            <div class="modal-body column-modal">
+                <div class="column-settings-header">
+                    <div class="select-all">
+                        <input type="checkbox" id="selectAll" onchange="toggleAllColumns()">
+                        <label for="selectAll">全選</label>
+                    </div>
+                    <button class="btn btn-secondary" onclick="resetColumns()">重置</button>
+                </div>
+                <div class="column-list">
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked disabled>
+                        <div class="column-name">代理賬戶</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">玩家賬號</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">幣種</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">集成商名稱</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">遊戲商名稱</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">遊戲名稱</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">注單編號</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">遊戲局號</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeColumnModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveColumns()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Reports Modal -->
+    <div class="modal-overlay" id="historyReportsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">報表下載</div>
+                <button class="modal-close" onclick="closeHistoryReports()">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                    <strong>提示：</strong>最多10筆資料，超出則從最舊的自動刪除
+                </div>
+                
+                <div class="history-table-container">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 10%;">編號</th>
+                                <th style="width: 20%;">生成時間</th>
+                                <th style="width: 45%;">時間範圍</th>
+                                <th style="width: 25%;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>01</td>
+                                <td>2025-08-20<br>14:30:25</td>
+                                <td>統計時區：UTC+8<br>時間範圍：2025-08-11 ~ 2025-08-20</td>
+                                <td>
+                                    <a href="#" class="action-btn-small download">下載</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>02</td>
+                                <td>2025-08-19<br>10:15:42</td>
+                                <td>統計時區：UTC+8<br>時間範圍：2025-08-01 ~ 2025-08-31</td>
+                                <td>
+                                    <span style="color: #999; font-size: 12px;">生成中</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>03</td>
+                                <td>2025-08-17<br>13:28:17</td>
+                                <td>統計時區：UTC+7<br>時間範圍：2025-08-12 ~ 2025-08-19</td>
+                                <td>
+                                    <span style="color: #c62828; font-size: 12px;">失敗</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>04</td>
+                                <td>2025-08-15<br>09:22:33</td>
+                                <td>統計時區：UTC+8<br>時間範圍：2025-08-01 ~ 2025-08-15</td>
+                                <td>
+                                    <a href="#" class="action-btn-small download">下載</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 等待DOM載入完成
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // 篩選區域摺疊功能
+            window.toggleSearchSection = function() {
+                const searchSection = document.getElementById('searchSection');
+                const collapseToggle = document.getElementById('collapseToggle');
+                
+                searchSection.classList.toggle('collapsed');
+                
+                if (searchSection.classList.contains('collapsed')) {
+                    collapseToggle.textContent = '展開';
+                } else {
+                    collapseToggle.textContent = '收起';
+                }
+            };
+            
+            // 生成報表功能
+            window.generateReport = function() {
+                showNotification('正在生成報表...', 'success');
+                
+                setTimeout(() => {
+                    const reportId = 'RPT' + Date.now();
+                    showNotification(`報表生成完成，報表編號：${reportId}`, 'success');
+                    
+                    // 添加紅點提示
+                    const downloadBtn = document.getElementById('downloadBtn');
+                    downloadBtn.style.position = 'relative';
+                    if (!downloadBtn.querySelector('.notification-dot')) {
+                        const dot = document.createElement('div');
+                        dot.className = 'notification-dot';
+                        dot.style.cssText = `
+                            position: absolute;
+                            top: 5px;
+                            right: 5px;
+                            width: 8px;
+                            height: 8px;
+                            background: #f56c6c;
+                            border-radius: 50%;
+                            pointer-events: none;
+                        `;
+                        downloadBtn.appendChild(dot);
+                    }
+                }, 2000);
+            };
+            
+            // 歷史報表下載功能
+            window.downloadHistory = function() {
+                document.getElementById('historyReportsModal').classList.add('show');
+                showNotification('打開報表下載歷史列表', 'success');
+                
+                // 移除紅點提示
+                const downloadBtn = document.getElementById('downloadBtn');
+                const dot = downloadBtn.querySelector('.notification-dot');
+                if (dot) {
+                    dot.remove();
+                }
+            };
+            
+            // 關閉歷史報表彈窗
+            window.closeHistoryReports = function() {
+                document.getElementById('historyReportsModal').classList.remove('show');
+            };
+            
+            // 列設置功能
+            window.columnSettings = function() {
+                document.getElementById('columnModal').classList.add('show');
+                showNotification('列設置功能 - 可調整欄位顯示、排序和釘選', 'success');
+            };
+            
+            // 關閉列設置彈窗
+            window.closeColumnModal = function() {
+                document.getElementById('columnModal').classList.remove('show');
+            };
+            
+            // 全選功能
+            window.toggleAllColumns = function() {
+                const selectAllCheckbox = document.getElementById('selectAll');
+                const columnCheckboxes = document.querySelectorAll('.column-checkbox:not([disabled])');
+                
+                columnCheckboxes.forEach(checkbox => {
+                    checkbox.checked = selectAllCheckbox.checked;
+                });
+            };
+            
+            // 重置列設置
+            window.resetColumns = function() {
+                const checkboxes = document.querySelectorAll('.column-checkbox:not([disabled])');
+                const selectAllCheckbox = document.getElementById('selectAll');
+                
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = true;
+                });
+                
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.checked = true;
+                }
+                
+                showNotification('列設置已重置', 'success');
+            };
+            
+            // 保存列設置
+            window.saveColumns = function() {
+                showNotification('列設置已保存', 'success');
+                setTimeout(() => {
+                    closeColumnModal();
+                }, 500);
+            };
+            
+            // 搜索功能
+            window.searchReports = function() {
+                const timezone = document.getElementById('timezone').value;
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                const category = document.getElementById('category').value;
+                const status = document.getElementById('status').value;
+                
+                showNotification('搜索完成', 'success');
+                console.log('搜索條件:', { timezone, startDate, endDate, category, status });
+            };
+            
+            // 重置搜索
+            window.resetSearch = function() {
+                document.getElementById('timezone').value = '';
+                document.getElementById('startDate').value = '2025-05-25';
+                document.getElementById('endDate').value = '2025-05-25';
+                document.getElementById('category').value = '';
+                document.getElementById('status').value = '';
+                
+                showNotification('搜尋已重置', 'success');
+            };
+            
+            // 排序功能
+            window.sortTable = function(column) {
+                showNotification(`按 ${column} 排序`, 'success');
+            };
+            
+            // 通知系統
+            window.showNotification = function(message, type = 'success') {
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                if (type === 'error') notification.classList.add('error');
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        if (document.body.contains(notification)) {
+                            document.body.removeChild(notification);
+                        }
+                    }, 300);
+                }, 3000);
+            };
+            
+            // 彈窗外部點擊關閉
+            document.getElementById('columnModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeColumnModal();
+                }
+            });
+
+            document.getElementById('historyReportsModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeHistoryReports();
+                }
+            });
+            
+            console.log('交易明細系統初始化完成');
+        });
+    </script>
+</body>
+</html>

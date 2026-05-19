@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>代理分潤報表</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Segoe UI', sans-serif;
+      background: #f8f9fa;
+      color: #333;
+      font-size: 14px;
+      min-height: 100vh;
+    }
+
+    .main-content { padding: 20px; min-height: 100vh; }
+    .container { max-width: 1600px; margin: 0 auto; }
+
+    /* ── 搜尋列 ── */
+    .search-section {
+      background: white;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,.1);
+      overflow: hidden;
+    }
+    .search-first-row {
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .search-item { display: flex; align-items: center; gap: 8px; }
+    .search-label { font-size: 14px; color: #666; white-space: nowrap; }
+    .search-input {
+      padding: 8px 12px;
+      border: 1px solid #dcdfe6;
+      border-radius: 4px;
+      font-size: 14px;
+      width: 150px;
+      background: white;
+      color: #606266;
+      outline: none;
+      transition: all .2s;
+      font-family: inherit;
+    }
+    .search-input:hover { border-color: #c0c4cc; }
+    .search-input:focus { border-color: #409eff; box-shadow: 0 0 0 2px rgba(64,158,255,.2); }
+    .search-input.short { width: 130px; }
+    .date-sep { color: #c0c4cc; font-size: 13px; }
+
+    .search-buttons {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      padding: 0 20px 20px;
+    }
+    .search-btn {
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: inherit;
+      transition: all .2s;
+    }
+    .search-btn.primary { background: #409eff; color: white; border-color: #409eff; }
+    .search-btn.primary:hover { background: #66b1ff; border-color: #66b1ff; }
+    .search-btn.default { background: white; color: #606266; border-color: #dcdfe6; }
+    .search-btn.default:hover { background: #ecf5ff; border-color: #409eff; color: #409eff; }
+
+    /* ── 麵包屑 ── */
+    .breadcrumb-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .breadcrumb { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; font-size: 12px; }
+    .bc-item {
+      color: #409eff;
+      background: #ecf5ff;
+      border: 1px solid #d0e8ff;
+      border-radius: 4px;
+      padding: 2px 8px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .bc-item:hover { background: #d0e8ff; color: #337ecc; }
+    .bc-item.current {
+      color: #606266;
+      background: #f4f4f5;
+      border-color: #e9e9eb;
+      cursor: default;
+      pointer-events: none;
+    }
+    .bc-sep { color: #c0c4cc; font-size: 12px; }
+
+    /* ── KPI 卡片 ── */
+    .stats-section {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .stats-card {
+      flex: 1;
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,.1);
+      min-width: 160px;
+      border-left: 4px solid #e0e0e0;
+      transition: all .3s;
+    }
+    .stats-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,.15); transform: translateY(-2px); }
+    .stats-card:nth-child(1) { border-left-color: #409eff; }
+    .stats-card:nth-child(2) { border-left-color: #f093fb; }
+    .stats-card:nth-child(3) { border-left-color: #43e97b; }
+    .stats-card:nth-child(4) { border-left-color: #f56c6c; }
+    .stats-content { display: flex; flex-direction: column; width: 100%; }
+    .stats-label { font-size: 13px; color: #666; margin-bottom: 10px; font-weight: 500; }
+    .stats-value { font-size: 22px; font-weight: 700; color: #333; line-height: 1; text-align: right; }
+    .stats-sub { font-size: 11px; color: #999; text-align: right; margin-top: 5px; }
+
+    /* ── 表格區 ── */
+    .table-section {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,.1);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .table-toolbar {
+      background: #fafafa;
+      border-bottom: 1px solid #e8e8e8;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .table-toolbar-title { font-size: 14px; font-weight: 600; color: #333; }
+    .table-toolbar-title small { font-size: 12px; font-weight: 400; color: #999; margin-left: 8px; }
+    .toolbar-btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid #dcdfe6;
+      background: white;
+      color: #606266;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: inherit;
+      transition: all .2s;
+    }
+    .toolbar-btn:hover { background: #ecf5ff; border-color: #409eff; color: #409eff; }
+
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 11px 14px; border-bottom: 1px solid #e8e8e8; text-align: center; white-space: nowrap; }
+    th {
+      background: #f8f9fa;
+      font-weight: 600;
+      font-size: 12px;
+      color: #606266;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    td.tal { text-align: left; }
+    td.tar { text-align: right; }
+
+    /* 數字樣式 */
+    .num { font-weight: 600; font-family: 'SF Mono', 'Fira Mono', monospace; }
+    .num.pos { color: #67c23a; }
+    .num.neg { color: #f56c6c; }
+    .num.blue { color: #409eff; }
+    .num.big { font-size: 14px; }
+
+    /* 總計列 */
+    .row-total { background: #555 !important; }
+    .row-total td { color: white !important; font-weight: 600; border-bottom: 1px solid #666 !important; }
+
+    /* 層級列背景 */
+    .row-l1 { background: #faf5ff; }
+    .row-l2 { background: #eff6ff; }
+    .row-l3 { background: #f0fdf4; }
+    .row-l4 { background: #fffbeb; }
+    .row-agent { cursor: pointer; }
+    .row-agent:hover { filter: brightness(.97); }
+
+    /* 子列 */
+    .row-sub { background: #fafafa !important; }
+    .row-sub td { font-size: 12px; color: #606266; }
+    .sub-own      { border-left: 3px solid #67c23a !important; }
+    .sub-downline { border-left: 3px solid #409eff !important; }
+    .sub-neg      { border-left: 3px solid #f56c6c !important; }
+
+    /* 層級 tag */
+    .tag-lv { display: inline-block; padding: 1px 6px; border-radius: 10px; font-size: 11px; font-weight: 600; margin-left: 5px; }
+    .tlv1 { background: #ede9fe; color: #7c3aed; }
+    .tlv2 { background: #dbeafe; color: #2563eb; }
+    .tlv3 { background: #dcfce7; color: #059669; }
+    .tlv4 { background: #fef9c3; color: #92400e; }
+
+    /* 其他 */
+    .neg-badge { font-size: 11px; padding: 1px 6px; border-radius: 4px; background: #fef2f2; color: #f56c6c; border: 1px solid #fca5a5; margin-left: 5px; font-weight: 600; }
+    .drill-link { color: #409eff; font-weight: 600; cursor: pointer; }
+    .drill-link:hover { text-decoration: underline; color: #337ecc; }
+    .formula { font-size: 11px; color: #999; font-family: 'SF Mono', 'Fira Mono', monospace; }
+
+    .empty-state { text-align: center; padding: 48px 20px; color: #999; font-size: 13px; }
+    .empty-state .ei { font-size: 36px; margin-bottom: 10px; opacity: .5; }
+
+    /* 說明區塊 */
+    .info-section { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
+    .info-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,.1);
+      overflow: hidden;
+    }
+    .info-card h3 {
+      background: #f8f9fa;
+      margin: 0;
+      padding: 13px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      border-bottom: 1px solid #e8e8e8;
+    }
+    .info-alert {
+      background: #f0f9ff;
+      border: 1px solid #b3d8ff;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 16px 20px 0;
+      font-size: 13px;
+      color: #1565c0;
+      line-height: 1.6;
+    }
+    .info-alert strong { color: #0d47a1; }
+    .info-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .info-table th {
+      background: #f8f9fa; padding: 11px 16px; text-align: center;
+      font-weight: 600; color: #606266; border-bottom: 1px solid #e8e8e8; font-size: 12px;
+    }
+    .info-table td {
+      padding: 11px 16px; border-bottom: 1px solid #f0f0f0;
+      color: #666; line-height: 1.5; vertical-align: top;
+    }
+    .info-table td:first-child { font-weight: 600; color: #333; text-align: center; background: #fafafa; white-space: nowrap; }
+    .info-table tr:last-child td { border-bottom: none; }
+    .info-table tbody tr:hover td { background: #fafbff; }
+    .doc-highlight { color: #7c3aed; font-weight: 600; }
+
+    /* Toast */
+    .notif { position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 11px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.2); transition: opacity .3s, transform .3s; }
+    .notif.success { background: #67c23a; }
+    .notif.error   { background: #f56c6c; }
+  </style>
+</head>
+<body>
+<div class="main-content">
+<div class="container">
+
+  <!-- 標題 -->
+  <div class="header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <h1 style="font-size:24px;font-weight:600;color:#333">代理分潤報表</h1>
+  </div>
+
+  <!-- 搜尋列 -->
+  <div class="search-section">
+    <div class="search-first-row">
+      <div class="search-item">
+        <span class="search-label">時間範圍</span>
+        <input type="date" id="startDate" class="search-input" value="2025-08-01">
+        <span class="date-sep">—</span>
+        <input type="date" id="endDate" class="search-input" value="2025-08-31">
+      </div>
+      <div class="search-item">
+        <span class="search-label">代理帳號</span>
+        <select id="agentFilter" class="search-input short" style="appearance:none;background-image:url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23909399' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e\");background-repeat:no-repeat;background-position:right 8px center;background-size:16px;padding-right:30px;width:160px">
+          <option value="">全部</option>
+        </select>
+      </div>
+    </div>
+    <div class="search-buttons">
+      <button class="search-btn primary" onclick="doSearch()">🔍 查詢</button>
+      <button class="search-btn default" onclick="doReset()">重置</button>
+    </div>
+  </div>
+
+  <!-- KPI 卡片 -->
+  <div class="stats-section" id="kpiRow"></div>
+
+  <!-- 麵包屑 + 導出 + 列設置 -->
+  <div class="breadcrumb-row">
+    <div class="breadcrumb" id="breadcrumb"></div>
+    <div style="display:flex;gap:8px">
+      <button class="toolbar-btn" onclick="doExport()">導出</button>
+      <button class="toolbar-btn" onclick="openColSettings()">列設置</button>
+    </div>
+  </div>
+
+  <!-- 主表格 -->
+  <div class="table-section">
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:left;width:22%">代理帳號</th>
+            <th style="width:14%">直屬玩家 GGR</th>
+            <th style="width:16%">直屬玩家收入</th>
+            <th style="width:16%">下線玩家收入</th>
+            <th style="width:16%">當期總收入</th>
+            <th style="width:16%">計算詳情(參考計算，不製作)</th>
+          </tr>
+        </thead>
+        <tbody id="reportBody"></tbody>
+      </table>
+    </div>
+    <!-- 分頁列 -->
+    <div id="paginationBar" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid #e8e8e8;background:#fff;font-size:13px;color:#606266;">
+      <span id="pageInfo">共 1 頁 0 條，共計 0 條</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button id="pgPrev" onclick="changePage(currentPage-1)" style="width:30px;height:30px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;cursor:pointer;font-size:14px;color:#606266;display:flex;align-items:center;justify-content:center;transition:all .2s" onmouseover="this.style.borderColor='#409eff';this.style.color='#409eff'" onmouseout="this.style.borderColor='#dcdfe6';this.style.color='#606266'">‹</button>
+        <div id="pgNumbers" style="display:flex;gap:4px"></div>
+        <button id="pgNext" onclick="changePage(currentPage+1)" style="width:30px;height:30px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;cursor:pointer;font-size:14px;color:#606266;display:flex;align-items:center;justify-content:center;transition:all .2s" onmouseover="this.style.borderColor='#409eff';this.style.color='#409eff'" onmouseout="this.style.borderColor='#dcdfe6';this.style.color='#606266'">›</button>
+        <select id="pageSizeSelect" onchange="changePageSize(+this.value)" style="padding:4px 24px 4px 8px;border:1px solid #dcdfe6;border-radius:4px;font-size:13px;color:#606266;background:#fff;outline:none;appearance:none;background-image:url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23909399' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e\");background-repeat:no-repeat;background-position:right 4px center;background-size:14px;cursor:pointer;font-family:inherit">
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+        <div style="display:flex;align-items:center;gap:4px">
+          <input id="jumpInput" type="number" min="1" style="width:48px;padding:4px 6px;border:1px solid #dcdfe6;border-radius:4px;font-size:13px;color:#606266;text-align:center;outline:none;font-family:inherit" placeholder="1" onkeydown="if(event.key==='Enter')jumpToPage()">
+          <button onclick="jumpToPage()" style="padding:4px 10px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#606266;font-size:13px;cursor:pointer;font-family:inherit;transition:all .2s" onmouseover="this.style.borderColor='#409eff';this.style.color='#409eff'" onmouseout="this.style.borderColor='#dcdfe6';this.style.color='#606266'">跳轉</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 說明區 -->
+  <div class="info-section" style="margin-top:32px">
+    <div class="info-card">
+      <h3>系統說明</h3>
+      <div class="info-alert"><strong>重要提醒：</strong>本系統採用「逐層分配制」，平台從 GGR 固定留存後，剩餘部分由上往下逐層分配。每層代理只能從自己拿到的比例內往下分配，不得超過上限。</div>
+      <table class="info-table" style="margin-top:12px">
+        <thead><tr><th style="width:20%">項目</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td>計算基準</td><td>以 GGR（玩家投注總額 − 派彩總額）為分潤基礎。GGR 為正代表平台盈利，為負代表玩家贏錢。</td></tr>
+          <tr><td>分配方式</td><td>平台固定留存一定比例，剩餘給一級代理。每個代理對直屬玩家按費率上限全拿；對下線代理的玩家，則拿「自己的費率上限 − 給下線的費率」的差額。</td></tr>
+          <tr><td>負 GGR 處理</td><td>當期 GGR 為負時，該代理本期收入為 NT$0，下期重新從零計算，各期獨立不結轉。</td></tr>
+          <tr><td>費率方案</td><td>不同代理線可套用不同費率方案，切換後報表即時重新計算。</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info-card">
+      <h3>搜尋功能列</h3>
+      <div class="info-alert"><strong>重要提醒：</strong>進入頁面時自動帶入預設條件並顯示資料。點擊「重置」可回到預設值；搜尋時若欄位為空，自動補入預設值。</div>
+      <table class="info-table" style="margin-top:12px">
+        <thead><tr><th style="width:15%">欄位</th><th style="width:55%">內容說明</th><th style="width:30%">元件類型</th></tr></thead>
+        <tbody>
+          <tr><td>時間範圍</td><td>選擇要查詢的日期範圍。<br><span class="doc-highlight">預設近七天（到昨天）</span></td><td>日期範圍選擇器</td></tr>
+          <tr><td>代理帳號</td><td>輸入特定代理帳號進行篩選，留空顯示全部代理。</td><td>文字輸入（非必填）</td></tr>
+          <tr><td>查詢</td><td>點擊觸發搜尋。</td><td>按鈕</td></tr>
+          <tr><td>重置</td><td>清除所有搜尋條件，回到預設值並重新查詢。</td><td>按鈕</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info-card">
+      <h3>關鍵數據卡片</h3>
+      <div class="info-alert"><strong>重要提醒：</strong>卡片數據依據當前套用的費率方案與查詢條件即時計算，切換方案後自動更新。</div>
+      <table class="info-table" style="margin-top:12px">
+        <thead><tr><th style="width:20%">卡片名稱</th><th style="width:50%">說明</th><th style="width:30%">計算方式</th></tr></thead>
+        <tbody>
+          <tr><td>總有效 GGR</td><td>本期所有代理直屬玩家的 GGR 合計，負值歸零後加總。</td><td>Σ max(各代理直屬GGR, 0)</td></tr>
+          <tr><td>代理分潤總額</td><td>本期所有代理的總收入合計，包含直屬玩家收入與下線玩家帶來的收入。</td><td>總有效GGR × 代理總分潤率</td></tr>
+          <tr><td>平台保留</td><td>平台本期實際保留金額，等於總有效 GGR 扣除所有代理分潤後的餘額。</td><td>總有效GGR − 代理分潤總額</td></tr>
+          <tr><td>負GGR代理數</td><td>本期直屬玩家 GGR 為負值的代理人數，這些代理本期收入為 NT$0。</td><td>GGR &lt; 0 的代理人數</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info-card">
+      <h3>表格欄位說明</h3>
+      <div class="info-alert"><strong>重要提醒：</strong>點擊代理名稱可進入下一層查看其下線。麵包屑列顯示當前所在層級，可點擊任意節點返回上層。標記「負GGR」的代理本期總收入為 NT$0。</div>
+      <table class="info-table" style="margin-top:12px">
+        <thead><tr><th style="width:20%">欄位名稱</th><th style="width:50%">說明</th><th style="width:30%">備註</th></tr></thead>
+        <tbody>
+          <tr><td>代理帳號</td><td>代理帳號。有下線的代理可點擊進入下一層。</td><td>藍色超連結樣式可點擊</td></tr>
+          <tr><td>直屬玩家 GGR</td><td>該代理直屬玩家本期的 GGR 合計。正值顯示綠色，負值顯示紅色。</td><td>投注額 − 派彩額</td></tr>
+          <tr><td>直屬玩家收入</td><td>從自己直屬玩家的 GGR 中分得的收入。直屬玩家直接按費率上限全拿，不扣任何比例給下線。</td><td>直屬GGR × 費率上限%</td></tr>
+          <tr><td>下線玩家收入</td><td>從下線代理的直屬玩家 GGR 中分得的差額收入。計算方式為自己的費率上限減去給下線的費率。</td><td>下線GGR ×（自己上限 − 給下線上限）%</td></tr>
+          <tr><td>當期總收入</td><td>直屬玩家收入 + 下線玩家收入的合計。</td><td>直屬收入 + 下線收入</td></tr>
+          <tr><td>計算詳情<br>(參考計算，不製作)</td><td>顯示直屬玩家費率與下線差額費率，點擊「▶ 詳情」展開每筆收入的計算公式。</td><td>點擊展開</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- 列設置 Modal -->
+<div id="colSettingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:10px;width:540px;max-width:95vw;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25);">
+    <!-- 頭部 -->
+    <div style="padding:18px 22px;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:16px;font-weight:600;color:#333">列設置</span>
+      <span onclick="closeColSettings()" style="cursor:pointer;color:#999;font-size:22px;line-height:1;transition:color .2s" onmouseover="this.style.color='#f56c6c'" onmouseout="this.style.color='#999'">×</span>
+    </div>
+    <!-- 全選 + 重置 -->
+    <div style="padding:14px 22px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:#333;font-weight:500">
+        <input type="checkbox" id="colSelectAll" onchange="toggleSelectAll(this.checked)" style="width:15px;height:15px;accent-color:#409eff">
+        全選
+      </label>
+      <button onclick="resetColSettings()" style="padding:5px 14px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#606266;font-size:13px;cursor:pointer;font-family:inherit;transition:all .2s" onmouseover="this.style.borderColor='#409eff';this.style.color='#409eff'" onmouseout="this.style.borderColor='#dcdfe6';this.style.color='#606266'">重置</button>
+    </div>
+    <!-- 欄位列表 -->
+    <div id="colList" style="overflow-y:auto;flex:1;padding:8px 0;"></div>
+    <!-- 底部按鈕 -->
+    <div style="padding:14px 22px;border-top:1px solid #e8e8e8;display:flex;justify-content:flex-end;gap:10px;">
+      <button onclick="closeColSettings()" style="padding:8px 20px;border:1px solid #dcdfe6;border-radius:6px;background:#fff;color:#606266;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .2s" onmouseover="this.style.borderColor='#409eff';this.style.color='#409eff'" onmouseout="this.style.borderColor='#dcdfe6';this.style.color='#606266'">取消</button>
+      <button onclick="saveColSettings()" style="padding:8px 20px;border:1px solid #409eff;border-radius:6px;background:#409eff;color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .2s" onmouseover="this.style.background='#66b1ff'" onmouseout="this.style.background='#409eff'">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ 欄位設置 ══
+const COL_DEFS = [
+  { key:'agent',         label:'代理帳號',           pinLeft:true,  visible:true, pinnable:false },
+  { key:'ggr',           label:'直屬玩家 GGR',        pinLeft:false, visible:true, pinnable:true },
+  { key:'directIncome',  label:'直屬玩家收入',        pinLeft:false, visible:true, pinnable:true },
+  { key:'downlineIncome',label:'下線玩家收入',        pinLeft:false, visible:true, pinnable:true },
+  { key:'totalIncome',   label:'當期總收入',          pinLeft:false, visible:true, pinnable:true },
+  { key:'detail',        label:'計算詳情(參考計算，不製作)', pinLeft:false, visible:true, pinnable:true },
+];
+let colConfig = JSON.parse(JSON.stringify(COL_DEFS)); // working copy
+let colDraft  = [];   // draft inside modal
+let dragSrcIdx = null;
+
+function openColSettings() {
+  colDraft = JSON.parse(JSON.stringify(colConfig));
+  renderColList();
+  const m = document.getElementById('colSettingsModal');
+  m.style.display = 'flex';
+}
+function closeColSettings() {
+  document.getElementById('colSettingsModal').style.display = 'none';
+}
+function saveColSettings() {
+  colConfig = JSON.parse(JSON.stringify(colDraft));
+  closeColSettings();
+  renderAll();
+  notify('列設置已儲存','success');
+}
+function resetColSettings() {
+  colDraft = JSON.parse(JSON.stringify(COL_DEFS));
+  renderColList();
+  notify('已重置為預設值','success');
+}
+function toggleSelectAll(checked) {
+  colDraft.forEach(c => { if(c.pinnable !== false) c.visible = checked; });
+  renderColList();
+}
+
+function renderColList() {
+  const all = colDraft.filter(c => c.pinnable !== false).every(c => c.visible);
+  document.getElementById('colSelectAll').checked = all;
+
+  const list = document.getElementById('colList');
+  list.innerHTML = colDraft.map((col, i) => {
+    const pinLeftActive  = col.pinLeft  && !col.pinRight ? 'background:#409eff;color:#fff;border-color:#409eff' : 'background:#fff;color:#606266;border-color:#dcdfe6';
+    const pinRightActive = col.pinRight && !col.pinLeft  ? 'background:#409eff;color:#fff;border-color:#409eff' : 'background:#fff;color:#606266;border-color:#dcdfe6';
+    const cancelActive   = (!col.pinLeft && !col.pinRight) ? 'background:#409eff;color:#fff;border-color:#409eff' : 'background:#fff;color:#606266;border-color:#dcdfe6';
+    const draggable = col.pinnable !== false ? 'draggable="true"' : '';
+    const dragHandle = col.pinnable !== false
+      ? `<span style="color:#ccc;cursor:grab;font-size:16px;margin-right:8px;user-select:none" title="拖拉排序">⋮⋮</span>`
+      : `<span style="width:24px;display:inline-block"></span>`;
+    const checkbox = col.pinnable !== false
+      ? `<input type="checkbox" ${col.visible?'checked':''} onchange="colDraft[${i}].visible=this.checked;renderColList()" style="width:15px;height:15px;accent-color:#409eff;cursor:pointer">`
+      : `<input type="checkbox" checked disabled style="width:15px;height:15px;accent-color:#ccc">`;
+    const pinBtns = col.pinnable !== false ? `
+      <div style="display:flex;gap:4px;margin-left:auto">
+        <button onclick="setPinLeft(${i})" style="padding:3px 10px;border-radius:4px;font-size:12px;cursor:pointer;border:1px solid;transition:all .15s;font-family:inherit;${pinLeftActive}">釘選到左側</button>
+        <button onclick="setPinCancel(${i})" style="padding:3px 10px;border-radius:4px;font-size:12px;cursor:pointer;border:1px solid;transition:all .15s;font-family:inherit;${cancelActive}">取消釘選</button>
+        <button onclick="setPinRight(${i})" style="padding:3px 10px;border-radius:4px;font-size:12px;cursor:pointer;border:1px solid;transition:all .15s;font-family:inherit;${pinRightActive}">釘選到右側</button>
+      </div>` : `<div style="margin-left:auto;font-size:12px;color:#ccc">固定欄位</div>`;
+
+    return `<div data-idx="${i}" ${draggable}
+      ondragstart="dragSrcIdx=${i};this.style.opacity='.4'"
+      ondragend="this.style.opacity='1'"
+      ondragover="event.preventDefault();this.style.background='#f0f7ff'"
+      ondragleave="this.style.background=''"
+      ondrop="onColDrop(event,${i});this.style.background=''"
+      style="display:flex;align-items:center;gap:10px;padding:10px 22px;border-bottom:1px solid #f5f5f5;transition:background .15s">
+      ${dragHandle}
+      ${checkbox}
+      <span style="font-size:14px;color:#333;flex:none;min-width:160px">${col.label}</span>
+      ${pinBtns}
+    </div>`;
+  }).join('');
+}
+
+function onColDrop(e, targetIdx) {
+  if(dragSrcIdx === null || dragSrcIdx === targetIdx) return;
+  const src = colDraft.splice(dragSrcIdx, 1)[0];
+  colDraft.splice(targetIdx, 0, src);
+  dragSrcIdx = null;
+  renderColList();
+}
+function setPinLeft(i)   { colDraft[i].pinLeft=true;  colDraft[i].pinRight=false; renderColList(); }
+function setPinRight(i)  { colDraft[i].pinLeft=false; colDraft[i].pinRight=true;  renderColList(); }
+function setPinCancel(i) { colDraft[i].pinLeft=false; colDraft[i].pinRight=false; renderColList(); }
+
+// 點 modal 外部關閉
+document.addEventListener('click', e => {
+  const m = document.getElementById('colSettingsModal');
+  if(e.target === m) closeColSettings();
+});
+
+// ══ 分頁 ══
+let currentPage = 1;
+let pageSize = 10;
+let pagedRows = []; // 當前可見代理列表（排除麵包屑篩選後）
+
+function changePage(p) {
+  const totalPages = Math.ceil(pagedRows.length / pageSize) || 1;
+  if(p < 1 || p > totalPages) return;
+  currentPage = p;
+  renderPagedTable();
+}
+function changePageSize(s) {
+  pageSize = s;
+  currentPage = 1;
+  renderPagedTable();
+}
+function jumpToPage() {
+  const v = parseInt(document.getElementById('jumpInput').value);
+  if(!isNaN(v)) changePage(v);
+}
+function renderPagination(total) {
+  const totalPages = Math.ceil(total / pageSize) || 1;
+  document.getElementById('pageInfo').textContent =
+    `共 ${totalPages} 頁 ${Math.min(pageSize, total - (currentPage-1)*pageSize)} 條，共計 ${total} 條`;
+
+  // 頁碼按鈕
+  const nums = document.getElementById('pgNumbers');
+  let html = '';
+  for(let i=1; i<=totalPages; i++) {
+    if(totalPages > 7 && i > 2 && i < totalPages-1 && Math.abs(i-currentPage) > 1) {
+      if(i===3 || i===totalPages-2) html += `<span style="padding:0 2px;color:#ccc">…</span>`;
+      continue;
+    }
+    const active = i === currentPage;
+    html += `<button onclick="changePage(${i})" style="min-width:30px;height:30px;border:1px solid ${active?'#409eff':'#dcdfe6'};border-radius:4px;background:${active?'#409eff':'#fff'};color:${active?'#fff':'#606266'};cursor:pointer;font-size:13px;font-family:inherit;transition:all .2s;padding:0 6px">${i}</button>`;
+  }
+  nums.innerHTML = html;
+
+  document.getElementById('pgPrev').disabled = currentPage <= 1;
+  document.getElementById('pgNext').disabled = currentPage >= totalPages;
+  document.getElementById('pgPrev').style.opacity = currentPage <= 1 ? '.4' : '1';
+  document.getElementById('pgNext').style.opacity = currentPage >= totalPages ? '.4' : '1';
+}
+
+
+let plans = [
+  { id:'plan_std', name:'預設費率方案', desc:'全代理線共用預設值', isDefault:true, plat:50, giveL2:20, giveL3:10, giveL4:5 },
+];
+let selectedPlanId = 'plan_std', editingPlanId = null;
+
+function calcRates(p) {
+  const toL1 = 100 - p.plat;
+  return { toL1, l1keep: toL1-p.giveL2, l2keep: p.giveL2-p.giveL3, l3keep: p.giveL3-p.giveL4, l4keep: p.giveL4 };
+}
+
+// ══ 假資料 ══
+const SAMPLE_AGENTS = [
+  { id:'A001', name:'Alex 張', level:1, uplineId:null },
+  { id:'B001', name:'Bob 李',  level:2, uplineId:'A001' },
+  { id:'B002', name:'Ben 王',  level:2, uplineId:'A001' },
+  { id:'C001', name:'Carol 陳',level:3, uplineId:'B001' },
+  { id:'C002', name:'Chris 林',level:3, uplineId:'B002' },
+  { id:'D001', name:'David 吳',level:4, uplineId:'C001' },
+  { id:'D002', name:'Diana 鄭',level:4, uplineId:'C001' },
+  { id:'D003', name:'Derek 黃',level:4, uplineId:'C002' },
+];
+const SAMPLE_RATES = {
+  'A001->B001': 20,
+  'A001->B002': 15,
+  'B001->C001': 10,
+  'B002->C002': 10,
+  'C001->D001': 5,
+  'C001->D002': 5,
+  'C002->D003': 5,
+};
+const SAMPLE_GGR = {
+  A001:{ bet:500000,  payout:480000  },
+  B001:{ bet:1200000, payout:1140000 },
+  B002:{ bet:800000,  payout:770000  },
+  C001:{ bet:600000,  payout:570000  },
+  C002:{ bet:400000,  payout:390000  },
+  D001:{ bet:2000000, payout:1850000 },
+  D002:{ bet:800000,  payout:830000  },
+  D003:{ bet:1500000, payout:1380000 },
+};
+let AGENTS = [], ggrData = {}, agentRates = {}, bcPath = [];
+
+function loadSampleData() {
+  AGENTS     = JSON.parse(JSON.stringify(SAMPLE_AGENTS));
+  ggrData    = JSON.parse(JSON.stringify(SAMPLE_GGR));
+  agentRates = JSON.parse(JSON.stringify(SAMPLE_RATES));
+  bcPath     = [];
+  // 填充下拉選單
+  const sel = document.getElementById('agentFilter');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">全部</option>' +
+    AGENTS.map(ag => `<option value="${ag.id}">${ag.name} (${ag.id})</option>`).join('');
+  sel.value = AGENTS.find(a=>a.id===cur) ? cur : '';
+}
+
+function getPairRate(uplineId, downlineId) {
+  const key = uplineId+'->'+downlineId;
+  return agentRates.hasOwnProperty(key) ? agentRates[key] : null;
+}
+function getAgentCeiling(ag, p) {
+  if (!ag.uplineId) return 100 - p.plat;
+  const individual = getPairRate(ag.uplineId, ag.id);
+  if (individual !== null) return individual;
+  const defaults = { 2: p.giveL2, 3: p.giveL3, 4: p.giveL4 };
+  return defaults[ag.level] ?? 0;
+}
+
+function updateReportBar() {}
+
+// ══ GGR ══
+function calcGGR(id){const g=ggrData[id];return g?g.bet-g.payout:0;}
+function calcEffGGR(id){return Math.max(0,calcGGR(id));}
+
+// ══ 分潤計算 ══
+function getAncestorChain(agId){
+  const chain=[];let cur=AGENTS.find(a=>a.id===agId);
+  while(cur){chain.unshift(cur);cur=cur.uplineId?AGENTS.find(a=>a.id===cur.uplineId):null;}
+  return chain;
+}
+function calcCommissions(){
+  const p=plans.find(x=>x.id===selectedPlanId); if(!p)return{};
+  const result={};
+  AGENTS.forEach(ag=>{result[ag.id]={agent:ag,ggr:calcGGR(ag.id),effGGR:calcEffGGR(ag.id),directIncome:0,downlineIncome:0,downlineDetails:[],totalIncome:0,isNegative:calcGGR(ag.id)<0};});
+  AGENTS.forEach(ag=>{
+    const e=calcEffGGR(ag.id); if(e<=0)return;
+    const chain=getAncestorChain(ag.id);
+    chain.forEach((ca, idx)=>{
+      const isOwner = ca.id === ag.id;
+      const myCeiling = getAgentCeiling(ca, p);
+      let pct;
+      if(isOwner){ pct = myCeiling; }
+      else {
+        const nextInChain = chain[idx+1];
+        const giveAway = nextInChain ? getAgentCeiling(nextInChain, p) : 0;
+        pct = myCeiling - giveAway;
+      }
+      const inc = e * pct / 100;
+      if(inc<=0) return;
+      if(isOwner){ result[ag.id].directIncome+=inc; }
+      else {
+        result[ca.id].downlineIncome+=inc;
+        result[ca.id].downlineDetails.push({sourceAgent:ag.name,sourceId:ag.id,sourceLevel:ag.level,pct,amount:inc,baseGGR:e});
+      }
+    });
+  });
+  AGENTS.forEach(ag=>{result[ag.id].totalIncome=result[ag.id].directIncome+result[ag.id].downlineIncome;});
+  return result;
+}
+
+// ══ KPI ══
+function renderKPI(data){
+  const tg=AGENTS.reduce((s,ag)=>s+calcEffGGR(ag.id),0);
+  const ta=Object.values(data).reduce((s,d)=>s+d.totalIncome,0), pi=tg-ta;
+  const negCount=Object.values(data).filter(d=>d.isNegative).length;
+  document.getElementById('kpiRow').innerHTML=`
+    <div class="stats-card">
+      <div class="stats-content">
+        <div class="stats-label">總有效 GGR</div>
+        <div class="stats-value" style="color:#409eff">NT$${fmt(tg)}</div>
+        <div class="stats-sub">本期所有代理直屬玩家合計</div>
+      </div>
+    </div>
+    <div class="stats-card">
+      <div class="stats-content">
+        <div class="stats-label">代理分潤總額</div>
+        <div class="stats-value" style="color:#e040fb">NT$${fmt(Math.round(ta))}</div>
+        <div class="stats-sub">佔總GGR ${tg>0?(ta/tg*100).toFixed(1):0}%</div>
+      </div>
+    </div>
+    <div class="stats-card">
+      <div class="stats-content">
+        <div class="stats-label">平台保留</div>
+        <div class="stats-value" style="color:#67c23a">NT$${fmt(Math.round(pi))}</div>
+        <div class="stats-sub">佔總GGR ${tg>0?(pi/tg*100).toFixed(1):0}%</div>
+      </div>
+    </div>
+    <div class="stats-card">
+      <div class="stats-content">
+        <div class="stats-label">負GGR代理</div>
+        <div class="stats-value" style="color:#f56c6c">${negCount} 人</div>
+        <div class="stats-sub">本期收入為 NT$0</div>
+      </div>
+    </div>
+  `;
+}
+
+// ══ 麵包屑 ══
+function drillDown(agId,agName,agLevel){bcPath.push({id:agId,name:agName,level:agLevel});renderAll();}
+function bcNavTo(idx){bcPath=idx<0?[]:bcPath.slice(0,idx+1);renderAll();}
+function renderBreadcrumb(){
+  const ll=['','一級','二級','三級','四級'];
+  let h=`<div class="bc-item ${bcPath.length===0?'current':''}" onclick="bcNavTo(-1)">🏠 全部</div>`;
+  bcPath.forEach((bc,i)=>{const c=i===bcPath.length-1;h+=`<span class="bc-sep">›</span><div class="bc-item ${c?'current':''}" onclick="bcNavTo(${i})">${bc.name} <span style="font-size:10px;opacity:.7">${ll[bc.level]}</span></div>`;});
+  document.getElementById('breadcrumb').innerHTML=h;
+}
+
+// ══ 報表渲染 ══
+let _lastData = null; // cache for re-render on page change
+
+function renderTable(data){
+  _lastData = data;
+  const p=plans.find(x=>x.id===selectedPlanId); if(!p)return;
+  const af = document.getElementById('agentFilter').value;
+
+  renderBreadcrumb();
+
+  if(!AGENTS.length){document.getElementById('reportBody').innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="ei">📋</div>尚無資料，請查詢</div></td></tr>`;return;}
+
+  const pid=bcPath.length>0?bcPath[bcPath.length-1].id:null;
+  let vis=AGENTS.filter(a=>a.uplineId===pid);
+  if(af) vis=vis.filter(a=>a.id===af);
+
+  pagedRows = vis;
+  currentPage = 1;
+  renderPagedTable();
+}
+
+function renderPagedTable() {
+  const data = _lastData; if(!data) return;
+  const p = plans.find(x=>x.id===selectedPlanId); if(!p)return;
+
+  function getDirectPct(ag){ return getAgentCeiling(ag, p); }
+  function getDownlinePct(ag){
+    const children = AGENTS.filter(a=>a.uplineId===ag.id);
+    if (!children.length) return null;
+    const diffs = children.map(c => getAgentCeiling(ag,p) - getAgentCeiling(c,p));
+    const min = Math.min(...diffs), max = Math.max(...diffs);
+    return min === max ? `${min}%` : `${min}~${max}%`;
+  }
+
+  const lt={1:`<span class="tag-lv tlv1">一級</span>`,2:`<span class="tag-lv tlv2">二級</span>`,3:`<span class="tag-lv tlv3">三級</span>`,4:`<span class="tag-lv tlv4">四級</span>`};
+  const lc={1:'row-l1',2:'row-l2',3:'row-l3',4:'row-l4'};
+
+  // 依 colConfig 排列
+  const visibleCols = [
+    ...colConfig.filter(c=>c.pinLeft),
+    ...colConfig.filter(c=>!c.pinLeft&&!c.pinRight&&c.visible),
+    ...colConfig.filter(c=>c.pinRight&&c.visible),
+  ].filter(c=>c.visible||c.pinnable===false);
+
+  // 更新 thead
+  const thead = document.querySelector('#reportBody').closest('table').querySelector('thead tr');
+  thead.innerHTML = visibleCols.map(c => {
+    const align = c.key==='agent' ? 'text-align:left' : '';
+    return `<th style="${align}">${c.label}</th>`;
+  }).join('');
+
+  const colCount = visibleCols.length;
+  const total = pagedRows.length;
+  const start = (currentPage-1)*pageSize;
+  const pageRows = pagedRows.slice(start, start+pageSize);
+
+  const totalIncome = pagedRows.reduce((s,ag)=>s+(data[ag.id]?.totalIncome||0),0);
+  let html = `<tr class="row-total">` +
+    visibleCols.map(c => {
+      if(c.key==='agent')        return `<td class="tal"><strong>總計</strong></td>`;
+      if(c.key==='totalIncome')  return `<td class="tar num big">NT$${fmt(Math.round(totalIncome))}</td>`;
+      if(c.key==='detail')       return `<td>本層代理合計</td>`;
+      return `<td>—</td>`;
+    }).join('') + `</tr>`;
+
+  if(!pageRows.length){
+    html+=`<tr><td colspan="${colCount}"><div class="empty-state"><div class="ei">👤</div>此層無代理資料</div></td></tr>`;
+    document.getElementById('reportBody').innerHTML=html;
+    renderPagination(total);
+    return;
+  }
+
+  function getCell(col, ag, d, ch, hasC, directPct, downlinePctStr) {
+    switch(col.key) {
+      case 'agent':
+        return `<td class="tal">
+          ${hasC?`<span class="drill-link" onclick="drillDown('${ag.id}','${ag.name}',${ag.level})">${ag.name}</span>`:`<strong>${ag.name}</strong>`}
+          ${lt[ag.level]}
+          ${d.isNegative?'<span class="neg-badge">負GGR</span>':''}
+          ${hasC?`<span style="color:#999;font-size:11px;margin-left:6px">▸ ${ch.length}個下線</span>`:''}
+        </td>`;
+      case 'ggr':
+        return `<td class="tar num ${d.ggr>=0?'pos':'neg'}">${d.ggr>=0?'':'−'}NT$${fmt(Math.abs(d.ggr))}</td>`;
+      case 'directIncome':
+        return `<td class="tar num pos">NT$${fmt(Math.round(d.directIncome))}</td>`;
+      case 'downlineIncome':
+        return `<td class="tar num blue">NT$${fmt(Math.round(d.downlineIncome))}</td>`;
+      case 'totalIncome':
+        return `<td class="tar num big blue">NT$${fmt(Math.round(d.totalIncome))}</td>`;
+      case 'detail':
+        return `<td class="formula" style="white-space:nowrap">
+          直屬 ${directPct}%${downlinePctStr?` / 下線 ${downlinePctStr}`:''}
+          <span onclick="toggleDetail('${ag.id}', this)" style="color:#409eff;font-size:12px;font-weight:600;cursor:pointer;user-select:none;margin-left:6px">▶ 詳情</span>
+        </td>`;
+      default: return '<td>—</td>';
+    }
+  }
+
+  pageRows.forEach(ag=>{
+    const d=data[ag.id], ch=AGENTS.filter(a=>a.uplineId===ag.id), hasC=ch.length>0;
+    const directPct=getDirectPct(ag);
+    const downlinePctStr=getDownlinePct(ag);
+
+    html += `<tr class="${lc[ag.level]} ${hasC?'row-agent':''}">` +
+      visibleCols.map(c=>getCell(c,ag,d,ch,hasC,directPct,downlinePctStr)).join('') +
+      `</tr>`;
+
+    html+=`<tr class="row-sub sub-own detail-row detail-${ag.id}" style="display:none">
+      <td class="tal" style="padding-left:28px">🟢 直屬玩家收入</td>
+      <td class="tar">NT$${fmt(d.effGGR)}</td>
+      <td class="tar num pos">NT$${fmt(Math.round(d.directIncome))}</td>
+      <td>—</td>
+      <td class="tar num">NT$${fmt(Math.round(d.directIncome))}</td>
+      ${colCount>5?`<td class="formula">NT$${fmt(d.effGGR)} × ${directPct}%</td>`:''}
+    </tr>`;
+
+    if(d.isNegative) html+=`<tr class="row-sub sub-neg detail-row detail-${ag.id}" style="display:none">
+      <td class="tal" style="padding-left:28px">🔴 本期GGR為負</td>
+      <td class="tar num neg">−NT$${fmt(Math.abs(d.ggr))}</td>
+      <td colspan="${colCount-2}" style="color:#f56c6c;font-size:12px">玩家本期盈利，代理收入為 NT$0</td>
+    </tr>`;
+
+    if(d.downlineIncome>0){
+      const grouped={};
+      d.downlineDetails.forEach(dl=>{
+        if(!grouped[dl.sourceId]) grouped[dl.sourceId]={name:dl.sourceAgent,level:dl.sourceLevel,pct:dl.pct,amount:0,baseGGR:dl.baseGGR};
+        grouped[dl.sourceId].amount+=dl.amount;
+      });
+      Object.values(grouped).forEach(g=>{
+        html+=`<tr class="row-sub sub-downline detail-row detail-${ag.id}" style="display:none">
+          <td class="tal" style="padding-left:28px">🔵 ${g.name} 下線收入（${['','一','二','三','四'][g.level]}級）</td>
+          <td class="tar" style="color:#999">NT$${fmt(g.baseGGR)}</td>
+          <td>—</td>
+          <td class="tar num blue">NT$${fmt(Math.round(g.amount))}</td>
+          <td class="tar num">NT$${fmt(Math.round(g.amount))}</td>
+          ${colCount>5?`<td class="formula">NT$${fmt(g.baseGGR)} × ${g.pct}%</td>`:''}
+        </tr>`;
+      });
+    }
+  });
+
+  document.getElementById('reportBody').innerHTML=html;
+  renderPagination(total);
+}
+
+// ══ 查詢 / 重置 / 導出 ══
+async function loadData(){loadSampleData();}
+function doSearch(){
+  const s=document.getElementById('startDate').value,e=document.getElementById('endDate').value;
+  if(!s||!e){notify('請選擇完整時間範圍','error');return;}
+  if(s>e){notify('開始日期不能晚於結束日期','error');return;}
+  loadData().then(()=>{renderAll();notify('查詢完成 · '+s+' ~ '+e,'success');});
+}
+function doReset(){
+  document.getElementById('startDate').value='2025-08-01';
+  document.getElementById('endDate').value='2025-08-31';
+  document.getElementById('agentFilter').value='';
+  loadSampleData();renderAll();notify('已重置','success');
+}
+function doExport(){
+  const data=calcCommissions();
+  let csv='代理帳號,姓名,層級,直屬玩家GGR,直屬玩家收入,下線玩家收入,當期總收入\n';
+  AGENTS.forEach(ag=>{const d=data[ag.id];csv+=`${ag.id},${ag.name},${ag.level}級,${d.ggr},${Math.round(d.directIncome)},${Math.round(d.downlineIncome)},${Math.round(d.totalIncome)}\n`;});
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='代理分潤報表.csv';a.click();
+  notify('報表已導出','success');
+}
+
+function renderAll(){const data=calcCommissions();renderKPI(data);renderTable(data);}
+
+function toggleDetail(agId, btn) {
+  const rows = document.querySelectorAll('.detail-'+agId);
+  const open = rows.length && rows[0].style.display === 'none';
+  rows.forEach(r => r.style.display = open ? '' : 'none');
+  btn.innerHTML = open ? '▼ 收起' : '▶ 詳情';
+  btn.style.color = open ? '#999' : '#409eff';
+}
+
+function fmt(n){return Math.round(Math.abs(n)).toLocaleString('zh-TW');}
+function notify(msg,type='success'){
+  const el=document.createElement('div');el.className='notif '+type;el.textContent=msg;
+  document.body.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transform='translateX(110%)';setTimeout(()=>el.remove(),300);},2800);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  loadSampleData();renderAll();
+});
+</script>
+</body>
+</html>

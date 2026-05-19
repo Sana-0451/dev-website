@@ -1,0 +1,2919 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banner管理系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .main-content {
+            margin-left: 0;
+            margin-top: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .search-first-row {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-label {
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .search-select {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 120px;
+            transition: all 0.2s ease;
+            background: white;
+            color: #606266;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23909399' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 8px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 32px;
+        }
+
+        .search-select:hover {
+            border-color: #c0c4cc;
+        }
+
+        .search-select:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+
+        .search-buttons {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+            padding: 0 20px 20px 20px;
+        }
+
+        .search-btn, .reset-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+            min-width: 70px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .search-btn {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .search-btn:hover {
+            background: #66b1ff;
+            border-color: #66b1ff;
+        }
+
+        .reset-btn {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .reset-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        /* Table Header */
+        .table-header {
+            background: #fafafa;
+            border-radius: 8px 8px 0 0;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8e8e8;
+            margin-bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .table-header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .table-header-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+            min-width: 70px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .table-header-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .table-header-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f5f5f5;
+            color: #c0c4cc;
+        }
+
+        .table-header-btn:disabled:hover {
+            background: #f5f5f5;
+            border-color: #dcdfe6;
+            color: #c0c4cc;
+        }
+
+        .btn-danger {
+            background: #f56c6c;
+            color: white;
+            border-color: #f56c6c;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #f78989;
+            border-color: #f78989;
+        }
+
+        /* Banner Table */
+        .banner-table {
+            background: white;
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #e8e8e8;
+            border-right: 1px solid #e8e8e8;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #606266;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+
+        .sortable:hover {
+            color: #409eff;
+        }
+
+        .sortable::after {
+            content: '↕';
+            position: absolute;
+            right: 5px;
+            color: #ccc;
+            font-size: 12px;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background-color: #dcdfe6;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 0 auto;
+        }
+
+        .toggle-switch.active {
+            background-color: #409eff;
+        }
+
+        .toggle-switch::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch.active::before {
+            transform: translateX(20px);
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+            margin: 0 2px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-view {
+            background: white;
+            color: #333;
+            border-color: #dcdfe6;
+        }
+
+        .btn-view:hover {
+            background: #f5f5f5;
+            border-color: #999;
+        }
+
+        .btn-edit {
+            background: white;
+            color: #333;
+            border-color: #dcdfe6;
+        }
+
+        .btn-edit:hover {
+            background: #f5f5f5;
+            border-color: #999;
+        }
+
+        .btn-delete {
+            background: white;
+            color: #333;
+            border-color: #dcdfe6;
+        }
+
+        .btn-delete:hover {
+            background: #f5f5f5;
+            border-color: #999;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .page-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .page-btn.active {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 20px;
+        }
+
+        .page-size-select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .jump-page {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 20px;
+        }
+
+        .jump-input {
+            width: 60px;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* System Info Section */
+        .system-info-section {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .info-card h3 {
+            background: #f8f9fa;
+            margin: 0;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: white;
+        }
+
+        .info-table th {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            text-align: center;
+            font-weight: 600;
+            color: #606266;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #666;
+            line-height: 1.4;
+            vertical-align: top;
+            text-align: center;
+        }
+
+        .info-table td:first-child {
+            font-weight: 500;
+        }
+
+        .info-table td:last-child {
+            text-align: left;
+        }
+
+        .info-table td:nth-child(2) {
+            text-align: left;
+        }
+
+        .info-table td:nth-child(3) {
+            text-align: left;
+        }
+
+        .info-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .info-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .alert-info {
+            background: #f0f9ff;
+            border: 1px solid #b3d8ff;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #1565c0;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 600px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8e8e8;
+            background: #fafafa;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: white;
+            color: #606266;
+            outline: none;
+        }
+
+        .form-input:hover, .form-select:hover, .form-textarea:hover {
+            border-color: #c0c4cc;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+
+        .form-input:disabled, .form-select:disabled, .form-textarea:disabled {
+            background-color: #f5f7fa;
+            color: #c0c4cc;
+            cursor: not-allowed;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23909399' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 8px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 32px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 16px 20px;
+            border-top: 1px solid #e8e8e8;
+            background: #fafafa;
+        }
+
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+            min-width: 80px;
+        }
+
+        .modal-btn-primary {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .modal-btn-primary:hover {
+            background: #66b1ff;
+            border-color: #66b1ff;
+        }
+
+        .modal-btn-secondary {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .required {
+            color: #f56c6c;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed #dcdfe6;
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fafbfc;
+        }
+
+        .upload-area:hover {
+            border-color: #409eff;
+            background: #f0f9ff;
+        }
+
+        .upload-placeholder {
+            color: #666;
+        }
+
+        .upload-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .upload-text {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .upload-specs {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #999;
+            line-height: 1.3;
+        }
+
+        .upload-preview {
+            position: relative;
+        }
+
+        .upload-info {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .upload-remove {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .upload-remove:hover {
+            background: rgba(0,0,0,0.8);
+        }
+
+        /* Radio Group */
+        .radio-group {
+            display: flex;
+            gap: 20px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: #606266;
+        }
+
+        .radio-item input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        /* 通知提示 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 4px;
+            color: white;
+            font-size: 14px;
+            z-index: 10001;
+            min-width: 200px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .notification.success {
+            background: #67c23a;
+        }
+
+        .notification.error {
+            background: #f56c6c;
+        }
+
+        .notification.warning {
+            background: #e6a23c;
+        }
+
+        .notification.info {
+            background: #409eff;
+        }
+
+        .notification.hide {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+
+        /* Column Modal Overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .column-modal {
+            background: white;
+            border-radius: 8px;
+            width: 800px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .column-settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .select-all {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .column-list {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .column-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s;
+        }
+
+        .column-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .drag-handle {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 32px;
+            cursor: move;
+            color: #999;
+            margin-right: 12px;
+        }
+
+        .arrow-up, .arrow-down {
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+        }
+
+        .arrow-up {
+            border-bottom: 6px solid #999;
+            margin-bottom: 2px;
+        }
+
+        .arrow-down {
+            border-top: 6px solid #999;
+        }
+
+        .column-checkbox {
+            margin-right: 12px;
+            width: 16px;
+            height: 16px;
+        }
+
+        .column-name {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .column-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .column-actions .action-btn {
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background: white;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .column-actions .action-btn:hover {
+            background: #f0f9ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .btn-secondary:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .btn-primary {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .btn-primary:hover {
+            background: #66b1ff;
+            border-color: #66b1ff;
+        }
+    </style>
+</head>
+<body>
+    <main class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>Banner管理</h1>
+            </div>
+
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="search-first-row">
+                    <div class="search-item">
+                        <label class="search-label">所屬代理：</label>
+                        <select id="agent" class="search-select">
+                            <option value="">請選擇</option>
+                            <option value="rd-wallet-test">rd-wallet-test</option>
+                            <option value="kinWC1agent">kinWC1agent</option>
+                            <option value="icafe-agent003">icafe-agent003</option>
+                        </select>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">平台：</label>
+                        <select id="platform" class="search-select">
+                            <option value="">請選擇</option>
+                            <option value="web">網頁版</option>
+                            <option value="mobile">手機版</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="search-buttons">
+                    <button class="search-btn" onclick="searchBanners()">搜索</button>
+                    <button class="reset-btn" onclick="resetSearch()">重置</button>
+                </div>
+            </div>
+
+            <!-- Table Header -->
+            <div class="table-header">
+                <div class="table-header-left">
+                    <button class="table-header-btn btn-danger" onclick="batchDelete()" id="batchDeleteBtn">批量刪除</button>
+                </div>
+                <div class="table-header-right">
+                    <button class="table-header-btn" onclick="openAddModal()">＋新增Banner</button>
+                    <button class="table-header-btn" onclick="columnSettings()">列設置</button>
+                </div>
+            </div>
+
+            <div class="banner-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">
+                                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" style="width: 16px; height: 16px;">
+                            </th>
+                            <th>ID</th>
+                            <th>所屬代理</th>
+                            <th>標題</th>
+                            <th>品牌</th>
+                            <th>平台</th>
+                            <th class="sortable" onclick="sortTable('sort')">排序</th>
+                            <th>狀態</th>
+                            <th>點擊Banner的跳轉位置（網址、遊戲）</th>
+                            <th>操作人</th>
+                            <th class="sortable" onclick="sortTable('updateTime')">更新時間</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bannerTableBody">
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="row-checkbox" onchange="updateBatchDeleteButton()" style="width: 16px; height: 16px;">
+                            </td>
+                            <td>1</td>
+                            <td>rd-wallet-test</td>
+                            <td>banner1test0011234567β</td>
+                            <td>Viva</td>
+                            <td>web</td>
+                            <td>1000</td>
+                            <td>
+                                <div class="toggle-switch active" onclick="toggleStatus(this)"></div>
+                            </td>
+                            <td>https://example.com/game</td>
+                            <td>admin</td>
+                            <td>2025-09-01 14:14:05</td>
+                            <td>
+                                <a href="#" class="action-btn btn-view" onclick="viewBanner(1)">顯示</a>
+                                <a href="#" class="action-btn btn-edit" onclick="openEditModal(1)">編輯</a>
+                                <a href="#" class="action-btn btn-delete" onclick="openDeleteModal(1)">刪除</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="row-checkbox" onchange="updateBatchDeleteButton()" style="width: 16px; height: 16px;">
+                            </td>
+                            <td>3</td>
+                            <td>rd-wallet-test</td>
+                            <td>banner2測試</td>
+                            <td>alpha</td>
+                            <td>web</td>
+                            <td>1000</td>
+                            <td>
+                                <div class="toggle-switch active" onclick="toggleStatus(this)"></div>
+                            </td>
+                            <td>GAME001</td>
+                            <td>admin</td>
+                            <td>2024-07-17 10:57:36</td>
+                            <td>
+                                <a href="#" class="action-btn btn-view" onclick="viewBanner(3)">顯示</a>
+                                <a href="#" class="action-btn btn-edit" onclick="openEditModal(3)">編輯</a>
+                                <a href="#" class="action-btn btn-delete" onclick="openDeleteModal(3)">刪除</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="row-checkbox" onchange="updateBatchDeleteButton()" style="width: 16px; height: 16px;">
+                            </td>
+                            <td>12</td>
+                            <td>kinWC1agent</td>
+                            <td>促銷活動Banner</td>
+                            <td>Vegas</td>
+                            <td>web</td>
+                            <td>1</td>
+                            <td>
+                                <div class="toggle-switch active" onclick="toggleStatus(this)"></div>
+                            </td>
+                            <td>/promotion/summer-sale</td>
+                            <td>admin</td>
+                            <td>2024-07-12 14:58:28</td>
+                            <td>
+                                <a href="#" class="action-btn btn-view" onclick="viewBanner(12)">顯示</a>
+                                <a href="#" class="action-btn btn-edit" onclick="openEditModal(12)">編輯</a>
+                                <a href="#" class="action-btn btn-delete" onclick="openDeleteModal(12)">刪除</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="row-checkbox" onchange="updateBatchDeleteButton()" style="width: 16px; height: 16px;">
+                            </td>
+                            <td>15</td>
+                            <td>icafe-agent003</td>
+                            <td>新遊戲上線</td>
+                            <td>CasinoNeko</td>
+                            <td>web</td>
+                            <td>1000</td>
+                            <td>
+                                <div class="toggle-switch active" onclick="toggleStatus(this)"></div>
+                            </td>
+                            <td>/games/new-slot-game</td>
+                            <td>admin</td>
+                            <td>2024-07-12 23:19:45</td>
+                            <td>
+                                <a href="#" class="action-btn btn-view" onclick="viewBanner(15)">顯示</a>
+                                <a href="#" class="action-btn btn-edit" onclick="openEditModal(15)">編輯</a>
+                                <a href="#" class="action-btn btn-delete" onclick="openDeleteModal(15)">刪除</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="row-checkbox" onchange="updateBatchDeleteButton()" style="width: 16px; height: 16px;">
+                            </td>
+                            <td>18</td>
+                            <td>rd-wallet-test</td>
+                            <td>週末特惠活動</td>
+                            <td>Maxbe</td>
+                            <td>mobile</td>
+                            <td>500</td>
+                            <td>
+                                <div class="toggle-switch" onclick="toggleStatus(this)"></div>
+                            </td>
+                            <td>https://mobile.example.com/weekend</td>
+                            <td>operator</td>
+                            <td>2024-07-10 16:22:15</td>
+                            <td>
+                                <a href="#" class="action-btn btn-view" onclick="viewBanner(18)">顯示</a>
+                                <a href="#" class="action-btn btn-edit" onclick="openEditModal(18)">編輯</a>
+                                <a href="#" class="action-btn btn-delete" onclick="openDeleteModal(18)">刪除</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="row-checkbox" onchange="updateBatchDeleteButton()" style="width: 16px; height: 16px;">
+                            </td>
+                            <td>21</td>
+                            <td>kinWC1agent</td>
+                            <td>VIP專屬優惠</td>
+                            <td>Tokyobet</td>
+                            <td>mobile</td>
+                            <td>2000</td>
+                            <td>
+                                <div class="toggle-switch active" onclick="toggleStatus(this)"></div>
+                            </td>
+                            <td>app://vip-offers</td>
+                            <td>manager</td>
+                            <td>2024-07-08 11:45:30</td>
+                            <td>
+                                <a href="#" class="action-btn btn-view" onclick="viewBanner(21)">顯示</a>
+                                <a href="#" class="action-btn btn-edit" onclick="openEditModal(21)">編輯</a>
+                                <a href="#" class="action-btn btn-delete" onclick="openDeleteModal(21)">刪除</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="pagination">
+                    <div class="pagination-info">
+                        共 1 頁 6 條，共計 18 條
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" disabled>‹</button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn">3</button>
+                        <button class="page-btn">›</button>
+                        <div class="page-size-selector">
+                            <select class="page-size-select">
+                                <option value="10" selected>10</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
+                        <div class="jump-page">
+                            <input type="number" class="jump-input" placeholder="1" min="1" max="3">
+                            <button class="page-btn">跳轉</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 系統說明區塊 -->
+            <div class="system-info-section">
+                <div class="info-card">
+                    <h3>系統規則</h3>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="20%">規則類型</th>
+                                <th width="80%">規則內容</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Banner管理</td>
+                                <td>此為前台Banner橫幅廣告管理系統，可管理不同平台的廣告內容與排序。<br>
+                                    Banner可設定啟用或停用狀態，停用的Banner不會在前台顯示。
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>批量操作</td>
+                                <td>系統支持批量刪除功能，可以同時選擇多個Banner進行刪除操作。<br>
+                                    使用複選框進行勾選，執行刪除前會彈出確認對話框，確保操作安全性。
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>圖片限制</td>
+                                <td>Banner圖片只接受JPG格式，檔案大小不超過600KB，每個品牌尺寸請參考以下：<br>
+                                    Viva：1920*375<br>
+                                    Viva手機版：40*360<br>
+                                    alpha：1920*375<br>
+                                    alpha手機版：40*360<br>
+                                    alpha2：1920*375<br>
+                                    alpha2手機版：40*360<br>
+                                    Maxbe：1920*375<br>
+                                    Neverland：1920*375<br>
+                                    Tokyobet：1920*375<br>
+                                    Vegas：1920*375<br>
+                                    CasinoNeko：1380*373<br>
+                                    CasinoNeko手機版：430*110<br>
+                                    kaiundo：1920*375<br>
+                                    CUBE：1920*375<br>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>搜尋功能列</h3>
+                    <div class="alert-info">
+                        <strong>重要提醒：</strong><br>
+                        一進畫面就帶入預設值，並顯示搜尋出來的資料。<br>
+                        點擊「重置」按鈕回到預設值，如果按下搜尋時是空值，則自動帶入預設值。<br>
+                        <strong class="highlight-text" style="color: #f56c6c;">部分條件預設顯示為空值，空值＝預設值。可參考下方說明。</strong><br>
+                        <br>
+                        搜尋條件如在二行以上，右方會出現「展開/收起」按鈕(一行則不顯示按鈕)。<br>
+                        收起時為一行搜尋條件＋一行搜尋、重置按鈕。
+                    </div>
+
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">欄位</th>
+                                <th width="60%">內容說明</th>
+                                <th width="25%">模式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>所屬代理</td>
+                                <td>
+                                    點擊選擇所屬代理<br>
+                                    預設空值，代表全部<br>
+                                </td>
+                                <td>下拉選單，非必填</td>
+                            </tr>
+                            <tr>
+                                <td>平台</td>
+                                <td>
+                                    點擊選擇Banner顯示的平台<br>
+                                    預設空值，代表全部<br>
+                                    下拉選單：web、mobile
+                                </td>
+                                <td>下拉選單，非必填</td>
+                            </tr>
+                            <tr>
+                                <td>搜尋</td>
+                                <td>點擊執行搜尋條件</td>
+                                <td>按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>重置</td>
+                                <td>清空搜尋條件，恢復原始列表</td>
+                                <td>按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>列設置功能</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>功能說明：</strong><br>
+                        點擊表格右上方的「列設置」按鈕，可調整表格顯示的欄位、順序和釘選位置。<br>
+                        設定會即時生效，並在當前頁面中保持。<br>
+                        導出則是原始欄位和順序不受列設置影響。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">功能項目</th>
+                                <th width="60%">功能說明</th>
+                                <th width="25%">操作方式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>全選控制</td>
+                                <td>
+                                    一鍵選擇或取消選擇所有欄位<br>
+                                    當部分欄位被選中時，顯示半選狀態<br>
+                                </td>
+                                <td>點擊「全選」勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>欄位顯示控制</td>
+                                <td>
+                                    控制每個欄位是否在表格中顯示<br>
+                                    未勾選的欄位將在表格中隱藏<br>
+                                    表格中的第一欄為鎖定，不可隱藏
+                                </td>
+                                <td>點擊欄位名稱前的勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>拖拽排序</td>
+                                <td>
+                                    點擊左側的上下箭頭調整欄位在表格中的顯示順序<br>
+                                    調整後的順序會即時反映在表格中
+                                </td>
+                                <td>點擊左側的「↑↓」箭頭圖示</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到左側</td>
+                                <td>
+                                    將選中的欄位固定在表格最左側<br>
+                                    釘選的欄位在橫向滾動時保持可見
+                                </td>
+                                <td>點擊「釘選到左側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到右側</td>
+                                <td>
+                                    將選中的欄位固定在表格最右側<br>
+                                    釘選的欄位在橫向滾動時保持可見<br>
+                                </td>
+                                <td>點擊「釘選到右側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消釘選</td>
+                                <td>
+                                    移除欄位的左側或右側釘選狀態<br>
+                                    欄位將回到正常的滾動區域<br>
+                                </td>
+                                <td>點擊「取消釘選」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>重置設定</td>
+                                <td>
+                                    清除所有自定義的排序和釘選設定<br>
+                                    回到系統初始的欄位配置
+                                </td>
+                                <td>點擊「重置」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>保存設定</td>
+                                <td>
+                                    應用當前的欄位配置到表格顯示<br>
+                                    設定在當前瀏覽器頁面中保持有效<br>
+                                </td>
+                                <td>點擊「保存」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消操作</td>
+                                <td>
+                                    放棄當前的所有配置更改<br>
+                                    回到進入設定前的狀態
+                                </td>
+                                <td>點擊「取消」按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>刪除功能說明</h3>
+                    <div class="alert-info">
+                        <strong>安全刪除機制：</strong><br>
+                        為確保操作安全，所有刪除操作都會彈出確認對話框。<br>
+                        支持單項刪除和批量刪除兩種模式，刪除後無法恢復。
+                    </div>
+
+                    <!-- 刪除確認預覽區塊 -->
+                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center; background: white;">
+                        <h4 style="color: #333; font-size: 16px; font-weight: 600; margin: 0 0 15px 0;">
+                            刪除確認對話框預覽
+                        </h4>
+                        
+                        <div style="display: inline-block; border: 2px solid #666; border-radius: 8px; background: white; box-shadow: 0 8px 20px rgba(0,0,0,0.15); overflow: hidden; width: 320px;">
+                            
+                            <!-- 對話框標題欄 -->
+                            <div style="background: #f8f9fa; color: #333; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd;">
+                                <span style="font-size: 14px; font-weight: 600;">提示</span>
+                                <span style="font-size: 18px; color: #999; cursor: pointer;">&times;</span>
+                            </div>
+                            
+                            <!-- 對話框內容區 -->
+                            <div style="padding: 20px; text-align: center; background: white;">
+                                
+                                <!-- 確認問題 -->
+                                <div style="margin-bottom: 16px; font-size: 14px; color: #666; line-height: 1.5;">
+                                    確定要刪除這個Banner嗎？
+                                </div>
+                                
+                                <!-- 警告提示 
+                                <div style="background: #fff5f5; border: 1px solid #fed7d7; border-radius: 4px; padding: 12px; margin-bottom: 20px;">
+                                    <div style="font-size: 12px; color: #c53030; text-align: center; font-weight: 500;">
+                                        此操作不可恢復，請謹慎操作！
+                                    </div>
+                                </div>-->
+                                
+                            </div>
+                            
+                            <!-- 按鈕區域 -->
+                            <div style="background: #f8f9fa; border-top: 1px solid #ddd; padding: 12px 16px; display: flex; justify-content: flex-end; gap: 8px;">
+                                <button style="padding: 8px 16px; border: 1px solid #ddd; background: white; color: #666; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                                    取消
+                                </button>
+                                <button style="padding: 8px 16px; border: 1px solid #e53e3e; background: #e53e3e; color: white; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                                    確認
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <p style="margin-top: 12px; font-size: 12px; color: #666; font-style: italic;">
+                            刪除視窗預覽，功能達成即可，最終以uat操作畫面為準。
+                        </p>
+                    </div>
+
+                    <!-- 批量刪除預覽區塊 -->
+                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center; background: white;">
+                        <h4 style="color: #333; font-size: 16px; font-weight: 600; margin: 0 0 15px 0;">
+                            批量刪除確認對話框預覽
+                        </h4>
+                        
+                        <div style="display: inline-block; border: 2px solid #666; border-radius: 8px; background: white; box-shadow: 0 8px 20px rgba(0,0,0,0.15); overflow: hidden; width: 320px;">
+                            
+                            <!-- 對話框標題欄 -->
+                            <div style="background: #f8f9fa; color: #333; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd;">
+                                <span style="font-size: 14px; font-weight: 600;">提示</span>
+                                <span style="font-size: 18px; color: #999; cursor: pointer;">&times;</span>
+                            </div>
+                            
+                            <!-- 對話框內容區 -->
+                            <div style="padding: 20px; text-align: center; background: white;">
+                                
+                                <!-- 確認問題 -->
+                                <div style="margin-bottom: 16px; font-size: 14px; color: #666; line-height: 1.5;">
+                                    確定要刪除這 <span style="color: #e53e3e; font-weight: bold; font-size: 16px;">3</span> 個Banner嗎？
+                                </div>
+                                
+                                <!-- 警告提示 
+                                <div style="background: #fff5f5; border: 1px solid #fed7d7; border-radius: 4px; padding: 12px; margin-bottom: 20px;">
+                                    <div style="font-size: 12px; color: #c53030; text-align: center; font-weight: 500;">
+                                        此操作不可恢復，請謹慎操作！
+                                    </div>
+                                </div>-->
+                                
+                            </div>
+                            
+                            <!-- 按鈕區域 -->
+                            <div style="background: #f8f9fa; border-top: 1px solid #ddd; padding: 12px 16px; display: flex; justify-content: flex-end; gap: 8px;">
+                                <button style="padding: 8px 16px; border: 1px solid #ddd; background: white; color: #666; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                                    取消
+                                </button>
+                                <button style="padding: 8px 16px; border: 1px solid #e53e3e; background: #e53e3e; color: white; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                                    確認
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <p style="margin-top: 12px; font-size: 12px; color: #666; font-style: italic;">
+                            「批量刪除」視窗預覽，功能達成即可，最終以uat操作畫面為準。
+                        </p>
+                    </div>
+
+                    <table class="info-table">
+                        <thead>
+                        <tr>
+                            <th width="15%">顯示內容</th>
+                            <th width="60%">操作說明</th>
+                            <th width="25%">注意事項</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>標題</td>
+                            <td>提示</td>
+                            <td>共用元件應該都是提示</td>
+                        </tr>
+                        <tr>
+                            <td>內容</td>
+                            <td>顯示「確定要刪除這X個Banner嗎？」</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>按鈕</td>
+                            <td>選擇「確認」或「取消」<br>確認：立即執行刪除操作<br>取消：關閉對話框，不執行任何操作</td>
+                            <td>刪除操作不可復原</td>
+                        </tr>
+                    </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>新增/編輯功能說明</h3>
+
+                    <div class="alert-info">
+                        <strong>圖片上傳說明：</strong><br>
+                        新增Banner時必須上傳圖片，編輯時可選擇性更新圖片。<br>
+                        上傳前會根據所選主題，自動檢查格式和檔案大小。<br>
+                        跳轉類型分為網址跳轉和遊戲跳轉，根據選擇顯示對應輸入欄位。
+                    </div>
+
+                    <!-- 表單預覽區塊 -->
+                    <div style="border: 2px solid #ddd; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center; background: white;">
+                        <h4 style="color: #333; font-size: 16px; font-weight: 600; margin: 0 0 15px 0;">
+                            編輯Banner表單預覽
+                        </h4>
+                        
+                        <div style="display: inline-block; border: 2px solid #666; border-radius: 8px; background: white; box-shadow: 0 8px 20px rgba(0,0,0,0.15); overflow: hidden; width: 400px;">
+                            
+                            <!-- 彈窗標題欄 -->
+                            <div style="background: #f8f9fa; color: #333; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd;">
+                                <span style="font-size: 14px; font-weight: 600;">編輯Banner</span>
+                                <span style="font-size: 18px; color: #999; cursor: pointer;">&times;</span>
+                            </div>
+                            
+                            <!-- 表單內容區 -->
+                            <div style="padding: 16px; text-align: left; background: white; font-size: 12px;">
+                                
+                                <!-- 品牌和平台並排 -->
+                                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                                    <div style="flex: 1;">
+                                        <label style="display: block; font-size: 12px; font-weight: 600; color: #333; margin-bottom: 4px;">
+                                            品牌 <span style="color: #f56c6c;">*</span>
+                                        </label>
+                                        <div style="border: 1px solid #ddd; border-radius: 4px; padding: 6px 8px; background: #f5f7fa; font-size: 12px; color: #c0c4cc; position: relative;">
+                                            Viva
+                                            <span style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: #c0c4cc; font-size: 10px;">🔒</span>
+                                        </div>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <label style="display: block; font-size: 12px; font-weight: 600; color: #333; margin-bottom: 4px;">
+                                            平台 <span style="color: #f56c6c;">*</span>
+                                        </label>
+                                        <div style="border: 1px solid #ddd; border-radius: 4px; padding: 6px 8px; background: #f5f7fa; font-size: 12px; color: #c0c4cc; position: relative;">
+                                            網頁版
+                                            <span style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: #c0c4cc; font-size: 10px;">🔒</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 所屬代理 -->
+                                <div style="margin-bottom: 12px;">
+                                    <label style="display: block; font-size: 12px; font-weight: 600; color: #333; margin-bottom: 4px;">
+                                        所屬代理 <span style="color: #f56c6c;">*</span>
+                                    </label>
+                                    <div style="border: 1px solid #ddd; border-radius: 4px; padding: 6px 8px; background: #f5f7fa; font-size: 12px; color: #c0c4cc; position: relative;">
+                                        rd-wallet-test
+                                        <span style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: #c0c4cc; font-size: 10px;">🔒</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- 標題 -->
+                                <div style="margin-bottom: 12px;">
+                                    <label style="display: block; font-size: 12px; font-weight: 600; color: #333; margin-bottom: 4px;">
+                                        標題 <span style="color: #f56c6c;">*</span>
+                                    </label>
+                                    <div style="border: 2px solid #409eff; border-radius: 4px; padding: 6px 8px; background: #f0f9ff; font-size: 12px; color: #409eff; font-weight: 500;">
+                                        促銷活動Banner (可編輯)
+                                    </div>
+                                </div>
+                                
+                                <!-- 排序 -->
+                                <div style="margin-bottom: 12px;">
+                                    <label style="display: block; font-size: 12px; font-weight: 600; color: #333; margin-bottom: 4px;">排序</label>
+                                    <div style="border: 2px solid #409eff; border-radius: 4px; padding: 6px 8px; background: #f0f9ff; font-size: 12px; color: #409eff; font-weight: 500;">
+                                        1000 (可編輯)
+                                    </div>
+                                </div>
+                                
+                                <!-- 跳轉類型 -->
+                                <div style="margin-bottom: 12px;">
+                                    <label style="display: block; font-size: 12px; font-weight: 600; color: #333; margin-bottom: 6px;">
+                                        跳轉類型 <span style="color: #f56c6c;">*</span>
+                                    </label>
+                                    <div style="display: flex; gap: 16px; align-items: center;">
+                                        <label style="display: flex; align-items: center; font-size: 12px; color: #409eff; font-weight: 500; cursor: pointer;">
+                                            <div style="width: 14px; height: 14px; border-radius: 50%; background: #409eff; margin-right: 6px; position: relative;">
+                                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 8px; height: 8px; background: white; border-radius: 50%;"></div>
+                                            </div>
+                                            網址跳轉
+                                        </label>
+                                        <label style="display: flex; align-items: center; font-size: 12px; color: #999; cursor: pointer;">
+                                            <div style="width: 14px; height: 14px; border: 2px solid #ddd; border-radius: 50%; margin-right: 6px;"></div>
+                                            遊戲跳轉
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <!-- 跳轉網址 -->
+                                <div style="margin-bottom: 16px;">
+                                    <label style="display: block; font-size: 12px; font-weight: 600; color: #333; margin-bottom: 4px;">跳轉網址</label>
+                                    <div style="border: 2px solid #409eff; border-radius: 4px; padding: 6px 8px; background: #f0f9ff; font-size: 12px; color: #409eff; font-weight: 500;">
+                                        https://example.com/promotion (可編輯)
+                                    </div>
+                                </div>
+                                
+                                <!-- Banner圖片上傳區 -->
+                                <div style="margin-bottom: 16px;">
+                                    <label style="display: block; font-size: 12px; font-weight: 600; color: #333; margin-bottom: 4px;">
+                                        Banner圖片
+                                    </label>
+                                    <div style="border: 2px dashed #ddd; border-radius: 4px; padding: 16px; text-align: center; background: #fafbfc;">
+                                        <div style="font-size: 24px; color: #999; margin-bottom: 6px;">☁</div>
+                                        <div style="color: #666; font-weight: 500; font-size: 11px; margin-bottom: 6px;">點擊上傳新圖片 (可選)</div>
+                                        <div style="font-size: 10px; color: #999; line-height: 1.4;">
+                                            <div style="font-weight: 500; margin-bottom: 2px;">建議尺寸: 1920 x 375</div>
+                                            <div>格式限定: *.jpg</div>
+                                            <div>大小限制: 600KB</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 按鈕區域 -->
+                            <div style="background: #f8f9fa; border-top: 1px solid #ddd; padding: 12px 16px; display: flex; justify-content: flex-end; gap: 8px;">
+                                <button style="padding: 6px 12px; border: 1px solid #ddd; background: white; color: #666; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                                    取消
+                                </button>
+                                <button style="padding: 6px 12px; border: 1px solid #409eff; background: #409eff; color: white; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                                    保存
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <p style="margin-top: 12px; font-size: 12px; color: #666; font-style: italic;">
+                            「新增/編輯」視窗預覽，功能達成即可，最終以uat操作畫面為準。
+                        </p>
+                    </div>
+
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">功能項目</th>
+                                <th width="60%">功能說明</th>
+                                <th width="25%">操作方式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>品牌</td>
+                                <td>
+                                    點擊可選擇針對哪個品牌上傳新Banner<br>
+                                    一次只可選擇一種，圖片尺寸會根據選擇不同而改變<br>
+                                    必須先選擇品牌才能選擇平台和代理
+                                </td>
+                                <td>下拉選單，必填<br>
+                                    <strong style="color: #ba6cf5;">不可編輯</strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>平台</td>
+                                <td>
+                                    點擊可選擇針對哪個平台上傳新Banner<br>
+                                    一次只可選擇一種，圖片尺寸會根據選擇不同而改變<br>
+                                    必須先選擇品牌後才能選擇平台
+                                </td>
+                                <td>下拉選單，必填<br>
+                                    <strong style="color: #ba6cf5;">不可編輯</strong>
+                                </td>
+                            </tr> 
+                            <tr>
+                                <td>所屬代理</td>
+                                <td>
+                                    點擊可選擇針對哪個代理上傳新Banner<br>
+                                    代理選項會根據選擇的品牌進行篩選<br>
+                                    必須先選擇品牌和平台後才能選擇代理，可複選
+                                </td>
+                                <td>下拉選單，必填<br>
+                                    <strong style="color: #ba6cf5;">不可編輯</strong>
+                                </td>
+                            </tr> 
+                            <tr>
+                                <td>標題</td>
+                                <td>
+                                    點擊可輸入Banner標題<br>
+                                    字符限制在4-50之間
+                                </td>
+                                <td>輸入框，必填<br>
+                                    <strong style="color: #ba6cf5;">可編輯</strong>
+                                </td>
+                            </tr> 
+                            <tr>
+                                <td>排序</td>
+                                <td>
+                                    點擊可輸入數字，會根據數字順序顯示，越小在越前面<br>
+                                    預設1000
+                                </td>
+                                <td>輸入框，必填<br>
+                                    <strong style="color: #ba6cf5;">可編輯</strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>跳轉類型</td>
+                                <td>
+                                    網址跳轉：輸入完整的網頁URL<br>
+                                    遊戲跳轉：輸入遊戲的game id<br>
+                                    根據選擇自動顯示對應輸入欄位
+                                </td>
+                                <td>選擇單選按鈕切換類型<br>
+                                    輸入框，非必填<br>
+                                    <strong style="color: #ba6cf5;">可編輯</strong>
+                                </td>
+                            </tr>                                                                                   
+                            <tr>
+                                <td>圖片上傳</td>
+                                <td>
+                                    點擊上傳區域選擇圖片檔案<br>
+                                    只接受JPG格式，檔案大小不超過600KB<br>
+                                    尺寸依品牌限制
+                                </td>
+                                <td>點擊上傳區域選擇圖片<br>
+                                    圖片上傳框，必填<br>
+                                    <strong style="color: #ba6cf5;">可編輯</strong>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>資料表說明</h3>
+                    <div class="alert-info">
+                        <strong>重要提醒：</strong><br>
+                        表格顯示所有Banner的詳細資訊，包含基本資料、狀態和操作功能。<br>
+                        狀態切換開關可以即時啟用或停用Banner，操作按鈕提供詳細的管理功能。<br>
+                        支持複選框批量選擇和單項操作。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="8%">排序</th>
+                                <th width="15%">欄位</th>
+                                <th width="57%">內容說明</th>
+                                <th width="20%">顯示模式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>-</td>
+                                <td>選擇框</td>
+                                <td>用於批量選擇Banner，支持全選和單選功能</td>
+                                <td>複選框</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>ID</td>
+                                <td>流水碼</td>
+                                <td>數字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>所屬代理</td>
+                                <td>顯示該Banner所屬的代理帳號</td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>標題</td>
+                                <td>顯示該Banner的標題名稱</td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>品牌</td>
+                                <td>顯示該Banner使用的品牌</td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>平台</td>
+                                <td>顯示該Banner使用的平台：web版、mobile版</td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>顯示排序</td>
+                                <td>顯示該Banner在前台的顯示順序，數字越小越優先顯示</td>
+                                <td>數字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>狀態</td>
+                                <td>Banner的啟用/停用狀態，可點擊切換</td>
+                                <td>切換開關</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>跳轉位置</td>
+                                <td>點擊Banner後的跳轉目標，可以是網址或遊戲ID</td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>操作人</td>
+                                <td>最後操作該Banner的帳號名稱</td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>更新時間</td>
+                                <td>該Banner最後更新的時間<br>
+                                    例：2024-05-31 00:00</td>
+                                <td>時間格式</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>操作</td>
+                                <td>提供顯示、編輯、刪除等功能按鈕<br>
+                                    顯示：僅顯示banner資訊，不可編輯<br>
+                                    編輯：可修改部分資訊<br>
+                                    刪除：可直接刪除該banner，連帶前台也不會顯示該banner
+                                </td>
+                                <td>按鈕組</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 新增/編輯Banner彈窗 -->
+    <div id="bannerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">新增Banner</div>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="bannerForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">品牌 <span class="required">*</span></label>
+                            <select id="modalBrand" class="form-select" onchange="updateBrandAndPlatform()" required>
+                                <option value="">請選擇</option>
+                                <option value="Viva">Viva</option>
+                                <option value="alpha">alpha</option>
+                                <option value="alpha2">alpha2</option>
+                                <option value="Maxbe">Maxbe</option>
+                                <option value="Neverland">Neverland</option>
+                                <option value="Tokyobet">Tokyobet</option>
+                                <option value="Vegas">Vegas</option>
+                                <option value="CasinoNeko">CasinoNeko</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">平台 <span class="required">*</span></label>
+                            <select id="modalPlatform" class="form-select" onchange="updateBrandAndPlatform()" required disabled>
+                                <option value="">請先選擇品牌</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">所屬代理 <span class="required">*</span></label>
+                        <select id="modalAgent" class="form-select" required disabled>
+                            <option value="">請先選擇品牌和平台</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">標題 <span class="required">*</span></label>
+                        <input type="text" id="modalBannerTitle" class="form-input" placeholder="請輸入Banner標題" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">排序</label>
+                        <input type="number" id="modalSort" class="form-input" placeholder="請輸入排序值" min="1" value="1000">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">跳轉類型 <span class="required">*</span></label>
+                        <div class="radio-group">
+                            <label class="radio-item">
+                                <input type="radio" name="jumpType" value="url" id="jumpTypeUrl" onchange="toggleJumpType()" checked>
+                                <span>網址跳轉</span>
+                            </label>
+                            <label class="radio-item">
+                                <input type="radio" name="jumpType" value="game" id="jumpTypeGame" onchange="toggleJumpType()">
+                                <span>遊戲跳轉</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="urlGroup">
+                        <label class="form-label">跳轉網址</label>
+                        <input type="url" id="modalUrl" class="form-input" placeholder="請輸入完整網址，例如：https://example.com">
+                    </div>
+
+                    <div class="form-group" id="gameGroup" style="display: none;">
+                        <label class="form-label">遊戲ID</label>
+                        <input type="text" id="modalGameId" class="form-input" placeholder="請輸入遊戲ID">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Banner圖片 <span class="required">*</span></label>
+                        <div class="upload-area" id="uploadArea" onclick="document.getElementById('imageUpload').click()">
+                            <input type="file" id="imageUpload" accept=".jpg,.jpeg" style="display: none;" onchange="handleImageUpload(this)">
+                            <div class="upload-placeholder" id="uploadPlaceholder">
+                                <div class="upload-icon">☁</div>
+                                <div class="upload-text">
+                                    <div>點擊上傳Banner圖片</div>
+                                    <div class="upload-specs" id="uploadSpecs">
+                                        <div>請先選擇品牌以顯示對應尺寸</div>
+                                        <div>格式限定: *.jpg</div>
+                                        <div>大小限制: 600KB</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="upload-preview" id="uploadPreview" style="display: none;">
+                                <img id="previewImage" style="max-width: 100%; max-height: 200px; border-radius: 4px;">
+                                <div class="upload-info" id="uploadInfo"></div>
+                                <button type="button" class="upload-remove" onclick="removeImage()">移除圖片</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="modalId">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-secondary" onclick="closeModal()">取消</button>
+                <button class="modal-btn modal-btn-primary" onclick="saveBanner()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 刪除確認彈窗 -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content" style="width: 400px;">
+            <div class="modal-header">
+                <div class="modal-title">確認刪除</div>
+                <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 16px; color: #666; text-align: center; font-size: 16px;">確定要刪除這個Banner嗎？</p>
+                <!--<p style="margin-top: 16px; color: #f56c6c; font-size: 13px; text-align: center;">此操作不可恢復，請謹慎操作！</p>-->
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-secondary" onclick="closeDeleteModal()">取消</button>
+                <button class="modal-btn btn-danger" onclick="confirmDelete()" style="background: #f56c6c; color: white; border-color: #f56c6c;">確認刪除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 批量刪除確認彈窗 -->
+    <div id="batchDeleteModal" class="modal">
+        <div class="modal-content" style="width: 400px;">
+            <div class="modal-header">
+                <div class="modal-title">批量刪除確認</div>
+                <button class="modal-close" onclick="closeBatchDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 16px; color: #666;">確定要刪除選中的 <span id="batchDeleteCount" style="color: #f56c6c; font-weight: bold;">0</span> 個Banner嗎？</p>
+                <!--<p style="margin-top: 16px; color: #f56c6c; font-size: 13px;">此操作不可恢復，請謹慎操作！</p>-->
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-secondary" onclick="closeBatchDeleteModal()">取消</button>
+                <button class="modal-btn btn-danger" onclick="confirmBatchDelete()" style="background: #f56c6c; color: white; border-color: #f56c6c;">確認刪除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 列設置彈窗 -->
+    <div id="columnModal" class="modal-overlay">
+        <div class="column-modal">
+            <div class="column-settings-header">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 600;">列設置</h3>
+                <div class="select-all">
+                    <input type="checkbox" id="selectAllColumns" onchange="toggleAllColumns()" checked>
+                    <label for="selectAllColumns">全選</label>
+                </div>
+            </div>
+            
+            <div class="column-list">
+                <div class="column-item">
+                    <div class="drag-handle" onclick="moveColumn(this, 'up')">
+                        <div class="arrow-up"></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                    <input type="checkbox" class="column-checkbox" checked disabled>
+                    <div class="column-name">選擇框（鎖定）</div>
+                    <div class="column-actions">
+                        <button class="action-btn" onclick="pinColumn(this, 'left')">釘選到左側</button>
+                    </div>
+                </div>
+                
+                <div class="column-item">
+                    <div class="drag-handle" onclick="moveColumn(this, 'up')">
+                        <div class="arrow-up"></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                    <input type="checkbox" class="column-checkbox" checked>
+                    <div class="column-name">ID</div>
+                    <div class="column-actions">
+                        <button class="action-btn" onclick="pinColumn(this, 'left')">釘選到左側</button>
+                        <button class="action-btn" onclick="pinColumn(this, 'right')">釘選到右側</button>
+                        <button class="action-btn" onclick="unpinColumn(this)">取消釘選</button>
+                    </div>
+                </div>
+                
+                <div class="column-item">
+                    <div class="drag-handle" onclick="moveColumn(this, 'up')">
+                        <div class="arrow-up"></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                    <input type="checkbox" class="column-checkbox" checked>
+                    <div class="column-name">所屬代理</div>
+                    <div class="column-actions">
+                        <button class="action-btn" onclick="pinColumn(this, 'left')">釘選到左側</button>
+                        <button class="action-btn" onclick="pinColumn(this, 'right')">釘選到右側</button>
+                        <button class="action-btn" onclick="unpinColumn(this)">取消釘選</button>
+                    </div>
+                </div>
+                
+                <div class="column-item">
+                    <div class="drag-handle" onclick="moveColumn(this, 'up')">
+                        <div class="arrow-up"></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                    <input type="checkbox" class="column-checkbox" checked>
+                    <div class="column-name">標題</div>
+                    <div class="column-actions">
+                        <button class="action-btn" onclick="pinColumn(this, 'left')">釘選到左側</button>
+                        <button class="action-btn" onclick="pinColumn(this, 'right')">釘選到右側</button>
+                        <button class="action-btn" onclick="unpinColumn(this)">取消釘選</button>
+                    </div>
+                </div>
+                
+                <div class="column-item">
+                    <div class="drag-handle" onclick="moveColumn(this, 'up')">
+                        <div class="arrow-up"></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                    <input type="checkbox" class="column-checkbox" checked>
+                    <div class="column-name">品牌</div>
+                    <div class="column-actions">
+                        <button class="action-btn" onclick="pinColumn(this, 'left')">釘選到左側</button>
+                        <button class="action-btn" onclick="pinColumn(this, 'right')">釘選到右側</button>
+                        <button class="action-btn" onclick="unpinColumn(this)">取消釘選</button>
+                    </div>
+                </div>
+                
+                <div class="column-item">
+                    <div class="drag-handle" onclick="moveColumn(this, 'up')">
+                        <div class="arrow-up"></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                    <input type="checkbox" class="column-checkbox" checked>
+                    <div class="column-name">平台</div>
+                    <div class="column-actions">
+                        <button class="action-btn" onclick="pinColumn(this, 'left')">釘選到左側</button>
+                        <button class="action-btn" onclick="pinColumn(this, 'right')">釘選到右側</button>
+                        <button class="action-btn" onclick="unpinColumn(this)">取消釘選</button>
+                    </div>
+                </div>
+                
+                <div class="column-item">
+                    <div class="drag-handle" onclick="moveColumn(this, 'up')">
+                        <div class="arrow-up"></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                    <input type="checkbox" class="column-checkbox" checked>
+                    <div class="column-name">排序</div>
+                    <div class="column-actions">
+                        <button class="action-btn" onclick="pinColumn(this, 'left')">釘選到左側</button>
+                        <button class="action-btn" onclick="pinColumn(this, 'right')">釘選到右側</button>
+                        <button class="action-btn" onclick="unpinColumn(this)">取消釘選</button>
+                    </div>
+                </div>
+                
+                <div class="column-item">
+                    <div class="drag-handle" onclick="moveColumn(this, 'up')">
+                        <div class="arrow-up"></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                    <input type="checkbox" class="column-checkbox" checked>
+                    <div class="column-name">狀態</div>
+                    <div class="column-actions">
+                        <button class="action-btn" onclick="pinColumn(this, 'left')">釘選到左側</button>
+                        <button class="action-btn" onclick="pinColumn(this, 'right')">釘選到右側</button>
+                        <button class="action-btn" onclick="unpinColumn(this)">取消釘選</button>
+                    </div>
+                </div>
+                
+                <div class="column-item">
+                    <div class="drag-handle" onclick="moveColumn(this, 'up')">
+                        <div class="arrow-up"></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                    <input type="checkbox" class="column-checkbox" checked>
+                    <div class="column-name">跳轉位置</div>
+                    <div class="column-actions">
+                        <button class="action-btn" onclick="pinColumn(this, 'left')">釘選到左側</button>
+                        <button class="action-btn" onclick="pinColumn(this, 'right')">釘選到右側</button>
+                        <button class="action-btn" onclick="unpinColumn(this)">取消釘選</button>
+                    </div>
+                </div>
+                
+                <div class="column-item">
+                    <div class="drag-handle" onclick="moveColumn(this, 'up')">
+                        <div class="arrow-up"></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                    <input type="checkbox" class="column-checkbox" checked>
+                    <div class="column-name">操作人</div>
+                    <div class="column-actions">
+                        <button class="action-btn" onclick="pinColumn(this, 'left')">釘選到左側</button>
+                        <button class="action-btn" onclick="pinColumn(this, 'right')">釘選到右側</button>
+                        <button class="action-btn" onclick="unpinColumn(this)">取消釘選</button>
+                    </div>
+                </div>
+                
+                <div class="column-item">
+                    <div class="drag-handle" onclick="moveColumn(this, 'up')">
+                        <div class="arrow-up"></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                    <input type="checkbox" class="column-checkbox" checked>
+                    <div class="column-name">更新時間</div>
+                    <div class="column-actions">
+                        <button class="action-btn" onclick="pinColumn(this, 'left')">釘選到左側</button>
+                        <button class="action-btn" onclick="pinColumn(this, 'right')">釘選到右側</button>
+                        <button class="action-btn" onclick="unpinColumn(this)">取消釘選</button>
+                    </div>
+                </div>
+                
+                <div class="column-item">
+                    <div class="drag-handle" onclick="moveColumn(this, 'up')">
+                        <div class="arrow-up"></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                    <input type="checkbox" class="column-checkbox" checked>
+                    <div class="column-name">操作</div>
+                    <div class="column-actions">
+                        <button class="action-btn" onclick="pinColumn(this, 'right')">釘選到右側</button>
+                        <button class="action-btn" onclick="unpinColumn(this)">取消釘選</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="resetColumns()">重置</button>
+                <button class="btn btn-secondary" onclick="closeColumnModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveColumns()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全域變數
+        let currentBanners = [];
+        let sortDirection = {};
+
+        // 頁面載入完成後執行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化數據
+            initializeBanners();
+        });
+
+        // 初始化Banner數據
+        function initializeBanners() {
+            const rows = document.querySelectorAll('#bannerTableBody tr');
+            currentBanners = Array.from(rows).map(row => {
+                return {
+                    element: row,
+                    id: row.cells[1].textContent,
+                    agent: row.cells[2].textContent,
+                    title: row.cells[3].textContent,
+                    brand: row.cells[4].textContent,
+                    platform: row.cells[5].textContent,
+                    sort: parseInt(row.cells[6].textContent),
+                    jumpTarget: row.cells[8].textContent,
+                    operator: row.cells[9].textContent,
+                    updateTime: row.cells[10].textContent
+                };
+            });
+        }
+
+        // 搜索功能
+        function searchBanners() {
+            const agentFilter = document.getElementById('agent').value;
+            const platformFilter = document.getElementById('platform').value;
+
+            const rows = document.querySelectorAll('#bannerTableBody tr');
+            rows.forEach(row => {
+                const agent = row.cells[2].textContent;
+                const platform = row.cells[5].textContent;
+
+                let shouldShow = true;
+                if (agentFilter && agent !== agentFilter) {
+                    shouldShow = false;
+                }
+                if (platformFilter && platform !== platformFilter) {
+                    shouldShow = false;
+                }
+
+                row.style.display = shouldShow ? '' : 'none';
+            });
+
+            showNotification('搜索完成', 'info');
+        }
+
+        // 重置搜索
+        function resetSearch() {
+            document.getElementById('agent').value = '';
+            document.getElementById('platform').value = '';
+
+            const rows = document.querySelectorAll('#bannerTableBody tr');
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+
+            showNotification('已重置搜索條件', 'info');
+        }
+
+        // 全選/取消全選
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+            
+            rowCheckboxes.forEach(checkbox => {
+                if (checkbox.closest('tr').style.display !== 'none') {
+                    checkbox.checked = selectAll.checked;
+                }
+            });
+
+            updateBatchDeleteButton();
+        }
+
+        // 更新批量刪除按鈕狀態
+        function updateBatchDeleteButton() {
+            // 更新全選框狀態
+            const selectedCheckboxes = Array.from(document.querySelectorAll('.row-checkbox')).filter(
+                cb => cb.checked && cb.closest('tr').style.display !== 'none'
+            );
+            const allVisibleCheckboxes = Array.from(document.querySelectorAll('.row-checkbox')).filter(
+                cb => cb.closest('tr').style.display !== 'none'
+            );
+            const selectAll = document.getElementById('selectAll');
+            
+            if (selectedCheckboxes.length === 0) {
+                selectAll.indeterminate = false;
+                selectAll.checked = false;
+            } else if (selectedCheckboxes.length === allVisibleCheckboxes.length) {
+                selectAll.indeterminate = false;
+                selectAll.checked = true;
+            } else {
+                selectAll.indeterminate = true;
+                selectAll.checked = false;
+            }
+        }
+
+        // 切換狀態
+        function toggleStatus(element) {
+            element.classList.toggle('active');
+            const row = element.closest('tr');
+            const id = row.cells[1].textContent;
+            const status = element.classList.contains('active') ? '啟用' : '停用';
+            
+            showNotification(`Banner ID: ${id} 已${status}`, 'success');
+        }
+
+        // 表格排序
+        function sortTable(column) {
+            if (!sortDirection[column]) {
+                sortDirection[column] = 'asc';
+            } else {
+                sortDirection[column] = sortDirection[column] === 'asc' ? 'desc' : 'asc';
+            }
+
+            const tbody = document.getElementById('bannerTableBody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            rows.sort((a, b) => {
+                let aVal, bVal;
+                
+                if (column === 'sort') {
+                    aVal = parseInt(a.cells[6].textContent);
+                    bVal = parseInt(b.cells[6].textContent);
+                } else if (column === 'updateTime') {
+                    aVal = new Date(a.cells[10].textContent);
+                    bVal = new Date(b.cells[10].textContent);
+                }
+
+                if (sortDirection[column] === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+            showNotification(`已按${column === 'sort' ? '排序' : '更新時間'}排序`, 'info');
+        }
+
+        // 新增Banner模態框
+        function openAddModal() {
+            const modal = document.getElementById('bannerModal');
+            const title = document.getElementById('modalTitle');
+            
+            title.textContent = '新增Banner';
+            document.getElementById('bannerForm').reset();
+            document.getElementById('modalId').value = '';
+            document.getElementById('modalSort').value = '1000';
+            
+            // 重置所有欄位為初始狀態
+            document.getElementById('modalBrand').disabled = false;
+            document.getElementById('modalPlatform').disabled = true;
+            document.getElementById('modalAgent').disabled = true;
+            document.getElementById('modalBannerTitle').disabled = false;
+            document.getElementById('modalSort').disabled = false;
+            
+            // 重置選項內容
+            document.getElementById('modalPlatform').innerHTML = '<option value="">請先選擇品牌</option>';
+            document.getElementById('modalAgent').innerHTML = '<option value="">請先選擇品牌和平台</option>';
+            
+            // 重置圖片上傳和跳轉類型
+            resetImageUpload();
+            document.getElementById('jumpTypeUrl').checked = true;
+            toggleJumpType();
+            
+            modal.classList.add('show');
+        }
+
+        // 編輯Banner模態框
+        function openEditModal(id) {
+            const rows = document.querySelectorAll('#bannerTableBody tr');
+            let bannerData = null;
+            
+            rows.forEach(row => {
+                if (row.cells && row.cells[1] && row.cells[1].textContent == id) {
+                    const jumpTarget = row.cells[8].textContent;
+                    bannerData = {
+                        id: row.cells[1].textContent,
+                        agent: row.cells[2].textContent,
+                        title: row.cells[3].textContent,
+                        brand: row.cells[4].textContent,
+                        platform: row.cells[5].textContent,
+                        sort: row.cells[6].textContent,
+                        jumpTarget: jumpTarget
+                    };
+                }
+            });
+            
+            if (bannerData) {
+                const modal = document.getElementById('bannerModal');
+                const title = document.getElementById('modalTitle');
+                
+                title.textContent = '編輯Banner';
+                document.getElementById('modalId').value = bannerData.id;
+                
+                // 先設定品牌，觸發平台和代理的更新
+                document.getElementById('modalBrand').value = bannerData.brand;
+                document.getElementById('modalBrand').disabled = true;
+                
+                // 呼叫updateBrandAndPlatform來更新平台選項
+                updateBrandAndPlatform();
+                
+                // 設定平台
+                document.getElementById('modalPlatform').value = bannerData.platform;
+                document.getElementById('modalPlatform').disabled = true;
+                
+                // 再次呼叫updateBrandAndPlatform來更新代理選項
+                updateBrandAndPlatform();
+                
+                // 設定代理
+                document.getElementById('modalAgent').value = bannerData.agent;
+                document.getElementById('modalAgent').disabled = true;
+                
+                // 設定其他欄位
+                document.getElementById('modalBannerTitle').value = bannerData.title;
+                document.getElementById('modalSort').value = bannerData.sort;
+                
+                // 判斷跳轉類型
+                if (bannerData.jumpTarget.startsWith('http') || bannerData.jumpTarget.includes('.com')) {
+                    document.getElementById('jumpTypeUrl').checked = true;
+                    document.getElementById('modalUrl').value = bannerData.jumpTarget;
+                    document.getElementById('modalGameId').value = '';
+                } else {
+                    document.getElementById('jumpTypeGame').checked = true;
+                    document.getElementById('modalGameId').value = bannerData.jumpTarget;
+                    document.getElementById('modalUrl').value = '';
+                }
+                
+                toggleJumpType();
+                resetImageUpload();
+                
+                modal.classList.add('show');
+            }
+        }
+
+        // 顯示Banner詳細信息
+        function viewBanner(id) {
+            const rows = document.querySelectorAll('#bannerTableBody tr');
+            let bannerData = null;
+            
+            rows.forEach(row => {
+                if (row.cells && row.cells[1] && row.cells[1].textContent == id) {
+                    bannerData = {
+                        id: row.cells[1].textContent,
+                        agent: row.cells[2].textContent,
+                        title: row.cells[3].textContent,
+                        brand: row.cells[4].textContent,
+                        platform: row.cells[5].textContent,
+                        sort: row.cells[6].textContent,
+                        status: row.cells[7].querySelector('.toggle-switch').classList.contains('active') ? '啟用' : '停用',
+                        jumpTarget: row.cells[8].textContent,
+                        operator: row.cells[9].textContent,
+                        updateTime: row.cells[10].textContent
+                    };
+                }
+            });
+            
+            if (bannerData) {
+                const info = `Banner詳細信息：
+ID: ${bannerData.id}
+所屬代理: ${bannerData.agent}
+標題: ${bannerData.title}
+品牌: ${bannerData.brand}
+平台: ${bannerData.platform}
+排序: ${bannerData.sort}
+狀態: ${bannerData.status}
+跳轉位置: ${bannerData.jumpTarget}
+操作人: ${bannerData.operator}
+更新時間: ${bannerData.updateTime}`;
+                
+                alert(info);
+            }
+        }
+
+        // 關閉模態框
+        function closeModal() {
+            document.getElementById('bannerModal').classList.remove('show');
+        }
+
+        // 保存Banner
+        function saveBanner() {
+            const id = document.getElementById('modalId').value;
+            const agent = document.getElementById('modalAgent').value;
+            const brand = document.getElementById('modalBrand').value;
+            const title = document.getElementById('modalBannerTitle').value;
+            const platform = document.getElementById('modalPlatform').value;
+            const sort = document.getElementById('modalSort').value || '1000';
+            const imageFile = document.getElementById('imageUpload').files[0];
+            
+            // 獲取跳轉信息
+            const jumpTypeUrl = document.getElementById('jumpTypeUrl').checked;
+            const jumpTarget = jumpTypeUrl 
+                ? document.getElementById('modalUrl').value 
+                : document.getElementById('modalGameId').value;
+
+            if (id) {
+                // 編輯模式 - 只驗證跳轉位置
+                if (!jumpTarget) {
+                    showNotification('請填寫跳轉位置', 'error');
+                    return;
+                }
+
+                // 驗證圖片大小（如果有上傳新圖片）
+                if (imageFile && imageFile.size > 300 * 1024) {
+                    showNotification('圖片大小不能超過600KB', 'error');
+                    return;
+                }
+
+                // 更新表格中的跳轉位置
+                const rows = document.querySelectorAll('#bannerTableBody tr');
+                rows.forEach(row => {
+                    if (row.cells && row.cells[1] && row.cells[1].textContent == id) {
+                        row.cells[8].textContent = jumpTarget;
+                        row.cells[9].textContent = 'admin';
+                        row.cells[10].textContent = new Date().toLocaleString('zh-TW');
+                    }
+                });
+                showNotification(`Banner ID: ${id} 已更新`, 'success');
+            } else {
+                // 新增模式 - 完整表單驗證
+                if (!agent || !brand || !title || !platform) {
+                    showNotification('請填寫必填欄位', 'error');
+                    return;
+                }
+
+                // 新增時檢查圖片
+                if (!imageFile) {
+                    showNotification('請上傳Banner圖片', 'error');
+                    return;
+                }
+
+                // 驗證圖片大小
+                if (imageFile.size > 300 * 1024) {
+                    showNotification('圖片大小不能超過600KB', 'error');
+                    return;
+                }
+
+                // 新增模式
+                const tbody = document.getElementById('bannerTableBody');
+                const existingRows = Array.from(tbody.querySelectorAll('tr'));
+                const existingIds = existingRows.map(row => row.cells && row.cells[1] ? parseInt(row.cells[1].textContent) : 0).filter(id => !isNaN(id));
+                const newId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 1;
+                
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td><input type="checkbox" class="row-checkbox" onchange="updateBatchDeleteButton()" style="width: 16px; height: 16px;"></td>
+                    <td>${newId}</td>
+                    <td>${agent}</td>
+                    <td>${title}</td>
+                    <td>${brand}</td>
+                    <td>${platform}</td>
+                    <td>${sort}</td>
+                    <td><div class="toggle-switch active" onclick="toggleStatus(this)"></div></td>
+                    <td>${jumpTarget || '待設定'}</td>
+                    <td>admin</td>
+                    <td>${new Date().toLocaleString('zh-TW')}</td>
+                    <td>
+                        <a href="#" class="action-btn btn-view" onclick="viewBanner(${newId})">顯示</a>
+                        <a href="#" class="action-btn btn-edit" onclick="openEditModal(${newId})">編輯</a>
+                        <a href="#" class="action-btn btn-delete" onclick="openDeleteModal(${newId})">刪除</a>
+                    </td>
+                `;
+                tbody.appendChild(newRow);
+                
+                showNotification(`新增Banner成功，ID: ${newId}`, 'success');
+            }
+
+            closeModal();
+            initializeBanners(); // 更新數據
+        }
+
+        // 打開刪除模態框
+        function openDeleteModal(id) {
+            // 將要刪除的ID儲存在模態框的data屬性中
+            const modal = document.getElementById('deleteModal');
+            modal.setAttribute('data-delete-id', id);
+            modal.classList.add('show');
+        }
+
+        // 關閉刪除模態框
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+        }
+
+        // 確認刪除
+        function confirmDelete() {
+            const modal = document.getElementById('deleteModal');
+            const id = modal.getAttribute('data-delete-id');
+            const rows = document.querySelectorAll('#bannerTableBody tr');
+            
+            rows.forEach(row => {
+                if (row.cells && row.cells[1] && row.cells[1].textContent == id) {
+                    row.remove();
+                }
+            });
+
+            showNotification(`已刪除Banner ID: ${id}`, 'success');
+            closeDeleteModal();
+            updateBatchDeleteButton();
+            initializeBanners(); // 更新數據
+        }
+
+        // 批量刪除
+        function batchDelete() {
+            const selectedCheckboxes = Array.from(document.querySelectorAll('.row-checkbox')).filter(
+                cb => cb.checked && cb.closest('tr').style.display !== 'none'
+            );
+
+            if (selectedCheckboxes.length === 0) {
+                showNotification('請選擇要刪除的Banner', 'warning');
+                return;
+            }
+
+            document.getElementById('batchDeleteCount').textContent = selectedCheckboxes.length;
+            document.getElementById('batchDeleteModal').classList.add('show');
+        }
+
+        // 關閉批量刪除模態框
+        function closeBatchDeleteModal() {
+            document.getElementById('batchDeleteModal').classList.remove('show');
+        }
+
+        // 確認批量刪除
+        function confirmBatchDelete() {
+            const selectedCheckboxes = Array.from(document.querySelectorAll('.row-checkbox')).filter(
+                cb => cb.checked && cb.closest('tr').style.display !== 'none'
+            );
+
+            selectedCheckboxes.forEach(checkbox => {
+                checkbox.closest('tr').remove();
+            });
+
+            showNotification(`已刪除 ${selectedCheckboxes.length} 個Banner`, 'success');
+            closeBatchDeleteModal();
+            updateBatchDeleteButton();
+            initializeBanners(); // 更新數據
+        }
+
+        // 圖片上傳處理
+        function handleImageUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            // 驗證文件格式
+            if (!file.type.match('image/jpeg')) {
+                showNotification('只支持JPG格式圖片', 'error');
+                input.value = '';
+                return;
+            }
+
+            // 驗證文件大小
+            if (file.size > 300 * 1024) {
+                showNotification('圖片大小不能超過600KB', 'error');
+                input.value = '';
+                return;
+            }
+
+            // 預覽圖片
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const placeholder = document.getElementById('uploadPlaceholder');
+                const preview = document.getElementById('uploadPreview');
+                const previewImage = document.getElementById('previewImage');
+                const uploadInfo = document.getElementById('uploadInfo');
+
+                previewImage.src = e.target.result;
+                uploadInfo.innerHTML = `
+                    <div>檔案名稱: ${file.name}</div>
+                    <div>檔案大小: ${(file.size / 1024).toFixed(1)} KB</div>
+                    <div>圖片類型: ${file.type}</div>
+                `;
+
+                placeholder.style.display = 'none';
+                preview.style.display = 'block';
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        // 移除圖片
+        function removeImage() {
+            const input = document.getElementById('imageUpload');
+            const placeholder = document.getElementById('uploadPlaceholder');
+            const preview = document.getElementById('uploadPreview');
+
+            input.value = '';
+            placeholder.style.display = 'block';
+            preview.style.display = 'none';
+        }
+
+        // 重置圖片上傳
+        function resetImageUpload() {
+            removeImage();
+        }
+
+        // 動態更新品牌和平台選擇，並控制代理選項
+        function updateBrandAndPlatform() {
+            const brand = document.getElementById('modalBrand').value;
+            const platform = document.getElementById('modalPlatform').value;
+            const platformSelect = document.getElementById('modalPlatform');
+            const agentSelect = document.getElementById('modalAgent');
+            const uploadSpecs = document.getElementById('uploadSpecs');
+            
+            // 品牌尺寸對應表
+            const brandSizes = {
+                'Viva': {
+                    'web': '1920 x 375',
+                    'mobile': '40 x 360'
+                },
+                'alpha': {
+                    'web': '1920 x 375',
+                    'mobile': '40 x 360'
+                },
+                'alpha2': {
+                    'web': '1920 x 375',
+                    'mobile': '40 x 360'
+                },
+                'Maxbe': {
+                    'web': '1920 x 375'
+                },
+                'Neverland': {
+                    'web': '1920 x 375'
+                },
+                'Tokyobet': {
+                    'web': '1920 x 375'
+                },
+                'Vegas': {
+                    'web': '1920 x 375'
+                },
+                'CasinoNeko': {
+                    'web': '1380 x 373',
+                    'mobile': '430 x 110'
+                }
+            };
+
+            // 品牌代理對應表
+            const brandAgents = {
+                'Viva': ['rd-wallet-test', 'kinWC1agent'],
+                'alpha': ['rd-wallet-test', 'icafe-agent003'],
+                'alpha2': ['rd-wallet-test'],
+                'Maxbe': ['rd-wallet-test', 'kinWC1agent'],
+                'Neverland': ['icafe-agent003'],
+                'Tokyobet': ['kinWC1agent'],
+                'Vegas': ['kinWC1agent', 'icafe-agent003'],
+                'CasinoNeko': ['icafe-agent003']
+            };
+            
+            if (!brand) {
+                // 如果沒選品牌，重置平台和代理
+                platformSelect.innerHTML = '<option value="">請先選擇品牌</option>';
+                platformSelect.disabled = true;
+                
+                agentSelect.innerHTML = '<option value="">請先選擇品牌和平台</option>';
+                agentSelect.disabled = true;
+                
+                uploadSpecs.innerHTML = `
+                    <div>請先選擇品牌以顯示對應尺寸</div>
+                    <div>格式限定: *.jpg</div>
+                    <div>大小限制: 600KB</div>
+                `;
+                return;
+            }
+            
+            // 根據品牌更新可選平台
+            const availablePlatforms = Object.keys(brandSizes[brand] || {});
+            const currentPlatform = platformSelect.value;
+            
+            platformSelect.innerHTML = '<option value="">請選擇</option>';
+            platformSelect.disabled = false;
+            
+            availablePlatforms.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p;
+                option.textContent = p === 'web' ? '網頁版' : '手機版';
+                if (p === currentPlatform && availablePlatforms.includes(currentPlatform)) {
+                    option.selected = true;
+                }
+                platformSelect.appendChild(option);
+            });
+            
+            // 如果當前選擇的平台不支持，清空選擇
+            if (currentPlatform && !availablePlatforms.includes(currentPlatform)) {
+                platformSelect.value = '';
+            }
+            
+            // 更新代理選項
+            if (brand && platform) {
+                // 品牌和平台都選了，啟用代理選擇
+                const availableAgents = brandAgents[brand] || [];
+                
+                agentSelect.innerHTML = '<option value="">請選擇</option>';
+                agentSelect.disabled = false;
+                
+                availableAgents.forEach(agent => {
+                    const option = document.createElement('option');
+                    option.value = agent;
+                    option.textContent = agent;
+                    agentSelect.appendChild(option);
+                });
+            } else {
+                // 品牌或平台未完全選擇，禁用代理
+                agentSelect.innerHTML = '<option value="">請先選擇品牌和平台</option>';
+                agentSelect.disabled = true;
+            }
+            
+            // 更新尺寸提示
+            let sizeText = '';
+            if (platform && brandSizes[brand] && brandSizes[brand][platform]) {
+                sizeText = `<div>建議尺寸: ${brandSizes[brand][platform]}</div>`;
+            } else if (brandSizes[brand]) {
+                // 顯示該品牌所有平台的尺寸
+                const sizes = Object.entries(brandSizes[brand]).map(([p, size]) => `${p === 'web' ? '網頁版' : '手機版'}: ${size}`).join('<br>');
+                sizeText = `<div>${sizes}</div>`;
+            }
+            
+            uploadSpecs.innerHTML = `
+                ${sizeText}
+                <div>格式限定: *.jpg</div>
+                <div>大小限制: 600KB</div>
+            `;
+        }
+
+        // 切換跳轉類型
+        function toggleJumpType() {
+            const isUrl = document.getElementById('jumpTypeUrl').checked;
+            const urlGroup = document.getElementById('urlGroup');
+            const gameGroup = document.getElementById('gameGroup');
+
+            if (isUrl) {
+                urlGroup.style.display = 'block';
+                gameGroup.style.display = 'none';
+                document.getElementById('modalGameId').value = '';
+            } else {
+                urlGroup.style.display = 'none';
+                gameGroup.style.display = 'block';
+                document.getElementById('modalUrl').value = '';
+            }
+        }
+
+        // 列設置功能
+        function columnSettings() {
+            document.getElementById('columnModal').classList.add('show');
+        }
+
+        function closeColumnModal() {
+            document.getElementById('columnModal').classList.remove('show');
+        }
+
+        function toggleAllColumns() {
+            const selectAll = document.getElementById('selectAllColumns');
+            const checkboxes = document.querySelectorAll('.column-checkbox:not([disabled])');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+            });
+        }
+
+        function resetColumns() {
+            const checkboxes = document.querySelectorAll('.column-checkbox');
+            checkboxes.forEach(checkbox => {
+                if (!checkbox.disabled) {
+                    checkbox.checked = true;
+                }
+            });
+            document.getElementById('selectAllColumns').checked = true;
+            showNotification('已重置列設置', 'info');
+        }
+
+        function saveColumns() {
+            showNotification('列設置已保存', 'success');
+            closeColumnModal();
+        }
+
+        function moveColumn(handle, direction) {
+            const item = handle.closest('.column-item');
+            if (direction === 'up' && item.previousElementSibling) {
+                item.parentNode.insertBefore(item, item.previousElementSibling);
+            } else if (direction === 'down' && item.nextElementSibling) {
+                item.parentNode.insertBefore(item.nextElementSibling, item);
+            }
+            showNotification('列順序已調整', 'info');
+        }
+
+        function pinColumn(btn, side) {
+            showNotification(`已釘選到${side === 'left' ? '左側' : '右側'}`, 'info');
+        }
+
+        function unpinColumn(btn) {
+            showNotification('已取消釘選', 'info');
+        }
+
+        // 通知提示
+        function showNotification(message, type = 'info') {
+            // 移除現有通知
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+
+            document.body.appendChild(notification);
+
+            // 3秒後自動消失
+            setTimeout(() => {
+                notification.classList.add('hide');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // 點擊模態框外部關閉
+        window.addEventListener('click', function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
+
+            const overlays = document.querySelectorAll('.modal-overlay');
+            overlays.forEach(overlay => {
+                if (event.target === overlay) {
+                    overlay.classList.remove('show');
+                }
+            });
+        });
+
+        // ESC鍵關閉模態框
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const openModals = document.querySelectorAll('.modal.show, .modal-overlay.show');
+                openModals.forEach(modal => {
+                    modal.classList.remove('show');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+                                    

@@ -1,0 +1,1967 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用戶標籤管理系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            margin-left: 0;
+            margin-top: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* 搜索區域 */
+        .search-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .search-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-label {
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .search-input, .search-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 150px;
+        }
+
+        .search-input:focus, .search-select:focus {
+            outline: none;
+            border-color: #409eff;
+        }
+
+        .search-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+            min-width: 80px;
+        }
+
+        .btn-primary {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .btn-primary:hover {
+            background: #66b1ff;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .btn-secondary:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        /* 表格頭部 */
+        .table-header {
+            background: #fafafa;
+            border-radius: 8px 8px 0 0;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        /* 表格區域 */
+        .table-container {
+            background: white;
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #e8e8e8;
+            border-right: 1px solid #e8e8e8;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #606266;
+        }
+
+        tbody tr:nth-child(odd) {
+            background: #fafafa;
+        }
+
+        tbody tr:hover {
+            background: #f0f9ff;
+        }
+
+        .color-tag {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 2px;
+            border: 1px solid #ddd;
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            font-size: 12px;
+            margin-right: 4px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            background: white;
+            color: #606266;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        /* 分頁 */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .page-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .page-btn.active {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        /* 彈窗樣式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            border-radius: 8px;
+            width: 500px;
+            max-width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e8e8e8;
+            border-radius: 8px 8px 0 0;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .close {
+            font-size: 28px;
+            color: #999;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .required {
+            color: #f56c6c;
+            margin-left: 2px;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-input:disabled {
+            background: #f5f5f5;
+            color: #999;
+        }
+
+        .color-preview {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            margin-left: 10px;
+            vertical-align: middle;
+            border: 1px solid #ddd;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: #fafafa;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .error-message {
+            color: #f56c6c;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* 確認對話框 */
+        .confirm-dialog {
+            display: none;
+            position: fixed;
+            z-index: 1100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .confirm-content {
+            background: white;
+            margin: 15% auto;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .confirm-header {
+            background: #fff2e8;
+            padding: 20px 24px;
+            border-bottom: 1px solid #e8e8e8;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .confirm-icon {
+            font-size: 24px;
+            color: #ff9800;
+        }
+
+        .confirm-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .confirm-body {
+            padding: 24px;
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .confirm-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: #fafafa;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .btn-danger {
+            background: #f56c6c;
+            color: white;
+            border-color: #f56c6c;
+        }
+
+        .btn-danger:hover {
+            background: #f78989;
+        }
+
+        /* 列設置彈窗 */
+        .column-modal {
+            width: 600px;
+        }
+
+        .column-settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .select-all {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .column-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+        }
+
+        .column-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            background: white;
+        }
+
+        .column-item:hover {
+            background: #f8f9fa;
+        }
+
+        .column-item:last-child {
+            border-bottom: none;
+        }
+
+        .drag-handle {
+            display: flex;
+            flex-direction: column;
+            margin-right: 12px;
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .arrow-up, .arrow-down {
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+        }
+
+        .arrow-up {
+            border-bottom: 6px solid #999;
+            margin-bottom: 1px;
+        }
+
+        .arrow-down {
+            border-top: 6px solid #999;
+        }
+
+        .drag-handle:hover .arrow-up {
+            border-bottom-color: #409eff;
+        }
+
+        .drag-handle:hover .arrow-down {
+            border-top-color: #409eff;
+        }
+
+        .column-checkbox {
+            margin-right: 12px;
+        }
+
+        .column-name {
+            flex: 1;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .column-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        /* 系統說明 */
+        .system-info-section {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .info-card h3 {
+            background: #f8f9fa;
+            margin: 0;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .info-table th {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            text-align: center;
+            font-weight: 600;
+            color: #606266;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #666;
+            line-height: 1.4;
+            vertical-align: top;
+        }
+
+        .info-table td:first-child {
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .info-table td:nth-child(2) {
+            text-align: left;
+        }
+
+        .info-table td:nth-child(3) {
+            text-align: left;
+        }
+
+        .info-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .info-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .info-notice {
+            background: #f0f9ff;
+            border: 1px solid #b3d8ff;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #1565c0;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>用戶標籤</h1>
+        </div>
+
+        <!-- 搜索區域 -->
+        <div class="search-section">
+            <div class="search-row">
+                <div class="search-item">
+                    <label class="search-label">ID：</label>
+                    <input type="text" id="searchId" class="search-input" placeholder="請輸入ID">
+                </div>
+                <div class="search-item">
+                    <label class="search-label">標籤名稱：</label>
+                    <input type="text" id="searchName" class="search-input" placeholder="請輸入名稱">
+                </div>
+                <div class="search-item">
+                    <label class="search-label">標籤顏色：</label>
+                    <select id="searchColor" class="search-select">
+                        <option value="">請選擇</option>
+                        <option value="blue">藍色</option>
+                        <option value="white">無色</option>
+                        <option value="yellow">黃色</option>
+                        <option value="green">綠色</option>
+                        <option value="cyan">青色</option>
+                        <option value="red">紅色</option>
+                        <option value="purple">紫色</option>
+                        <option value="orange">橙色</option>
+                    </select>
+                </div>
+            </div>
+            <div class="search-buttons">
+                <button class="btn btn-primary" onclick="searchTags()">🔍 搜索</button>
+                <button class="btn btn-secondary" onclick="resetSearch()">重置</button>
+            </div>
+        </div>
+
+        <!-- 表格頭部 -->
+        <div class="table-header">
+            <button class="btn btn-secondary" onclick="addNewTag()">+ 新增標籤</button>
+            <button class="btn btn-secondary" onclick="columnSettings()">列設置</button>
+        </div>
+
+        <!-- 資料表格 -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>標籤顏色</th>
+                        <th>標籤名稱</th>
+                        <th>用戶人數</th>
+                        <th>備註</th>
+                        <th>創建人</th>
+                        <th>創建時間</th>
+                        <th>修改人</th>
+                        <th>更新時間</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td>001</td>
+                        <td><span class="color-tag" style="background:#1976d2;"></span></td>
+                        <td>新用戶</td>
+                        <td>22</td>
+                        <td>新用戶</td>
+                        <td>Iven</td>
+                        <td>2024-12-15 10:30:25</td>
+                        <td>Iven</td>
+                        <td>2025-01-20 14:22:18</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>002</td>
+                        <td><span class="color-tag" style="background:#ffffff;"></span></td>
+                        <td>一般用戶</td>
+                        <td>51</td>
+                        <td>一般用戶</td>
+                        <td>Iven</td>
+                        <td>2024-12-15 10:30:25</td>
+                        <td>Iven</td>
+                        <td>2025-01-20 14:22:18</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>003</td>
+                        <td><span class="color-tag" style="background:#ffc107;"></span></td>
+                        <td>高風險</td>
+                        <td>1</td>
+                        <td>高風險</td>
+                        <td>Ives</td>
+                        <td>2025-01-15 09:15:42</td>
+                        <td>Ives</td>
+                        <td>2025-08-10 16:45:33</td>
+                        <td>
+                            <button class="action-btn" onclick="editTag(this)">編輯</button>
+                            <button class="action-btn" onclick="deleteTag(this)">刪除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>004</td>
+                        <td><span class="color-tag" style="background:#4caf50;"></span></td>
+                        <td>優良</td>
+                        <td>2</td>
+                        <td>優良</td>
+                        <td>Ives</td>
+                        <td>2025-01-18 11:22:17</td>
+                        <td>Ives</td>
+                        <td>2025-08-12 09:18:45</td>
+                        <td>
+                            <button class="action-btn" onclick="editTag(this)">編輯</button>
+                            <button class="action-btn" onclick="deleteTag(this)">刪除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>005</td>
+                        <td><span class="color-tag" style="background:#00bcd4;"></span></td>
+                        <td>可疑</td>
+                        <td>3</td>
+                        <td>可疑</td>
+                        <td>Admin</td>
+                        <td>2025-02-03 14:35:28</td>
+                        <td>Admin</td>
+                        <td>2025-08-15 13:27:19</td>
+                        <td>
+                            <button class="action-btn" onclick="editTag(this)">編輯</button>
+                            <button class="action-btn" onclick="deleteTag(this)">刪除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>006</td>
+                        <td><span class="color-tag" style="background:#f44336;"></span></td>
+                        <td>黑名單</td>
+                        <td>4</td>
+                        <td>黑名單</td>
+                        <td>Admin</td>
+                        <td>2025-03-12 16:44:51</td>
+                        <td>Admin</td>
+                        <td>2025-08-17 10:32:07</td>
+                        <td>
+                            <button class="action-btn" onclick="editTag(this)">編輯</button>
+                            <button class="action-btn" onclick="deleteTag(this)">刪除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>007</td>
+                        <td><span class="color-tag" style="background:#9c27b0;"></span></td>
+                        <td>VIP用戶</td>
+                        <td>15</td>
+                        <td>VIP用戶</td>
+                        <td>Admin</td>
+                        <td>2025-04-08 13:27:36</td>
+                        <td>Admin</td>
+                        <td>2025-08-18 08:15:42</td>
+                        <td>
+                            <button class="action-btn" onclick="editTag(this)">編輯</button>
+                            <button class="action-btn" onclick="deleteTag(this)">刪除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>008</td>
+                        <td><span class="color-tag" style="background:#ff9800;"></span></td>
+                        <td>活躍用戶</td>
+                        <td>28</td>
+                        <td>活躍用戶</td>
+                        <td>Admin</td>
+                        <td>2025-05-20 15:18:29</td>
+                        <td>Admin</td>
+                        <td>2025-08-18 11:45:15</td>
+                        <td>
+                            <button class="action-btn" onclick="editTag(this)">編輯</button>
+                            <button class="action-btn" onclick="deleteTag(this)">刪除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>009</td>
+                        <td><span class="color-tag" style="background:#795548;"></span></td>
+                        <td>測試用戶</td>
+                        <td>5</td>
+                        <td>測試用戶</td>
+                        <td>Admin</td>
+                        <td>2025-06-10 12:55:17</td>
+                        <td>Admin</td>
+                        <td>2025-08-18 15:20:38</td>
+                        <td>
+                            <button class="action-btn" onclick="editTag(this)">編輯</button>
+                            <button class="action-btn" onclick="deleteTag(this)">刪除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>010</td>
+                        <td><span class="color-tag" style="background:#607d8b;"></span></td>
+                        <td>休眠用戶</td>
+                        <td>12</td>
+                        <td>休眠用戶</td>
+                        <td>Admin</td>
+                        <td>2025-07-25 09:33:44</td>
+                        <td>Admin</td>
+                        <td>2025-08-18 17:12:22</td>
+                        <td>
+                            <button class="action-btn" onclick="editTag(this)">編輯</button>
+                            <button class="action-btn" onclick="deleteTag(this)">刪除</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="pagination">
+                <div class="pagination-info">共 1 頁 10 條，共計 157 條</div>
+                <div class="pagination-controls">
+                    <button class="page-btn" disabled>‹</button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">›</button>
+                    <select class="search-select" style="width:80px;margin-left:20px;">
+                        <option>10</option>
+                        <option>20</option>
+                        <option>50</option>
+                    </select>
+                    <input type="number" placeholder="1" style="width:60px;margin-left:10px;" class="search-input">
+                    <button class="btn btn-secondary">跳轉</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 系統說明 -->
+        <div class="system-info-section">
+            <div class="info-card">
+                <h3>系統規則</h3>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th width="20%">規則類型</th>
+                            <th width="80%">規則內容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>標籤功能</td>
+                            <td>該功能可以讓使用者自定義「用戶標籤」，並將標籤賦予用戶。<br>
+                                個人帳戶介面新增對應欄位「用戶標籤」。</td>
+                        </tr>
+                        <tr>
+                            <td>標籤顏色</td>
+                            <td>藍色 00418D、無色 FFFFFF、黃色 FAD817、綠色 00BA71、<br>
+                                靛色 00C2DE、紅色 F43545、紫色 5F2879、橙色 FF8901。</td>
+                        </tr>
+                        <tr>
+                            <td>預設標籤</td>
+                            <td>每個用戶創立時，預設為「新用戶」。(創立時不可編輯)<br>
+                                新用戶創立達到7天後，會自動變成「一般用戶」。<br>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>修改標籤</td>
+                            <td>當用戶被賦予標籤後，即顯示新標籤。(不受7天新用戶規則)<br>
+                                修改標籤後，用戶的標籤也會隨之更新。<br>
+                                如標籤遭遇刪除，用戶的標籤會自動變成「一般用戶」。<br>
+                                <strong style="color: #ba6cf5;">Ex：新用戶>測試用戶，顯示測試用戶，7天後依然是測試用戶</strong><br>
+                                <strong style="color: #ba6cf5;">Ex：一般用戶>測試用戶，顯示測試用戶</strong><br>
+                                <strong style="color: #ba6cf5;">Ex：測試用戶修改為RD測試用戶，原測試用戶>顯示RD測試用戶</strong><br>
+                                <strong style="color: #ba6cf5;">Ex：測試用戶遭刪除，原測試用戶>改為一般用戶</strong><br>
+                            </td>
+
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>搜尋功能列</h3>
+                <div class="info-notice">
+                    <strong>重要提醒：</strong><br>
+                    一進入畫面就顯示所有標籤資料<br>
+                    重置會清空所有搜尋條件，恢復顯示全部標籤
+                </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th width="15%">欄位</th>
+                            <th width="60%">內容說明</th>
+                            <th width="25%">模式</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ID</td>
+                            <td>輸入標籤ID進行搜尋<br>預設顯示全部資料</td>
+                            <td>輸入框，非必填<br>精準搜尋</td>
+                        </tr>
+                        <tr>
+                            <td>標籤名稱</td>
+                            <td>輸入標籤名稱進行搜尋<br>預設顯示全部資料</td>
+                            <td>輸入框，非必填<br>模糊匹配</td>
+                        </tr>
+                        <tr>
+                            <td>標籤顏色</td>
+                            <td>點擊選擇標籤顏色<br>預設顯示全部</td>
+                            <td>下拉選單，非必填<br>下拉框提示文字：請選擇</td>
+                        </tr>
+                        <tr>
+                            <td>搜索</td>
+                            <td>點擊觸發搜尋</td>
+                            <td>按鈕</td>
+                        </tr>
+                        <tr>
+                            <td>重置</td>
+                            <td>點擊將搜尋條件回到預設值</td>
+                            <td>按鈕</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>新增標籤功能</h3>
+                <div class="info-notice">
+                    <strong>功能說明：</strong><br>
+                    點擊表格右上方的「+ 新增標籤」按鈕，彈出新增標籤視窗。<br>
+                    新增的標籤會立即顯示在表格中，並可進行編輯和刪除操作。<br>
+                    <strong style="color: #f56c6c;">警告：ID不可重複，系統自動檢查並提示。</strong>
+                </div>
+                
+                <!-- 新增標籤視窗預覽 -->
+                <div style="margin: 20px 0; text-align: center;">
+                    <div style="display: inline-block; background: white; border-radius: 8px; width: 500px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); border: 1px solid #e8e8e8;">
+                        <div style="padding: 20px 24px; border-bottom: 1px solid #e8e8e8; border-radius: 8px 8px 0 0; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center;">
+                            <div style="font-size: 18px; font-weight: 600; color: #333;">新增標籤</div>
+                            <span style="font-size: 28px; color: #999; cursor: pointer; line-height: 1;">&times;</span>
+                        </div>
+                        <div style="padding: 24px; text-align: left;">
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">ID<span style="color: #f56c6c; margin-left: 2px;">*</span></label>
+                                <input type="text" style="width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box;" placeholder="請輸入標籤ID" value="011">
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">標籤名稱<span style="color: #f56c6c; margin-left: 2px;">*</span></label>
+                                <input type="text" style="width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box;" placeholder="請輸入標籤名稱" value="企業用戶">
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">標籤顏色<span style="color: #f56c6c; margin-left: 2px;">*</span></label>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <select style="flex: 1; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px;">
+                                        <option>綠色</option>
+                                    </select>
+                                    <span style="display: inline-block; width: 20px; height: 20px; border-radius: 3px; border: 1px solid #ddd; background: #4caf50;"></span>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">備註</label>
+                                <textarea style="width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; resize: vertical; min-height: 80px; box-sizing: border-box;" placeholder="請輸入備註說明（選填）">企業級用戶標籤</textarea>
+                            </div>
+                        </div>
+                        <div style="padding: 16px 24px; border-top: 1px solid #e8e8e8; display: flex; justify-content: flex-end; gap: 12px; background: #fafafa; border-radius: 0 0 8px 8px;">
+                            <button style="padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid #dcdfe6; background: white; color: #606266;">取消</button>
+                            <button style="padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid #409eff; background: #409eff; color: white;">確認新增</button>
+                        </div>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 12px; color: #999;">新增標籤視窗預覽，功能達成即可，最終以uat操作畫面為準。</p>
+                </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th width="15%">欄位名稱</th>
+                            <th width="60%">欄位說明</th>
+                            <th width="25%">驗證規則</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ID</td>
+                            <td>標籤的唯一識別編號</td>
+                            <td>數字為001-999，必填<br>不可重複</td>
+                        </tr>
+                        <tr>
+                            <td>標籤名稱</td>
+                            <td>標籤的顯示名稱</td>
+                            <td>文字格式，必填<br>最多8個字符</td>
+                        </tr>
+                        <tr>
+                            <td>標籤顏色</td>
+                            <td>標籤的識別顏色，以色塊配合下拉選單顯示</td>
+                            <td>色塊+下拉選單，必填</td>
+                        </tr>
+                        <tr>
+                            <td>備註</td>
+                            <td>標籤的說明</td>
+                            <td>文字格式，非必填<br>最多200個字符</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>編輯標籤功能</h3>
+                <div class="info-notice">
+                    <strong>功能說明：</strong><br>
+                    點擊表格中「編輯」按鈕，彈出編輯標籤視窗。<br>
+                    僅限自定義標籤可編輯，系統預設標籤（新用戶、一般用戶）不可編輯。<br>
+                    <strong style="color: #f56c6c;">警告：修改標籤後，使用該標籤的用戶會連動顯示為新的標籤。</strong>
+                </div>
+                
+                <!-- 編輯標籤視窗預覽 -->
+                <div style="margin: 20px 0; text-align: center;">
+                    <div style="display: inline-block; background: white; border-radius: 8px; width: 500px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); border: 1px solid #e8e8e8;">
+                        <div style="padding: 20px 24px; border-bottom: 1px solid #e8e8e8; border-radius: 8px 8px 0 0; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center;">
+                            <div style="font-size: 18px; font-weight: 600; color: #333;">編輯標籤</div>
+                            <span style="font-size: 28px; color: #999; cursor: pointer; line-height: 1;">&times;</span>
+                        </div>
+                        <div style="padding: 24px; text-align: left;">
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">ID</label>
+                                <input type="text" style="width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box; background: #f5f5f5; color: #999;" value="007" disabled>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">標籤名稱<span style="color: #f56c6c; margin-left: 2px;">*</span></label>
+                                <input type="text" style="width: 100%; padding: 10px 12px; border: 1px solid #409eff; border-radius: 4px; font-size: 14px; box-sizing: border-box; box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);" placeholder="請輸入標籤名稱" value="VIP會員">
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">標籤顏色<span style="color: #f56c6c; margin-left: 2px;">*</span></label>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <select style="flex: 1; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px;">
+                                        <option>紫色</option>
+                                    </select>
+                                    <span style="display: inline-block; width: 20px; height: 20px; border-radius: 3px; border: 1px solid #ddd; background: #9c27b0;"></span>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">備註</label>
+                                <textarea style="width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; resize: vertical; min-height: 80px; box-sizing: border-box;" placeholder="請輸入備註說明（選填）">VIP會員專屬標籤，享受高級服務</textarea>
+                            </div>
+                        </div>
+                        <div style="padding: 16px 24px; border-top: 1px solid #e8e8e8; display: flex; justify-content: flex-end; gap: 12px; background: #fafafa; border-radius: 0 0 8px 8px;">
+                            <button style="padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid #dcdfe6; background: white; color: #606266;">取消</button>
+                            <button style="padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid #409eff; background: #409eff; color: white;">確認修改</button>
+                        </div>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 12px; color: #999;">編輯標籤視窗預覽，功能達成即可，最終以uat操作畫面為準。</p>
+                </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th width="15%">欄位名稱</th>
+                            <th width="60%">欄位說明</th>
+                            <th width="25%">編輯規則</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ID</td>
+                            <td>標籤ID不可修改<br>以灰色禁用狀態顯示，防止誤操作</td>
+                            <td>不可編輯<br>系統鎖定</td>
+                        </tr>
+                        <tr>
+                            <td>標籤名稱</td>
+                            <td>可修改標籤顯示名稱<br>修改後立即在表格中更新顯示</td>
+                            <td>必填，文字格式<br>不可為空</td>
+                        </tr>
+                        <tr>
+                            <td>標籤顏色</td>
+                            <td>可修改標籤識別顏色<br>修改後立即在表格中更新顯示<br>支援所有預設顏色選擇</td>
+                            <td>必填，下拉選擇<br>必須選擇一個顏色</td>
+                        </tr>
+                        <tr>
+                            <td>備註</td>
+                            <td>可修改標籤詳細說明<br>用於記錄標籤用途變更或補充資訊</td>
+                            <td>選填，文字格式<br>可留空</td>
+                        </tr>
+                        <tr>
+                            <td>更新資訊</td>
+                            <td>系統自動更新修改人和更新時間<br>保留原始創建資訊，新增修改記錄</td>
+                            <td>系統自動更新<br>無需手動輸入</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>刪除標籤功能</h3>
+                <div class="info-notice">
+                    <strong>功能說明：</strong><br>
+                    點擊表格中「刪除」按鈕，彈出二次確認對話框。<br>
+                    僅限自定義標籤可刪除，系統預設標籤（新用戶、一般用戶）不可刪除。<br>
+                    <strong style="color: #f56c6c;">警告：刪除標籤後，使用該標籤的用戶會自動改為「一般用戶」標籤。</strong>
+                </div>
+                
+                <!-- 刪除確認視窗預覽 -->
+                <div style="margin: 20px 0; text-align: center;">
+                    <div style="display: inline-block; background: white; border-radius: 8px; width: 400px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); border: 1px solid #e8e8e8;">
+                        <div style="background: #fff2e8; padding: 20px 24px; border-bottom: 1px solid #e8e8e8; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 24px; color: #ff9800;">⚠️</span>
+                            <div style="font-size: 16px; font-weight: 600; color: #333;">提示</div>
+                        </div>
+                        <div style="padding: 24px; color: #666; font-size: 14px; line-height: 1.5;">
+                            確定要刪除標籤 "<span style="font-weight: 600; color: #333;">高風險</span>" 嗎？
+                        </div>
+                        <div style="padding: 16px 24px; border-top: 1px solid #e8e8e8; display: flex; justify-content: flex-end; gap: 12px; background: #fafafa; border-radius: 0 0 8px 8px;">
+                            <button style="padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid #dcdfe6; background: white; color: #606266;">取消</button>
+                            <button style="padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid #f56c6c; background: #f56c6c; color: white;">確認</button>
+                        </div>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 12px; color: #999;">刪除確認對話框預覽，功能達成即可，最終以uat操作畫面為準。</p>
+                </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th width="15%">操作步驟</th>
+                            <th width="60%">操作說明</th>
+                            <th width="25%">注意事項</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>標題</td>
+                            <td>提示</td>
+                            <td>共用元件應該都是提示</td>
+                        </tr>
+                        <tr>
+                            <td>內容</td>
+                            <td>顯示「確定要刪除標籤 "XXX" 嗎？」</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>按鈕</td>
+                            <td>選擇「確認」或「取消」<br>確認：立即執行刪除操作<br>取消：關閉對話框，不執行任何操作</td>
+                            <td>刪除操作不可復原</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                    <h3>列設置功能</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>功能說明：</strong><br>
+                        點擊表格右上方的「列設置」按鈕，可調整表格顯示的欄位、順序和釘選位置。<br>
+                        設定會即時生效，並在當前頁面中保持。<br>
+                        導出則是原始欄位及順序不受列設置影響。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">功能項目</th>
+                                <th width="60%">功能說明</th>
+                                <th width="25%">操作方式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>全選控制</td>
+                                <td>
+                                    一鍵選擇或取消選擇所有欄位<br>
+                                    當部分欄位被選中時，顯示半選狀態<br>
+                                </td>
+                                <td>點擊「全選」勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>欄位顯示控制</td>
+                                <td>
+                                    控制每個欄位是否在表格中顯示<br>
+                                    未勾選的欄位將在表格中隱藏<br>
+                                    表格中的第一欄為鎖定，不可隱藏
+                                </td>
+                                <td>點擊欄位名稱前的勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>拖拽排序</td>
+                                <td>
+                                    點擊左側的上下箭頭調整欄位在表格中的顯示順序<br>
+                                    調整後的順序會即時反映在表格中
+                                </td>
+                                <td>點擊左側的「↑↓」箭頭圖示</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到左側</td>
+                                <td>
+                                    將選中的欄位固定在表格最左側<br>
+                                    釘選的欄位在橫向捲動時保持可見
+                                </td>
+                                <td>點擊「釘選到左側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到右側</td>
+                                <td>
+                                    將選中的欄位固定在表格最右側<br>
+                                    釘選的欄位在橫向捲動時保持可見<br>
+                                </td>
+                                <td>點擊「釘選到右側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消釘選</td>
+                                <td>
+                                    移除欄位的左側或右側釘選狀態<br>
+                                    欄位將回到正常的捲動區域<br>
+                                </td>
+                                <td>點擊「取消釘選」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>重置設定</td>
+                                <td>
+                                    清除所有自定義的排序和釘選設定<br>
+                                    回到系統初始的欄位配置
+                                </td>
+                                <td>點擊「重置」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>保存設定</td>
+                                <td>
+                                    應用當前的欄位配置到表格顯示<br>
+                                    設定在當前瀏覽器頁面中保持有效<br>
+                                </td>
+                                <td>點擊「保存」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消操作</td>
+                                <td>
+                                    放棄當前的所有配置更改<br>
+                                    回到進入設定前的狀態
+                                </td>
+                                <td>點擊「取消」按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            <div class="info-card">
+                <h3>資料表說明</h3>
+                <div class="info-notice">
+                    <strong>重要提醒：</strong><br>
+                    系統預設標籤（新用戶、一般用戶），不可編輯或刪除。<br>
+                    自定義標籤可進行編輯和刪除操作。<br>
+                </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th width="8%">排序</th>
+                            <th width="15%">欄位</th>
+                            <th width="57%">內容說明</th>
+                            <th width="20%">顯示模式</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>-</td>
+                            <td>Id</td>
+                            <td>顯示標籤的唯一識別編號，自行輸入</td>
+                            <td>數字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>標籤顏色</td>
+                            <td>顯示標籤的顏色標識，以彩色方塊呈現</td>
+                            <td>彩色方塊</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>標籤名稱</td>
+                            <td>顯示標籤的名稱</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>用戶人數</td>
+                            <td>顯示目前使用該標籤的用戶總數</td>
+                            <td>數字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>備註</td>
+                            <td>顯示標籤的詳細描述或使用說明</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>創建人</td>
+                            <td>顯示建立該標籤的管理員帳號</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>✓</td>
+                            <td>創建時間</td>
+                            <td>顯示標籤的建立時間<br>
+                                例：2024-05-31 00:00</td>
+                            <td>時間格式</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>修改人</td>
+                            <td>顯示最後修改該標籤的管理員帳號</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>✓</td>
+                            <td>更新時間</td>
+                            <td>顯示標籤的最後修改時間<br>
+                                例：2024-05-31 00:00</td>
+                            <td>時間格式</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>操作</td>
+                            <td>提供編輯和刪除功能按鈕<br>系統預設標籤不顯示操作選項</td>
+                            <td>按鈕</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增標籤彈窗 -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">新增標籤</div>
+                <span class="close" onclick="closeAddModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">ID<span class="required">*</span></label>
+                    <input type="number" id="newId" class="form-input" placeholder="請輸入標籤ID">
+                    <div class="error-message" id="idError">請輸入有效的ID</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">標籤名稱<span class="required">*</span></label>
+                    <input type="text" id="newName" class="form-input" placeholder="請輸入標籤名稱">
+                    <div class="error-message" id="nameError">請輸入標籤名稱</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">標籤顏色<span class="required">*</span></label>
+                    <select id="newColor" class="form-select" onchange="updateColorPreview('new')">
+                        <option value="">請選擇顏色</option>
+                        <option value="#1976d2">藍色</option>
+                        <option value="#ffffff">無色</option>
+                        <option value="#ffc107">黃色</option>
+                        <option value="#4caf50">綠色</option>
+                        <option value="#00bcd4">青色</option>
+                        <option value="#f44336">紅色</option>
+                        <option value="#9c27b0">紫色</option>
+                        <option value="#ff9800">橙色</option>
+                    </select>
+                    <span class="color-preview" id="newColorPreview"></span>
+                    <div class="error-message" id="colorError">請選擇標籤顏色</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">備註</label>
+                    <textarea id="newNote" class="form-textarea" placeholder="請輸入備註說明（選填）"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddModal()">取消</button>
+                <button class="btn btn-primary" onclick="submitNewTag()">確認新增</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 編輯標籤彈窗 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">編輯標籤</div>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">ID</label>
+                    <input type="text" id="editId" class="form-input" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">標籤名稱<span class="required">*</span></label>
+                    <input type="text" id="editName" class="form-input" placeholder="請輸入標籤名稱">
+                    <div class="error-message" id="editNameError">請輸入標籤名稱</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">標籤顏色<span class="required">*</span></label>
+                    <select id="editColor" class="form-select" onchange="updateColorPreview('edit')">
+                        <option value="">請選擇顏色</option>
+                        <option value="#1976d2">藍色</option>
+                        <option value="#ffffff">無色</option>
+                        <option value="#ffc107">黃色</option>
+                        <option value="#4caf50">綠色</option>
+                        <option value="#00bcd4">青色</option>
+                        <option value="#f44336">紅色</option>
+                        <option value="#9c27b0">紫色</option>
+                        <option value="#ff9800">橙色</option>
+                    </select>
+                    <span class="color-preview" id="editColorPreview"></span>
+                    <div class="error-message" id="editColorError">請選擇標籤顏色</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">備註</label>
+                    <textarea id="editNote" class="form-textarea" placeholder="請輸入備註說明（選填）"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditModal()">取消</button>
+                <button class="btn btn-primary" onclick="submitEditTag()">確認修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 刪除確認對話框 -->
+    <div id="deleteDialog" class="confirm-dialog">
+        <div class="confirm-content">
+            <div class="confirm-header">
+                <span class="confirm-icon">⚠️</span>
+                <div class="confirm-title">提示</div>
+            </div>
+            <div class="confirm-body">
+                確定要刪除標籤 "<span id="deleteTagName"></span>" 嗎？
+            </div>
+            <div class="confirm-footer">
+                <button class="btn btn-secondary" onclick="closeDeleteDialog()">取消</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">確認</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 列設置彈窗 -->
+    <div id="columnModal" class="modal">
+        <div class="modal-content column-modal">
+            <div class="modal-header">
+                <div class="modal-title">列設置</div>
+                <span class="close" onclick="closeColumnModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="column-settings-header">
+                    <div class="select-all">
+                        <input type="checkbox" id="selectAll" onchange="toggleAllColumns()">
+                        <label for="selectAll">全選</label>
+                    </div>
+                    <button class="btn btn-secondary" onclick="resetColumns()">重置</button>
+                </div>
+                <div class="column-list">
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked disabled>
+                        <div class="column-name">Id</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">標籤顏色</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">標籤名稱</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">用戶人數</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">備註</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">創建人</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">創建時間</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">修改人</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">更新時間</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">操作</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeColumnModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveColumns()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentEditingRow = null;
+        let currentDeletingRow = null;
+
+        // 新增標籤
+        function addNewTag() {
+            document.getElementById('addModal').style.display = 'block';
+            clearAddForm();
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').style.display = 'none';
+        }
+
+        function clearAddForm() {
+            document.getElementById('newId').value = '';
+            document.getElementById('newName').value = '';
+            document.getElementById('newColor').value = '';
+            document.getElementById('newNote').value = '';
+            document.getElementById('newColorPreview').style.backgroundColor = '';
+            hideErrors('add');
+        }
+
+        // 編輯標籤
+        function editTag(button) {
+            const row = button.closest('tr');
+            currentEditingRow = row;
+            
+            const cells = row.cells;
+            document.getElementById('editId').value = cells[0].textContent;
+            document.getElementById('editName').value = cells[2].textContent;
+            document.getElementById('editNote').value = cells[4].textContent;
+            
+            // 獲取顏色值
+            const colorSpan = cells[1].querySelector('.color-tag');
+            const bgColor = colorSpan.style.backgroundColor;
+            const colorMap = {
+                'rgb(25, 118, 210)': '#1976d2',
+                'rgb(255, 255, 255)': '#ffffff',
+                'rgb(255, 193, 7)': '#ffc107',
+                'rgb(76, 175, 80)': '#4caf50',
+                'rgb(0, 188, 212)': '#00bcd4',
+                'rgb(244, 67, 54)': '#f44336',
+                'rgb(156, 39, 176)': '#9c27b0',
+                'rgb(255, 152, 0)': '#ff9800'
+            };
+            
+            document.getElementById('editColor').value = colorMap[bgColor] || '';
+            updateColorPreview('edit');
+            hideErrors('edit');
+            
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            currentEditingRow = null;
+        }
+
+        // 刪除標籤
+        function deleteTag(button) {
+            const row = button.closest('tr');
+            currentDeletingRow = row;
+            const tagName = row.cells[2].textContent;
+            
+            document.getElementById('deleteTagName').textContent = tagName;
+            document.getElementById('deleteDialog').style.display = 'block';
+        }
+
+        function closeDeleteDialog() {
+            document.getElementById('deleteDialog').style.display = 'none';
+            currentDeletingRow = null;
+        }
+
+        function confirmDelete() {
+            if (currentDeletingRow) {
+                const tagName = currentDeletingRow.cells[2].textContent;
+                currentDeletingRow.remove();
+                showNotification(`標籤 "${tagName}" 已刪除`, 'success');
+            }
+            closeDeleteDialog();
+        }
+
+        // 列設置
+        function columnSettings() {
+            document.getElementById('columnModal').style.display = 'block';
+            updateSelectAllState();
+        }
+
+        function closeColumnModal() {
+            document.getElementById('columnModal').style.display = 'none';
+        }
+
+        function toggleAllColumns() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.column-checkbox:not([disabled])');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+            });
+        }
+
+        function updateSelectAllState() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.column-checkbox:not([disabled])');
+            const checkedBoxes = document.querySelectorAll('.column-checkbox:not([disabled]):checked');
+            
+            if (checkedBoxes.length === checkboxes.length) {
+                selectAll.checked = true;
+                selectAll.indeterminate = false;
+            } else if (checkedBoxes.length === 0) {
+                selectAll.checked = false;
+                selectAll.indeterminate = false;
+            } else {
+                selectAll.checked = false;
+                selectAll.indeterminate = true;
+            }
+        }
+
+        function resetColumns() {
+            document.querySelectorAll('.column-checkbox:not([disabled])').forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            updateSelectAllState();
+            showNotification('列設置已重置', 'success');
+        }
+
+        function saveColumns() {
+            const checkedColumns = [];
+            document.querySelectorAll('.column-checkbox:checked').forEach((checkbox, index) => {
+                checkedColumns.push(index);
+            });
+            closeColumnModal();
+            showNotification('列設置已保存', 'success');
+        }
+
+        // 顏色預覽
+        function updateColorPreview(type) {
+            const colorSelect = document.getElementById(type + 'Color');
+            const colorPreview = document.getElementById(type + 'ColorPreview');
+            colorPreview.style.backgroundColor = colorSelect.value;
+        }
+
+        // 表單驗證
+        function validateForm(type) {
+            const id = document.getElementById(type + (type === 'new' ? 'Id' : 'Id')).value;
+            const name = document.getElementById(type + 'Name').value;
+            const color = document.getElementById(type + 'Color').value;
+            
+            let valid = true;
+            
+            if (type === 'new' && (!id || id <= 0)) {
+                showError(type === 'new' ? 'idError' : 'editIdError', '請輸入有效的ID');
+                valid = false;
+            }
+            
+            if (!name.trim()) {
+                showError(type === 'new' ? 'nameError' : 'editNameError', '請輸入標籤名稱');
+                valid = false;
+            }
+            
+            if (!color) {
+                showError(type === 'new' ? 'colorError' : 'editColorError', '請選擇標籤顏色');
+                valid = false;
+            }
+            
+            return valid;
+        }
+
+        function showError(id, message) {
+            const errorElement = document.getElementById(id);
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            }
+        }
+
+        function hideErrors(type) {
+            const errorIds = type === 'new' ? 
+                ['idError', 'nameError', 'colorError'] : 
+                ['editNameError', 'editColorError'];
+            
+            errorIds.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.style.display = 'none';
+                }
+            });
+        }
+
+        // 提交新增
+        function submitNewTag() {
+            hideErrors('new');
+            
+            if (!validateForm('new')) {
+                return;
+            }
+            
+            const id = document.getElementById('newId').value;
+            const name = document.getElementById('newName').value;
+            const color = document.getElementById('newColor').value;
+            const note = document.getElementById('newNote').value || name;
+            
+            // 檢查ID是否重複
+            const existingIds = Array.from(document.querySelectorAll('#tableBody tr td:first-child')).map(td => td.textContent);
+            if (existingIds.includes(id)) {
+                showError('idError', 'ID已存在，請使用其他ID');
+                return;
+            }
+            
+            addTagToTable(id, color, name, 0, note, 'Admin', getCurrentTime(), 'Admin', getCurrentTime(), true);
+            closeAddModal();
+            showNotification('標籤新增成功', 'success');
+        }
+
+        // 提交編輯
+        function submitEditTag() {
+            hideErrors('edit');
+            
+            if (!validateForm('edit')) {
+                return;
+            }
+            
+            const name = document.getElementById('editName').value;
+            const color = document.getElementById('editColor').value;
+            const note = document.getElementById('editNote').value || name;
+            
+            if (currentEditingRow) {
+                const cells = currentEditingRow.cells;
+                cells[1].innerHTML = `<span class="color-tag" style="background:${color};"></span>`;
+                cells[2].textContent = name;
+                cells[4].textContent = note;
+                cells[7].textContent = 'Admin';
+                cells[8].textContent = getCurrentTime();
+            }
+            
+            closeEditModal();
+            showNotification('標籤修改成功', 'success');
+        }
+
+        // 添加標籤到表格
+        function addTagToTable(id, color, name, userCount, note, creator, createTime, modifier, updateTime, showActions) {
+            const tbody = document.getElementById('tableBody');
+            const row = document.createElement('tr');
+            
+            row.innerHTML = `
+                <td>${id}</td>
+                <td><span class="color-tag" style="background:${color};"></span></td>
+                <td>${name}</td>
+                <td>${userCount}</td>
+                <td>${note}</td>
+                <td>${creator}</td>
+                <td>${createTime}</td>
+                <td>${modifier}</td>
+                <td>${updateTime}</td>
+                <td>${showActions ? `
+                    <button class="action-btn" onclick="editTag(this)">編輯</button>
+                    <button class="action-btn" onclick="deleteTag(this)">刪除</button>
+                ` : '-'}</td>
+            `;
+            
+            tbody.appendChild(row);
+        }
+
+        // 搜索功能
+        function searchTags() {
+            const searchId = document.getElementById('searchId').value.toLowerCase();
+            const searchName = document.getElementById('searchName').value.toLowerCase();
+            const searchColor = document.getElementById('searchColor').value;
+            
+            const rows = document.querySelectorAll('#tableBody tr');
+            let visibleCount = 0;
+            
+            const colorMap = {
+                'blue': 'rgb(25, 118, 210)',
+                'white': 'rgb(255, 255, 255)',
+                'yellow': 'rgb(255, 193, 7)',
+                'green': 'rgb(76, 175, 80)',
+                'cyan': 'rgb(0, 188, 212)',
+                'red': 'rgb(244, 67, 54)',
+                'purple': 'rgb(156, 39, 176)',
+                'orange': 'rgb(255, 152, 0)'
+            };
+            
+            rows.forEach(row => {
+                const id = row.cells[0].textContent.toLowerCase();
+                const name = row.cells[2].textContent.toLowerCase();
+                const colorSpan = row.cells[1].querySelector('.color-tag');
+                const rowColor = colorSpan ? colorSpan.style.backgroundColor : '';
+                
+                const matchId = !searchId || id.includes(searchId);
+                const matchName = !searchName || name.includes(searchName);
+                const matchColor = !searchColor || rowColor === colorMap[searchColor];
+                
+                if (matchId && matchName && matchColor) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            if (visibleCount === 0) {
+                showNotification('未找到符合條件的標籤', 'info');
+            } else {
+                showNotification(`找到 ${visibleCount} 個符合條件的標籤`, 'success');
+            }
+        }
+
+        function resetSearch() {
+            document.getElementById('searchId').value = '';
+            document.getElementById('searchName').value = '';
+            document.getElementById('searchColor').value = '';
+            
+            document.querySelectorAll('#tableBody tr').forEach(row => {
+                row.style.display = '';
+            });
+            
+            showNotification('搜索已重置', 'success');
+        }
+
+        // 工具函數
+        function getCurrentTime() {
+            const now = new Date();
+            return now.getFullYear() + '-' + 
+                   String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                   String(now.getDate()).padStart(2, '0') + ' ' + 
+                   String(now.getHours()).padStart(2, '0') + ':' + 
+                   String(now.getMinutes()).padStart(2, '0') + ':' + 
+                   String(now.getSeconds()).padStart(2, '0');
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 6px;
+                color: white;
+                font-size: 14px;
+                z-index: 10001;
+                transition: all 0.3s ease;
+                ${type === 'success' ? 'background: #67c23a;' : type === 'info' ? 'background: #409eff;' : 'background: #f56c6c;'}
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // 點擊外部關閉彈窗
+        window.onclick = function(event) {
+            const modals = ['addModal', 'editModal', 'deleteDialog', 'columnModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                    if (modalId === 'editModal') currentEditingRow = null;
+                    if (modalId === 'deleteDialog') currentDeletingRow = null;
+                }
+            });
+        };
+
+        // 監聽列設置checkbox變化
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('column-checkbox') && !e.target.disabled) {
+                updateSelectAllState();
+            }
+        });
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('用戶標籤管理系統初始化完成');
+        });
+    </script>
+</body>
+</html>
+                    

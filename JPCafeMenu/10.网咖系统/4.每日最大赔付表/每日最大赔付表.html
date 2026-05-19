@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日最大賠付表</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .main-content {
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .search-section {
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .search-first-row {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-label {
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .search-select, .search-input {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 140px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .search-select:focus, .search-input:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+
+        .date-range {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .date-input {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 150px;
+        }
+
+        .search-buttons {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 0 20px 20px 20px;
+        }
+
+        .search-btn, .reset-btn {
+            padding: 8px 24px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+        }
+
+        .search-btn {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .search-btn:hover {
+            background: #66b1ff;
+        }
+
+        .reset-btn {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .reset-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .table-header {
+            background: #fafafa;
+            border-radius: 8px 8px 0 0;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .table-header-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            border: 1px solid #dcdfe6;
+            background: white;
+            color: #606266;
+            transition: all 0.2s ease;
+        }
+
+        .table-header-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .report-table {
+            background: white;
+            border-radius: 0 0 8px 8px;
+            overflow-x: auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #e8e8e8;
+            border-right: 1px solid #e8e8e8;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #606266;
+            position: sticky;
+            top: 0;
+        }
+
+        .amount {
+            font-weight: 600;
+            text-align: right !important;
+            color: #333;
+        }
+
+        .highlight-column {
+            background-color: #fff3cd !important;
+            font-weight: 700 !important;
+            color: #856404 !important;
+        }
+
+        th.highlight-column {
+            background-color: #ffc107 !important;
+            color: #000 !important;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: #f5f5f5;
+        }
+
+        .page-btn.active {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 20px;
+        }
+
+        .page-size-select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .jump-page {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 20px;
+        }
+
+        .jump-input {
+            width: 60px;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .system-info-section {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .info-card h3 {
+            background: #f8f9fa;
+            margin: 0;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-notice {
+            background: #f0f9ff;
+            border: 1px solid #b3d8ff;
+            border-radius: 4px;
+            padding: 12px;
+            margin: 16px;
+            font-size: 13px;
+            color: #1565c0;
+            line-height: 1.6;
+        }
+
+        .info-notice strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .info-table th {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            text-align: center;
+            font-weight: 600;
+            color: #606266;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #666;
+            line-height: 1.6;
+            vertical-align: top;
+        }
+
+        .info-table td:first-child {
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .info-table td:not(:first-child) {
+            text-align: left;
+        }
+
+        .info-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .info-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .highlight {
+            color: #ba6cf5;
+            font-weight: 600;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 8px;
+            width: 90vw;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8e8e8;
+            background: #fafafa;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .modal-close:hover {
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 65vh;
+            overflow-y: auto;
+        }
+
+        .column-settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .select-all {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .select-all input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .reset-btn-small {
+            padding: 6px 12px;
+            border: 1px solid #dcdfe6;
+            background: white;
+            color: #606266;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .reset-btn-small:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .column-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            gap: 12px;
+        }
+
+        .column-item:last-child {
+            border-bottom: none;
+        }
+
+        .drag-handle {
+            cursor: pointer;
+            color: #ccc;
+            font-size: 14px;
+            padding: 4px;
+        }
+
+        .drag-handle:hover {
+            color: #409eff;
+        }
+
+        .column-checkbox {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .column-name {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .column-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            border: 1px solid #dcdfe6;
+            background: white;
+            color: #606266;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .action-btn.active {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid #e8e8e8;
+            background: #fafafa;
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1px solid;
+            transition: all 0.2s ease;
+        }
+
+        .modal-btn-primary {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .modal-btn-primary:hover {
+            background: #66b1ff;
+        }
+
+        .modal-btn-secondary {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            z-index: 10001;
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification.success {
+            background: #67c23a;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>每日最大賠付表</h1>
+            </div>
+
+            <div class="search-section">
+                <div class="search-first-row">
+                    <div class="search-item">
+                        <label class="search-label">項目：</label>
+                        <select id="project" class="search-select">
+                            <option value="">請選擇</option>
+                            <option value="max_payout" selected>最大派彩</option>
+                            <option value="max_multiplier">最大倍率</option>
+                        </select>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">🕑</label>
+                        <div class="date-range">
+                            <input type="date" id="startDate" class="date-input" value="2025-05-01">
+                            <span>~</span>
+                            <input type="date" id="endDate" class="date-input" value="2025-05-26">
+                        </div>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">所屬代理：</label>
+                        <select id="agent" class="search-select">
+                            <option value="System" selected>System</option>
+                            <option value="Agent001">Agent001</option>
+                            <option value="Agent002">Agent002</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="search-buttons">
+                    <button class="search-btn" onclick="searchReports()">🔍 搜索</button>
+                    <button class="reset-btn" onclick="resetSearch()">重置</button>
+                </div>
+            </div>
+
+            <div class="table-header">
+                <button class="table-header-btn" onclick="exportReport()">導出</button>
+                <button class="table-header-btn" onclick="columnSettings()">列設置</button>
+            </div>
+
+            <div class="report-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>遊戲時間</th>
+                            <th>玩家帳號</th>
+                            <th>打碼</th>
+                            <th id="payoutHeader">最大派彩</th>
+                            <th id="multiplierHeader">最大倍率</th>
+                            <th>遊戲名稱</th>
+                            <th>遊戲商名稱</th>
+                            <th>遊戲局號</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTableBody">
+                        <tr>
+                            <td>2025/05/06</td>
+                            <td>14:32:15</td>
+                            <td>player001</td>
+                            <td class="amount">10,000.00</td>
+                            <td class="amount payout-cell">567,894.00</td>
+                            <td class="amount multiplier-cell">56.79</td>
+                            <td>Gates of Olympus</td>
+                            <td>Pragmatic Play</td>
+                            <td>PP-2025052601234567</td>
+                        </tr>
+                        <tr>
+                            <td>2025/05/05</td>
+                            <td>18:45:23</td>
+                            <td>player002</td>
+                            <td class="amount">5,000.00</td>
+                            <td class="amount payout-cell">436,789.00</td>
+                            <td class="amount multiplier-cell">87.36</td>
+                            <td>Sweet Bonanza</td>
+                            <td>Pragmatic Play</td>
+                            <td>PP-2025052501234568</td>
+                        </tr>
+                        <tr>
+                            <td>2025/05/04</td>
+                            <td>20:18:47</td>
+                            <td>player003</td>
+                            <td class="amount">8,000.00</td>
+                            <td class="amount payout-cell">226,541.00</td>
+                            <td class="amount multiplier-cell">28.32</td>
+                            <td>Book of Dead</td>
+                            <td>Play'n GO</td>
+                            <td>PNG-2025052401234569</td>
+                        </tr>
+                        <tr>
+                            <td>2025/05/03</td>
+                            <td>22:18:47</td>
+                            <td>player004</td>
+                            <td class="amount">18,000.00</td>
+                            <td class="amount payout-cell">2,126,541.00</td>
+                            <td class="amount multiplier-cell">218.32</td>
+                            <td>Book of Dead</td>
+                            <td>Play'n GO</td>
+                            <td>PNG-2025052401234569</td>
+                        </tr>
+                        <tr>
+                            <td>2025/05/02</td>
+                            <td>02:18:47</td>
+                            <td>player001</td>
+                            <td class="amount">1,030.00</td>
+                            <td class="amount payout-cell">6,541.00</td>
+                            <td class="amount multiplier-cell">8.32</td>
+                            <td>Book of Dead</td>
+                            <td>Play'n GO</td>
+                            <td>PNG-2025052401234569</td>
+                        </tr>
+                        <tr>
+                            <td>2025/05/01</td>
+                            <td>22:18:47</td>
+                            <td>player002</td>
+                            <td class="amount">100.00</td>
+                            <td class="amount payout-cell">2,126,541.00</td>
+                            <td class="amount multiplier-cell">2108.32</td>
+                            <td>Book of Dead</td>
+                            <td>Play'n GO</td>
+                            <td>PNG-2025052401234569</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="pagination">
+                    <div class="pagination-info">共 1 頁 6 條，共計 6 條</div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" disabled>‹</button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn" disabled>›</button>
+                        <div class="page-size-selector">
+                            <select class="page-size-select">
+                                <option value="10" selected>10</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                        <div class="jump-page">
+                            <input type="number" class="jump-input" placeholder="1" min="1" max="1">
+                            <button class="page-btn">跳轉</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="system-info-section">
+                <div class="info-card">
+                    <h3>系統規則</h3>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="20%">規則類型</th>
+                                <th width="80%">規則內容</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>報表說明</td>
+                                <td>此為每日最高派彩/倍率報表，統計每日最高派彩或最高倍率的遊戲紀錄。<br>
+                                    <strong class="highlight">根據搜尋項目不同，最大派彩和最大賠率欄位會亮起，表示目前資料為哪一個項目。</strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>統計方式</td>
+                                <td>以每日為單位，根據選擇的項目（最大派彩或最大倍率）顯示當日最高紀錄。<br>
+                                    每天只會顯示一筆該項目的最高紀錄。
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>數據計算</td>
+                                <td>倍率 = 派彩 ÷ 打碼</td>
+                            </tr>
+                            <tr>
+                                <td>數據更新</td>
+                                <td>每小時自動更新統計數據，確保數據即時性</td>
+                            </tr>
+                            <tr>
+                                <td>搜尋限制</td>
+                                <td>最多僅限查詢4個月(含本月)，一次最多查詢31天</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>搜尋功能列</h3>
+                    <div class="info-notice">
+                        <strong>重要提醒：</strong>
+                        一進畫面就帶入預設值，並顯示搜索出來的資料。<br>
+                        點擊「重置」按鈕回到預設值，如果按下搜尋時是空值，則自動帶入預設值。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">欄位</th>
+                                <th width="60%">內容說明</th>
+                                <th width="25%">模式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>項目</td>
+                                <td>
+                                    點擊可選擇查詢項目<br>
+                                    <strong class="highlight">預設為最大派彩</strong><br>
+                                    下拉選單: 最大派彩、最大倍率<br>
+                                </td>
+                                <td>下拉選單，非必填</td>
+                            </tr>
+                            <tr>
+                                <td>時間</td>
+                                <td>
+                                    點擊選擇搜尋的時間範圍<br>
+                                    <strong class="highlight">預設為本月的每天</strong><br>
+                                    例：今天2025/5/26顯示：2025/5/1 ~ 2025/5/26 
+                                </td>
+                                <td>時間選擇器</td>
+                            </tr>
+                            <tr>
+                                <td>所屬代理</td>
+                                <td>
+                                    點擊選擇所屬代理<br>
+                                    預設<strong class="highlight">自己</strong>，資料會包含下線<br>
+                                    <strong class="highlight">選單僅顯示當前用戶有權限查看的代理列表(他的下線代理)</strong>
+                                </td>
+                                <td>下拉選單,非必填</td>
+                            </tr>
+                            <tr>
+                                <td>搜索</td>
+                                <td>點擊觸發搜尋</td>
+                                <td>按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>重置</td>
+                                <td>點擊將搜尋條件回到預設值</td>
+                                <td>按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>列設置功能</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>功能說明:</strong><br>
+                        點擊表格右上方的「列設置」按鈕,可調整表格顯示的欄位、順序和釘選位置。<br>
+                        設定會即時生效,並在當前頁面中保持。<br>
+                        導出則是原始欄位及順序不受列設置影響。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">功能項目</th>
+                                <th width="60%">功能說明</th>
+                                <th width="25%">操作方式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>全選控制</td>
+                                <td>
+                                    一鍵選擇或取消選擇所有欄位<br>
+                                    當部分欄位被選中時,顯示半選狀態<br>
+                                </td>
+                                <td>點擊「全選」勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>欄位顯示控制</td>
+                                <td>
+                                    控制每個欄位是否在表格中顯示<br>
+                                    未勾選的欄位將在表格中隱藏<br>
+                                    表格中的第一欄為鎖定,不可隱藏
+                                </td>
+                                <td>點擊欄位名稱前的勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>拖曳排序</td>
+                                <td>
+                                    點擊左側的上下箭頭調整欄位在表格中的顯示順序<br>
+                                    調整後的順序會即時反映在表格中
+                                </td>
+                                <td>點擊左側的「☰」箭頭圖示</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到左側</td>
+                                <td>
+                                    將選中的欄位固定在表格最左側<br>
+                                    釘選的欄位在橫向滾動時保持可見
+                                </td>
+                                <td>點擊「釘選到左側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到右側</td>
+                                <td>
+                                    將選中的欄位固定在表格最右側<br>
+                                    釘選的欄位在橫向滾動時保持可見<br>
+                                </td>
+                                <td>點擊「釘選到右側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消釘選</td>
+                                <td>
+                                    移除欄位的左側或右側釘選狀態<br>
+                                    欄位將回到正常的滾動區域<br>
+                                </td>
+                                <td>點擊「取消釘選」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>重置設定</td>
+                                <td>
+                                    清除所有自定義的排序和釘選設定<br>
+                                    回到系統初始的欄位配置
+                                </td>
+                                <td>點擊「重置」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>保存設定</td>
+                                <td>
+                                    應用當前的欄位配置到表格顯示<br>
+                                    設定在當前瀏覽器頁面中保持有效<br>
+                                </td>
+                                <td>點擊「保存」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消操作</td>
+                                <td>
+                                    放棄當前的所有配置更改<br>
+                                    回到進入設定前的狀態
+                                </td>
+                                <td>點擊「取消」按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>資料表說明</h3>
+                    <div class="info-notice">
+                        <strong>重要提醒：</strong>
+                        標題列為頁頂固定不可上下拖動，可左右拖曳。<br>
+                        數據依照所選項目（最大派彩或最大倍率）進行排序顯示，每日只顯示一筆最高紀錄。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="8%">排序</th>
+                                <th width="15%">欄位</th>
+                                <th width="57%">內容說明</th>
+                                <th width="20%">顯示模式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>✔</td>
+                                <td>日期</td>
+                                <td>顯示該筆紀錄的日期（每日為統計單位）</td>
+                                <td>日期格式<br>YYYY/MM/DD</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>遊戲時間</td>
+                                <td>顯示該局遊戲發生的時間</td>
+                                <td>時間格式<br>HH:mm:ss</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>玩家帳號</td>
+                                <td>顯示玩家帳號</td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>✔</td>
+                                <td>打碼</td>
+                                <td>顯示玩家的投注金額（打碼量）</td>
+                                <td>數字顯示<br>小數點2位，需補0</td>
+                            </tr>
+                            <tr>
+                                <td>✔</td>
+                                <td>最大派彩</td>
+                                <td>顯示玩家獲得的派彩金額</td>
+                                <td>數字顯示<br>小數點2位，需補0</td>
+                            </tr>
+                            <tr>
+                                <td>✔</td>
+                                <td>最大倍率</td>
+                                <td>顯示派彩倍率（派彩 ÷ 打碼）</td>
+                                <td>數字顯示<br>小數點2位，需補0</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>遊戲名稱</td>
+                                <td>顯示該局遊戲的名稱</td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>遊戲商名稱</td>
+                                <td>顯示該遊戲的遊戲商名稱</td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>遊戲局號</td>
+                                <td>顯示該局遊戲的唯一識別號碼</td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>導出功能</td>
+                                <td>
+                                    將搜索結果導出為xlsx格式，不受列設置影響<br>
+                                    檔名：2025-05-01-0000-2025-05-26-2359 每日最大賠付表.xlsx
+                                </td>
+                                <td>按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="columnModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">列設置</div>
+                <button class="modal-close" onclick="closeColumnSettings()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="column-settings-header">
+                    <div class="select-all">
+                        <input type="checkbox" id="selectAll" checked onchange="toggleAllColumns()">
+                        <label for="selectAll">全選</label>
+                    </div>
+                    <button class="reset-btn-small" onclick="resetColumns()">重置</button>
+                </div>
+                <div id="columnList">
+                    <div class="column-item">
+                        <div class="drag-handle" onclick="moveUp(this)">▲</div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">日期</div>
+                        <div class="column-actions">
+                            <button class="action-btn" onclick="pinLeft(this)">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn" onclick="pinRight(this)">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle" onclick="moveUp(this)">▲</div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">遊戲時間</div>
+                        <div class="column-actions">
+                            <button class="action-btn" onclick="pinLeft(this)">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn" onclick="pinRight(this)">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle" onclick="moveUp(this)">▲</div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">玩家帳號</div>
+                        <div class="column-actions">
+                            <button class="action-btn" onclick="pinLeft(this)">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn" onclick="pinRight(this)">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle" onclick="moveUp(this)">▲</div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">打碼</div>
+                        <div class="column-actions">
+                            <button class="action-btn" onclick="pinLeft(this)">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn" onclick="pinRight(this)">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle" onclick="moveUp(this)">▲</div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">最大派彩</div>
+                        <div class="column-actions">
+                            <button class="action-btn" onclick="pinLeft(this)">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn" onclick="pinRight(this)">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle" onclick="moveUp(this)">▲</div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">最大倍率</div>
+                        <div class="column-actions">
+                            <button class="action-btn" onclick="pinLeft(this)">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn" onclick="pinRight(this)">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle" onclick="moveUp(this)">▲</div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">遊戲名稱</div>
+                        <div class="column-actions">
+                            <button class="action-btn" onclick="pinLeft(this)">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn" onclick="pinRight(this)">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle" onclick="moveUp(this)">▲</div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">遊戲商名稱</div>
+                        <div class="column-actions">
+                            <button class="action-btn" onclick="pinLeft(this)">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn" onclick="pinRight(this)">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle" onclick="moveUp(this)">▲</div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">遊戲局號</div>
+                        <div class="column-actions">
+                            <button class="action-btn" onclick="pinLeft(this)">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn" onclick="pinRight(this)">釘選到右側</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-secondary" onclick="closeColumnSettings()">取消</button>
+                <button class="modal-btn modal-btn-primary" onclick="saveColumnSettings()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化時設置高亮
+        document.addEventListener('DOMContentLoaded', function() {
+            updateColumnHighlight();
+        });
+
+        // 當項目選擇改變時更新高亮
+        document.getElementById('project').addEventListener('change', function() {
+            updateColumnHighlight();
+        });
+
+        function updateColumnHighlight() {
+            const project = document.getElementById('project').value;
+            const payoutHeader = document.getElementById('payoutHeader');
+            const multiplierHeader = document.getElementById('multiplierHeader');
+            const payoutCells = document.querySelectorAll('.payout-cell');
+            const multiplierCells = document.querySelectorAll('.multiplier-cell');
+
+            // 移除所有高亮
+            payoutHeader.classList.remove('highlight-column');
+            multiplierHeader.classList.remove('highlight-column');
+            payoutCells.forEach(cell => cell.classList.remove('highlight-column'));
+            multiplierCells.forEach(cell => cell.classList.remove('highlight-column'));
+
+            // 根據選擇添加高亮
+            if (project === 'max_payout') {
+                payoutHeader.classList.add('highlight-column');
+                payoutCells.forEach(cell => cell.classList.add('highlight-column'));
+            } else if (project === 'max_multiplier') {
+                multiplierHeader.classList.add('highlight-column');
+                multiplierCells.forEach(cell => cell.classList.add('highlight-column'));
+            }
+        }
+
+        function columnSettings() {
+            document.getElementById('columnModal').classList.add('show');
+        }
+
+        function closeColumnSettings() {
+            document.getElementById('columnModal').classList.remove('show');
+        }
+
+        function toggleAllColumns() {
+            const checked = document.getElementById('selectAll').checked;
+            document.querySelectorAll('.column-checkbox').forEach(cb => cb.checked = checked);
+        }
+
+        function moveUp(btn) {
+            const item = btn.closest('.column-item');
+            const prev = item.previousElementSibling;
+            if (prev) {
+                item.parentNode.insertBefore(item, prev);
+                showNotification('已調整順序');
+            }
+        }
+
+        function pinLeft(btn) {
+            btn.classList.add('active');
+            const item = btn.closest('.column-item');
+            item.querySelectorAll('.action-btn')[1].classList.remove('active');
+            item.querySelectorAll('.action-btn')[2].classList.remove('active');
+            showNotification('已釘選到左側');
+        }
+
+        function pinRight(btn) {
+            btn.classList.add('active');
+            const item = btn.closest('.column-item');
+            item.querySelectorAll('.action-btn')[0].classList.remove('active');
+            item.querySelectorAll('.action-btn')[1].classList.remove('active');
+            showNotification('已釘選到右側');
+        }
+
+        function resetColumns() {
+            document.querySelectorAll('.column-checkbox').forEach(cb => cb.checked = true);
+            document.querySelectorAll('.action-btn.active').forEach(btn => btn.classList.remove('active'));
+            showNotification('列設置已重置');
+        }
+
+        function saveColumnSettings() {
+            closeColumnSettings();
+            showNotification('列設置已保存');
+        }
+
+        function exportReport() {
+            const startDate = document.getElementById('startDate').value.replace(/-/g, '');
+            const endDate = document.getElementById('endDate').value.replace(/-/g, '');
+            const filename = `${startDate}-0000-${endDate}-2359 每日最大賠付表.xlsx`;
+            showNotification(`正在導出：${filename}`);
+        }
+
+        function searchReports() {
+            updateColumnHighlight();
+            showNotification('搜索完成');
+        }
+
+        function resetSearch() {
+            document.getElementById('project').value = 'max_payout';
+            document.getElementById('startDate').value = '2025-05-01';
+            document.getElementById('endDate').value = '2025-05-26';
+            document.getElementById('agent').value = 'self';
+            updateColumnHighlight();
+            showNotification('搜索已重置');
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification success';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('show');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

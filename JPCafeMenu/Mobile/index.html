@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPCafe Mobile</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Open Sans", "Noto Sans SC", "Noto Sans TC", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            height: 100vh;
+            padding-top: 60px;
+            overflow: hidden;
+        }
+
+        /* Hide scrollbar for all elements */
+        *::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+
+        * {
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+        }
+
+        /* Mobile Navigation Bar */
+        .mobile-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .menu-btn {
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+        }
+
+        .hamburger-icon {
+            width: 24px;
+            height: 24px;
+            position: relative;
+        }
+
+        .hamburger-icon span {
+            display: block;
+            width: 100%;
+            height: 2px;
+            background-color: white;
+            position: absolute;
+            left: 0;
+            transition: all 0.3s;
+        }
+
+        .hamburger-icon span:nth-child(1) {
+            top: 4px;
+        }
+
+        .hamburger-icon span:nth-child(2) {
+            top: 11px;
+        }
+
+        .hamburger-icon span:nth-child(3) {
+            top: 18px;
+        }
+
+        .menu-btn.active .hamburger-icon span:nth-child(1) {
+            transform: rotate(45deg);
+            top: 11px;
+        }
+
+        .menu-btn.active .hamburger-icon span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .menu-btn.active .hamburger-icon span:nth-child(3) {
+            transform: rotate(-45deg);
+            top: 11px;
+        }
+
+        .mobile-nav-title {
+            flex: 1;
+            text-align: center;
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .mobile-nav-spacer {
+            width: 40px;
+        }
+
+        .home-btn {
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: transform 0.2s;
+        }
+
+        .home-btn:active {
+            transform: scale(0.9);
+        }
+
+        /* Sidebar Menu */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .sidebar-menu {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background-color: white;
+            z-index: 1001;
+            transition: left 0.3s;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-menu.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .menu-list {
+            list-style: none;
+        }
+
+        .menu-category {
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .menu-category-title {
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            color: #495057;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .menu-category-title:active {
+            background-color: #e9ecef;
+        }
+
+        .menu-arrow {
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid #495057;
+            transition: transform 0.3s;
+        }
+
+        .menu-category.open .menu-arrow {
+            transform: rotate(180deg);
+        }
+
+        .menu-items {
+            display: none;
+            background-color: white;
+        }
+
+        .menu-category.open .menu-items {
+            display: block;
+        }
+
+        .menu-item {
+            padding: 12px 20px 12px 40px;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .menu-item:active {
+            background-color: #f0f0f0;
+        }
+
+        .menu-item.active {
+            background-color: #667eea;
+            color: white;
+        }
+
+        /* Content Area */
+        .content-wrapper {
+            height: calc(100vh - 60px);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .home-content {
+            padding: 20px;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .home-content.hidden {
+            display: none;
+        }
+
+        .content-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
+        }
+
+        .content-iframe.active {
+            display: block;
+        }
+
+        .welcome-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+
+        .welcome-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .welcome-subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .welcome-image {
+            width: 100%;
+            max-width: 300px;
+            height: 200px;
+            margin: 20px auto;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .action-card:active {
+            transform: scale(0.95);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+
+        .action-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .action-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .info-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .info-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .info-text {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav">
+        <button class="menu-btn" id="menuBtn">
+            <div class="hamburger-icon">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </button>
+        <div class="mobile-nav-title">JPCafe</div>
+        <button class="home-btn" id="homeBtn" onclick="window.location.href='index.html'">
+            🏠
+        </button>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar Menu -->
+    <div class="sidebar-menu" id="sidebarMenu">
+        <div class="sidebar-header">JPCafe 系统</div>
+        <ul class="menu-list" id="menuList">
+            <!-- Menu will be generated by JavaScript -->
+        </ul>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content-wrapper">
+        <!-- Home Content -->
+        <div class="home-content" id="homeContent">
+            <div class="welcome-card">
+                <div class="welcome-title">欢迎使用 JPCafe</div>
+                <div class="welcome-subtitle">移动端管理系统</div>
+                <div class="welcome-image">
+                    🎮
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <div class="action-card" onclick="loadPage('1.账户管理/1.个人账户/个人账户.html')">
+                    <div class="action-icon">👤</div>
+                    <div class="action-title">个人账户</div>
+                </div>
+                <div class="action-card" onclick="loadPage('1.账户管理/2.账户钱包/账户钱包.html')">
+                    <div class="action-icon">💰</div>
+                    <div class="action-title">账户钱包</div>
+                </div>
+                <div class="action-card" onclick="alert('新建用户功能开发中...')">
+                    <div class="action-icon">➕</div>
+                    <div class="action-title">新建用户</div>
+                </div>
+                <div class="action-card" onclick="alert('用户上/下分功能开发中...')">
+                    <div class="action-icon">💱</div>
+                    <div class="action-title">用户上/下分</div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="info-title">系统信息</div>
+                <div class="info-text">
+                    当前版本：Mobile v1.0<br>
+                    最后更新：2025-10-17<br>
+                    状态：运行正常
+                </div>
+            </div>
+        </div>
+
+        <!-- Content IFrame -->
+        <iframe id="contentFrame" class="content-iframe"></iframe>
+    </div>
+
+    <!-- External Menu Configuration -->
+    <script src="mobileMenu.js"></script>
+
+    <script>
+        // Menu Toggle
+        const menuBtn = document.getElementById('menuBtn');
+        const sidebarMenu = document.getElementById('sidebarMenu');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const homeContent = document.getElementById('homeContent');
+        const contentFrame = document.getElementById('contentFrame');
+        const navTitle = document.querySelector('.mobile-nav-title');
+
+        function openMenu() {
+            menuBtn.classList.add('active');
+            sidebarMenu.classList.add('active');
+            sidebarOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMenu() {
+            menuBtn.classList.remove('active');
+            sidebarMenu.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        menuBtn.addEventListener('click', function() {
+            if (sidebarMenu.classList.contains('active')) {
+                closeMenu();
+            } else {
+                openMenu();
+            }
+        });
+
+        sidebarOverlay.addEventListener('click', closeMenu);
+
+        // Load page in iframe
+        function loadPage(pagePath) {
+            homeContent.classList.add('hidden');
+            contentFrame.classList.add('active');
+            contentFrame.src = pagePath;
+
+            // Update nav title
+            const pageTitle = pagePath.split('/').pop().replace('.html', '');
+            navTitle.textContent = pageTitle;
+
+            closeMenu();
+        }
+
+        // Show home content
+        function showHome() {
+            homeContent.classList.remove('hidden');
+            contentFrame.classList.remove('active');
+            contentFrame.src = '';
+            navTitle.textContent = 'JPCafe';
+        }
+
+        // Update home button to show home
+        document.getElementById('homeBtn').onclick = function() {
+            showHome();
+        };
+
+        // Initialize - Call external menu generator
+        generateMobileMenu('');
+        console.log('Mobile Home Page loaded');
+    </script>
+</body>
+</html>

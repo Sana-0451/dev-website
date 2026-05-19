@@ -1,0 +1,2487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>遊戲商設定管理系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            overflow-x: auto;
+        }
+
+        .main-content {
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .search-first-row {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-buttons {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 0 20px 20px 20px;
+        }
+
+        .search-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-label {
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .search-select {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 120px;
+            transition: all 0.2s ease;
+            background: white;
+            color: #606266;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23909399' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 8px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 32px;
+        }
+
+        .search-select:hover {
+            border-color: #c0c4cc;
+        }
+
+        .search-select:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+
+        .search-btn, .reset-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+            min-width: 70px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .search-btn {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .search-btn:hover {
+            background: #66b1ff;
+            border-color: #66b1ff;
+        }
+
+        .reset-btn {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .reset-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        /* Table Section */
+        .table-section {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 1400px;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #e8e8e8;
+            border-right: 1px solid #e8e8e8;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #606266;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 12px;
+        }
+
+        td {
+            vertical-align: middle;
+        }
+
+        .provider-name {
+            font-weight: 500;
+            color: #333;
+            text-align: left;
+            padding-left: 15px;
+        }
+
+        .copy-icon, .identifier-icon {
+            cursor: pointer;
+            transition: opacity 0.2s;
+            flex-shrink: 0;
+            width: 16px;
+            height: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .copy-icon::before, .identifier-icon::before {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border: 2px solid #333;
+            border-radius: 2px;
+            background: transparent;
+            top: 2px;
+            left: 2px;
+        }
+
+        .copy-icon::after, .identifier-icon::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border: 2px solid #333;
+            border-radius: 2px;
+            background: white;
+            top: 6px;
+            left: 6px;
+        }
+
+        .copy-icon:hover, .identifier-icon:hover {
+            opacity: 0.6;
+        }
+
+        .id-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: monospace;
+            font-size: 11px;
+            text-align: left;
+            padding-left: 15px;
+        }
+
+        .identifier-cell {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+            justify-content: center;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .status-enabled {
+            background: #4caf50;
+        }
+
+        .status-disabled {
+            background: #f44336;
+        }
+
+        .status-text {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .status-toggle {
+            width: 40px;
+            height: 20px;
+            background: #ddd;
+            border-radius: 20px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin: 0 auto;
+        }
+
+        .status-toggle.active {
+            background: #409eff;
+        }
+
+        .status-toggle::after {
+            content: '';
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+
+        .status-toggle.active::after {
+            transform: translateX(20px);
+        }
+
+        .type-badge {
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: 500;
+            border: 1px solid;
+        }
+
+        .type-system {
+            background: #f0f0f0;
+            color: #666;
+            border-color: #ddd;
+        }
+
+        .type-third-party {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-color: #bbdefb;
+        }
+
+        .type-live {
+            background: #fce4ec;
+            color: #c2185b;
+            border-color: #f8bbd9;
+        }
+
+        .integration-config {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .integration-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: #f8f9fa;
+            border-radius: 16px;
+            border: 1px solid #e9ecef;
+            font-size: 11px;
+        }
+
+        .integration-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .integration-dot.ops {
+            background: #4caf50;
+        }
+
+        .integration-dot.zf {
+            background: #2196f3;
+        }
+
+        .integration-dot.direct {
+            background: #ff9800;
+        }
+
+        .integration-dot.kuma {
+            background: #f44336;
+        }
+
+        .integration-dot.omg {
+            background: #9c27b0;
+        }
+
+        .integration-dot.ninegame {
+            background: #607d8b;
+        }
+
+        .integration-name {
+            font-weight: 500;
+            color: #495057;
+            min-width: 30px;
+        }
+
+        .integration-percentage {
+            color: #6c757d;
+            font-weight: 400;
+        }
+
+        .config-btn {
+            padding: 2px 6px;
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+            border-radius: 12px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .config-btn:hover {
+            background: #bbdefb;
+            color: #0d47a1;
+        }
+
+        .sort-input {
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            width: 60px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            background: white;
+            color: #666;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 4px;
+        }
+
+        .action-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            min-width: 32px;
+            text-align: center;
+        }
+
+        .page-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .page-btn.active {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 20px;
+        }
+
+        .page-size-select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .jump-page {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 20px;
+        }
+
+        .jump-input {
+            width: 60px;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .jump-btn {
+            padding: 6px 12px;
+            background: #409eff;
+            color: white;
+            border: 1px solid #409eff;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .jump-btn:hover {
+            background: #66b1ff;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            background: #f8f9fa;
+            color: #333;
+            padding: 15px 20px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .close {
+            color: #666;
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .provider-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .integrator-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .integrator-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .integrator-row.disabled {
+            background: #f5f5f5;
+            opacity: 0.6;
+        }
+
+        .integrator-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .integrator-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .integrator-name {
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+            min-width: 50px;
+        }
+
+        .integrator-status {
+            font-size: 12px;
+            color: #666;
+            margin-left: 10px;
+            min-width: 35px;
+        }
+
+        .percentage-input {
+            width: 60px;
+            height: 28px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 13px;
+            background: white;
+        }
+
+        .percentage-input:disabled {
+            background: #f5f5f5;
+            color: #999;
+            border-color: #e9ecef;
+        }
+
+        .percentage-label {
+            font-size: 13px;
+            color: #666;
+            margin-left: 3px;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid;
+            transition: all 0.2s;
+        }
+
+        .btn-reset {
+            background: white;
+            color: #666;
+            border-color: #ddd;
+        }
+
+        .btn-reset:hover {
+            background: #f5f5f5;
+        }
+
+        .btn-save {
+            background: #1890ff;
+            color: white;
+            border-color: #1890ff;
+        }
+
+        .btn-save:hover {
+            background: #40a9ff;
+        }
+
+        /* System Info Section */
+        .system-info-section {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .info-card h3 {
+            background: #f8f9fa;
+            margin: 0;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: white;
+        }
+
+        .info-table th {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            text-align: center;
+            font-weight: 600;
+            color: #606266;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #666;
+            line-height: 1.4;
+            vertical-align: top;
+            text-align: center;
+        }
+
+        .info-table td:nth-child(2) {
+            text-align: left;
+        }
+
+        .info-table td:nth-child(3) {
+            text-align: left;
+        }
+
+        .info-table td:first-child {
+            font-weight: 500;
+        }
+
+        .info-table td:last-child {
+            text-align: left;
+        }
+
+        .info-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .info-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        /* Table container fix */
+        .table-container {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+
+        /* Table Toolbar */
+        .table-toolbar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .col-settings-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            background: white;
+            color: #606266;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .col-settings-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .col-settings-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* Column Settings Modal */
+        .col-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.45);
+        }
+
+        .col-modal-content {
+            background: white;
+            margin: 8% auto;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 560px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            animation: modalSlideIn 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            max-height: 80vh;
+        }
+
+        .col-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .col-modal-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .col-modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .col-modal-close:hover { color: #333; }
+
+        .col-modal-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .col-select-all {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .col-reset-btn {
+            padding: 5px 14px;
+            background: white;
+            color: #606266;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .col-reset-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .col-modal-body {
+            overflow-y: auto;
+            padding: 8px 0;
+            flex: 1;
+        }
+
+        .col-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            gap: 12px;
+            border-bottom: 1px solid #f5f5f5;
+            transition: background 0.15s;
+        }
+
+        .col-item:last-child { border-bottom: none; }
+        .col-item:hover { background: #fafafa; }
+
+        .col-drag-handle {
+            color: #bbb;
+            cursor: grab;
+            font-size: 16px;
+            flex-shrink: 0;
+            user-select: none;
+        }
+
+        .col-drag-handle:active { cursor: grabbing; }
+
+        .col-item-check {
+            width: 16px;
+            height: 16px;
+            accent-color: #409eff;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .col-item-label {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .col-pin-btns {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .col-pin-btn {
+            padding: 4px 10px;
+            background: white;
+            color: #606266;
+            border: 1px solid #dcdfe6;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .col-pin-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .col-pin-btn.pinned-left,
+        .col-pin-btn.pinned-right {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .col-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 14px 20px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .col-cancel-btn {
+            padding: 8px 20px;
+            background: white;
+            color: #606266;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .col-cancel-btn:hover { background: #f5f5f5; }
+
+        .col-save-btn {
+            padding: 8px 24px;
+            background: #409eff;
+            color: white;
+            border: 1px solid #409eff;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .col-save-btn:hover { background: #66b1ff; }
+
+        /* Hidden column */
+        .col-hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <main class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>遊戲商設定</h1>
+            </div>
+
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="search-first-row">
+                    <div class="search-item">
+                        <label class="search-label">集成商：</label>
+                        <select id="integratorSelect" class="search-select">
+                            <option value="">全部</option>
+                            <option value="OPS">OPS</option>
+                            <option value="ZF">ZF</option>
+                            <option value="Direct">Direct</option>
+                            <option value="Kuma">Kuma</option>
+                            <option value="OMG">OMG</option>
+                            <option value="9game">9game</option>
+                        </select>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">遊戲商：</label>
+                        <select id="providerSelect" class="search-select">
+                            <option value="">全部</option>
+                            <option value="System Gateway">System Gateway</option>
+                            <option value="Viva">Viva</option>
+                            <option value="Nolimit City">Nolimit City</option>
+                            <option value="Evolution Gaming">Evolution Gaming</option>
+                            <option value="Pragmatic Play">Pragmatic Play</option>
+                            <option value="Relax Gaming">Relax Gaming</option>
+                            <option value="Peter & Sons">Peter & Sons</option>
+                            <option value="PragmaticPlay LIVE">PragmaticPlay LIVE</option>
+                            <option value="Hacksaw">Hacksaw</option>
+                            <option value="PGSoft">PGSoft</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="search-buttons">
+                    <button class="search-btn" onclick="searchProviders()">🔍 搜索</button>
+                    <button class="reset-btn" onclick="resetSearch()">重置</button>
+                </div>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="table-toolbar">
+                <button class="col-settings-btn" onclick="openColSettings()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                        <circle cx="18" cy="6" r="2" fill="white" stroke="currentColor"/>
+                        <circle cx="10" cy="12" r="2" fill="white" stroke="currentColor"/>
+                        <circle cx="15" cy="18" r="2" fill="white" stroke="currentColor"/>
+                    </svg>
+                    列設置
+                </button>
+            </div>
+
+            <!-- Table Section -->
+            <div class="table-section">
+                <div class="table-container">
+                    <table>
+                    <thead>
+                        <tr>
+                            <th width="200px">ID</th>
+                            <th width="150px">遊戲商名稱</th>
+                            <th width="250px">集成商配置</th>
+                            <th width="100px">遊戲商標識符</th>
+                            <th width="100px">類型</th>
+                            <th width="80px">狀態</th>
+                            <th width="80px">種類排序</th>
+                            <th width="120px">創建時間</th>
+                            <th width="120px">更新時間</th>
+                            <th width="80px">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="providerTableBody">
+                        <tr>
+                            <td>
+                                <div class="id-cell">
+                                    <span class="copy-icon" onclick="copyToClipboard('0000000000000000000000000000000')" title="複製ID"></span>
+                                    <span>0000000000000000000000000000000</span>
+                                </div>
+                            </td>
+                            <td class="provider-name">System Gateway</td>
+                            <td>
+                                <div class="integration-config">
+                                    <div class="integration-item">
+                                        <div class="integration-dot ops"></div>
+                                        <span class="integration-name">OPS</span>
+                                        <span class="integration-percentage">100.00%</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="identifier-cell">
+                                    <span class="identifier-icon" onclick="copyToClipboard('system-gateway')" title="複製標識符"></span>
+                                    <span>system-gateway</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="type-badge type-system">系統</span>
+                            </td>
+                            <td>
+                                <div class="status-toggle" onclick="toggleStatus(this)"></div>
+                            </td>
+                            <td><input type="number" class="sort-input" value="10000"></td>
+                            <td>2023-11-21 15:45:37</td>
+                            <td>2023-11-21 15:45:37</td>
+                            <td>
+                                <button class="action-btn" onclick="editProvider(this)">編輯</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="id-cell">
+                                    <span class="copy-icon" onclick="copyToClipboard('1422df3e4c594f0ca7151c30281763d')" title="複製ID"></span>
+                                    <span>1422df3e4c594f0ca7151c30281763d</span>
+                                </div>
+                            </td>
+                            <td class="provider-name">Viva</td>
+                            <td>
+                                <div class="integration-config">
+                                    <div class="integration-item">
+                                        <div class="integration-dot direct"></div>
+                                        <span class="integration-name">Direct</span>
+                                        <span class="integration-percentage">100.00%</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="identifier-cell">
+                                    <span class="identifier-icon" onclick="copyToClipboard('vp')" title="複製標識符"></span>
+                                    <span>vp</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="type-badge type-third-party">電子遊戲</span>
+                            </td>
+                            <td>
+                                <div class="status-toggle active" onclick="toggleStatus(this)"></div>
+                            </td>
+                            <td><input type="number" class="sort-input" value="10000"></td>
+                            <td>2023-12-09 00:57:37</td>
+                            <td>2023-12-09 00:57:38</td>
+                            <td>
+                                <button class="action-btn" onclick="editProvider(this)">編輯</button>
+                            </td>
+                        </tr>
+                        <tr style="background: #e3f2fd;">
+                            <td>
+                                <div class="id-cell">
+                                    <span class="copy-icon" onclick="copyToClipboard('16793b9bfe1146e587d3b6479caf2f03')" title="複製ID"></span>
+                                    <span>16793b9bfe1146e587d3b6479caf2f03</span>
+                                </div>
+                            </td>
+                            <td class="provider-name">Nolimit City</td>
+                            <td>
+                                <div class="integration-config">
+                                    <div class="integration-item">
+                                        <div class="integration-dot ops"></div>
+                                        <span class="integration-name">OPS</span>
+                                        <span class="integration-percentage">50.00%</span>
+                                    </div>
+                                    <div class="integration-item">
+                                        <div class="integration-dot zf"></div>
+                                        <span class="integration-name">ZF</span>
+                                        <span class="integration-percentage">50.00%</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="identifier-cell">
+                                    <span class="identifier-icon" onclick="copyToClipboard('nc')" title="複製標識符"></span>
+                                    <span>nc</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="type-badge type-third-party">電子遊戲</span>
+                            </td>
+                            <td>
+                                <div class="status-toggle active" onclick="toggleStatus(this)"></div>
+                            </td>
+                            <td><input type="number" class="sort-input" value="2"></td>
+                            <td>2023-12-09 01:49:01</td>
+                            <td>2023-12-09 01:49:02</td>
+                            <td>
+                                <button class="action-btn" onclick="editProvider(this)">編輯</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="id-cell">
+                                    <span class="copy-icon" onclick="copyToClipboard('58cdc267a73d4c2dbf6ddd8f3c1af029')" title="複製ID"></span>
+                                    <span>58cdc267a73d4c2dbf6ddd8f3c1af029</span>
+                                </div>
+                            </td>
+                            <td class="provider-name">Evolution Gaming</td>
+                            <td>
+                                <div class="integration-config">
+                                    <div class="integration-item">
+                                        <div class="integration-dot ops"></div>
+                                        <span class="integration-name">OPS</span>
+                                        <span class="integration-percentage">50.00%</span>
+                                    </div>
+                                    <div class="integration-item">
+                                        <div class="integration-dot zf"></div>
+                                        <span class="integration-name">ZF</span>
+                                        <span class="integration-percentage">50.00%</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="identifier-cell">
+                                    <span class="identifier-icon" onclick="copyToClipboard('evo')" title="複製標識符"></span>
+                                    <span>evo</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="type-badge type-live">真人遊戲</span>
+                            </td>
+                            <td>
+                                <div class="status-toggle active" onclick="toggleStatus(this)"></div>
+                            </td>
+                            <td><input type="number" class="sort-input" value="2"></td>
+                            <td>2024-01-11 18:25:44</td>
+                            <td></td>
+                            <td>
+                                <button class="action-btn" onclick="editProvider(this)">編輯</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="id-cell">
+                                    <span class="copy-icon" onclick="copyToClipboard('8062c1f0f0b24d7ab1f19f738ea9eb26')" title="複製ID"></span>
+                                    <span>8062c1f0f0b24d7ab1f19f738ea9eb26</span>
+                                </div>
+                            </td>
+                            <td class="provider-name">Pragmatic Play</td>
+                            <td>
+                                <div class="integration-config">
+                                    <div class="integration-item">
+                                        <div class="integration-dot ops"></div>
+                                        <span class="integration-name">OPS</span>
+                                        <span class="integration-percentage">25.00%</span>
+                                    </div>
+                                    <div class="integration-item">
+                                        <div class="integration-dot zf"></div>
+                                        <span class="integration-name">ZF</span>
+                                        <span class="integration-percentage">25.00%</span>
+                                    </div>
+                                    <div class="integration-item">
+                                        <div class="integration-dot kuma"></div>
+                                        <span class="integration-name">Kuma</span>
+                                        <span class="integration-percentage">25.00%</span>
+                                    </div>
+                                    <div class="integration-item">
+                                        <div class="integration-dot omg"></div>
+                                        <span class="integration-name">OMG</span>
+                                        <span class="integration-percentage">25.00%</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="identifier-cell">
+                                    <span class="identifier-icon" onclick="copyToClipboard('pp')" title="複製標識符"></span>
+                                    <span>pp</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="type-badge type-third-party">電子遊戲</span>
+                            </td>
+                            <td>
+                                <div class="status-toggle active" onclick="toggleStatus(this)"></div>
+                            </td>
+                            <td><input type="number" class="sort-input" value="2"></td>
+                            <td>2024-03-14 10:49:19</td>
+                            <td></td>
+                            <td>
+                                <button class="action-btn" onclick="editProvider(this)">編輯</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="id-cell">
+                                    <span class="copy-icon" onclick="copyToClipboard('b84f210ed0b642ff95a57b58dd4f3e81')" title="複製ID"></span>
+                                    <span>b84f210ed0b642ff95a57b58dd4f3e81</span>
+                                </div>
+                            </td>
+                            <td class="provider-name">Relax Gaming</td>
+                            <td>
+                                <div class="integration-config">
+                                    <div class="integration-item">
+                                        <div class="integration-dot ops"></div>
+                                        <span class="integration-name">OPS</span>
+                                        <span class="integration-percentage">50.00%</span>
+                                    </div>
+                                    <div class="integration-item">
+                                        <div class="integration-dot zf"></div>
+                                        <span class="integration-name">ZF</span>
+                                        <span class="integration-percentage">50.00%</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="identifier-cell">
+                                    <span class="identifier-icon" onclick="copyToClipboard('rg')" title="複製標識符"></span>
+                                    <span>rg</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="type-badge type-third-party">電子遊戲</span>
+                            </td>
+                            <td>
+                                <div class="status-toggle active" onclick="toggleStatus(this)"></div>
+                            </td>
+                            <td><input type="number" class="sort-input" value="10000"></td>
+                            <td>2024-03-14 10:49:19</td>
+                            <td></td>
+                            <td>
+                                <button class="action-btn" onclick="editProvider(this)">編輯</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="id-cell">
+                                    <span class="copy-icon" onclick="copyToClipboard('75da4ed829b1474085db427fe337dca1')" title="複製ID"></span>
+                                    <span>75da4ed829b1474085db427fe337dca1</span>
+                                </div>
+                            </td>
+                            <td class="provider-name">Peter & Sons</td>
+                            <td>
+                                <div class="integration-config">
+                                    <div class="integration-item">
+                                        <div class="integration-dot ops"></div>
+                                        <span class="integration-name">OPS</span>
+                                        <span class="integration-percentage">50.00%</span>
+                                    </div>
+                                    <div class="integration-item">
+                                        <div class="integration-dot zf"></div>
+                                        <span class="integration-name">ZF</span>
+                                        <span class="integration-percentage">50.00%</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="identifier-cell">
+                                    <span class="identifier-icon" onclick="copyToClipboard('ps')" title="複製標識符"></span>
+                                    <span>ps</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="type-badge type-third-party">電子遊戲</span>
+                            </td>
+                            <td>
+                                <div class="status-toggle active" onclick="toggleStatus(this)"></div>
+                            </td>
+                            <td><input type="number" class="sort-input" value="10000"></td>
+                            <td>2024-03-25 16:48:14</td>
+                            <td></td>
+                            <td>
+                                <button class="action-btn" onclick="editProvider(this)">編輯</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="id-cell">
+                                    <span class="copy-icon" onclick="copyToClipboard('927a8a5fce974512974a4aa2aff226164')" title="複製ID"></span>
+                                    <span>927a8a5fce974512974a4aa2aff226164</span>
+                                </div>
+                            </td>
+                            <td class="provider-name">PragmaticPlay LIVE</td>
+                            <td>
+                                <div class="integration-config">
+                                    <div class="integration-item">
+                                        <div class="integration-dot ops"></div>
+                                        <span class="integration-name">OPS</span>
+                                        <span class="integration-percentage">33.33%</span>
+                                    </div>
+                                    <div class="integration-item">
+                                        <div class="integration-dot zf"></div>
+                                        <span class="integration-name">ZF</span>
+                                        <span class="integration-percentage">33.33%</span>
+                                    </div>
+                                    <div class="integration-item">
+                                        <div class="integration-dot kuma"></div>
+                                        <span class="integration-name">Kuma</span>
+                                        <span class="integration-percentage">33.34%</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="identifier-cell">
+                                    <span class="identifier-icon" onclick="copyToClipboard('ppl')" title="複製標識符"></span>
+                                    <span>ppl</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="type-badge type-live">真人遊戲</span>
+                            </td>
+                            <td>
+                                <div class="status-toggle active" onclick="toggleStatus(this)"></div>
+                            </td>
+                            <td><input type="number" class="sort-input" value="10000"></td>
+                            <td>2024-03-25 16:48:14</td>
+                            <td></td>
+                            <td>
+                                <button class="action-btn" onclick="editProvider(this)">編輯</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="id-cell">
+                                    <span class="copy-icon" onclick="copyToClipboard('323ab5115be6415bb3b1b2e5fa5be399')" title="複製ID"></span>
+                                    <span>323ab5115be6415bb3b1b2e5fa5be399</span>
+                                </div>
+                            </td>
+                            <td class="provider-name">Hacksaw</td>
+                            <td>
+                                <div class="integration-config">
+                                    <div class="integration-item">
+                                        <div class="integration-dot ops"></div>
+                                        <span class="integration-name">OPS</span>
+                                        <span class="integration-percentage">50.00%</span>
+                                    </div>
+                                    <div class="integration-item">
+                                        <div class="integration-dot zf"></div>
+                                        <span class="integration-name">ZF</span>
+                                        <span class="integration-percentage">50.00%</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="identifier-cell">
+                                    <span class="identifier-icon" onclick="copyToClipboard('hs')" title="複製標識符"></span>
+                                    <span>hs</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="type-badge type-third-party">電子遊戲</span>
+                            </td>
+                            <td>
+                                <div class="status-toggle active" onclick="toggleStatus(this)"></div>
+                            </td>
+                            <td><input type="number" class="sort-input" value="10000"></td>
+                            <td>2024-04-09 15:45:25</td>
+                            <td></td>
+                            <td>
+                                <button class="action-btn" onclick="editProvider(this)">編輯</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="id-cell">
+                                    <span class="copy-icon" onclick="copyToClipboard('09ac6fc6de35496897bfaee8b0497c95')" title="複製ID"></span>
+                                    <span>09ac6fc6de35496897bfaee8b0497c95</span>
+                                </div>
+                            </td>
+                            <td class="provider-name">PGSoft</td>
+                            <td>
+                                <div class="integration-config">
+                                    <div class="integration-item">
+                                        <div class="integration-dot ops"></div>
+                                        <span class="integration-name">OPS</span>
+                                        <span class="integration-percentage">33.33%</span>
+                                    </div>
+                                    <div class="integration-item">
+                                        <div class="integration-dot zf"></div>
+                                        <span class="integration-name">ZF</span>
+                                        <span class="integration-percentage">33.33%</span>
+                                    </div>
+                                    <div class="integration-item">
+                                        <div class="integration-dot omg"></div>
+                                        <span class="integration-name">OMG</span>
+                                        <span class="integration-percentage">33.34%</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="identifier-cell">
+                                    <span class="identifier-icon" onclick="copyToClipboard('pg')" title="複製標識符"></span>
+                                    <span>pg</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="type-badge type-third-party">電子遊戲</span>
+                            </td>
+                            <td>
+                                <div class="status-toggle active" onclick="toggleStatus(this)"></div>
+                            </td>
+                            <td><input type="number" class="sort-input" value="3"></td>
+                            <td>2024-04-09 15:45:25</td>
+                            <td></td>
+                            <td>
+                                <button class="action-btn" onclick="editProvider(this)">編輯</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <div class="pagination-info">
+                        從 1 到 10，總共 9580 條
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" onclick="goToPage('prev')" disabled>‹</button>
+                        <button class="page-btn active" onclick="goToPage(1)">1</button>
+                        <button class="page-btn" onclick="goToPage(2)">2</button>
+                        <button class="page-btn" onclick="goToPage(3)">3</button>
+                        <button class="page-btn" onclick="goToPage(4)">4</button>
+                        <button class="page-btn" onclick="goToPage(5)">5</button>
+                        <span>...</span>
+                        <button class="page-btn" onclick="goToPage(958)">958</button>
+                        <button class="page-btn" onclick="goToPage('next')">›</button>
+                        
+                        <div class="page-size-selector">
+                            <select class="page-size-select" onchange="changePageSize(this.value)">
+                                <option value="10" selected>10</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                        
+                        <div class="jump-page">
+                            <input type="number" class="jump-input" id="jumpPageInput" placeholder="1" min="1" max="958">
+                            <button class="jump-btn" onclick="jumpToPage()">跳轉</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 系統說明區塊 -->
+            <div class="system-info-section">
+                <div class="info-card">
+                    <h3>系統規則</h3>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="20%">規則類型</th>
+                                <th width="80%">規則內容</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>頁面功能</td>
+                                <td>以遊戲商為主要維度顯示相關數據的資訊</td>
+                            </tr>
+                            <tr>
+                                <td>基礎設定</td>
+                                <td>此頁面為基礎設定，沒有導出功能</td>
+                            </tr>
+                            <tr>
+                                <td>資料來源</td>
+                                <td>無法由後台創建遊戲商或集成商，資料庫對接後會自動新增在此頁面</td>
+                            </tr>
+                            <tr>
+                                <td>點位影響</td>
+                                <td>在此頁面設定的點位，會影響財務報表的計算</td>
+                            </tr>
+                            <tr>
+                                <td>狀態控制</td>
+                                <td>在此頁面關閉遊戲商狀態，所有代理皆無法使用此遊戲商，但不聯動所有代理遊戲商的開關</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>權限設定</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>重要提醒：</strong><br>
+                        點位數據與編輯功能僅Admin人員可看見，其他角色只能看到集成商配置，不帶點位數據。<br>
+                        需可從角色權限頁面設定，關閉編輯功能。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">權限類型</th>
+                                <th width="60%">內容說明</th>
+                                <th width="25%">適用對象</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>完整權限</td>
+                                <td>
+                                    可查看集成商配置<br>
+                                    可查看點位數據，並擁有編輯功能<br>
+                                    可進行遊戲商狀態編輯
+                                </td>
+                                <td>Admin人員<br>完整權限</td>
+                            </tr>
+                            <tr>
+                                <td>限制權限</td>
+                                <td>
+                                    可查看集成商配置<br>
+                                    不顯示點位數據和編輯功能<br>
+                                    可進行遊戲商狀態編輯
+                                </td>
+                                <td>一般人員<br>限制權限</td>
+                            </tr>
+                            <tr>
+                                <td>角色控制</td>
+                                <td>
+                                    可從 系統 > 角色權限頁面設定<br>
+                                    開啟 / 關閉 編輯功能(包含數據顯示)<br>
+                                </td>
+                                <td>系統管理<br>權限控制</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>搜尋功能列</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>重要提醒：</strong><br>
+                        一進畫面就帶入預設值，並顯示搜索出來的資料。<br>
+                        點擊「重置」按鈕回到預設值，如果按下搜尋時是空值，則自動帶入預設值。<br>
+                        <br>
+                        搜索條件如在二行以上，右方會出現「展開/收起」按鈕(一行則不顯示按鈕)。<br>
+                        收起時為一行搜索條件＋一行搜索、重置按鈕。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">欄位</th>
+                                <th width="60%">內容說明</th>
+                                <th width="25%">模式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <td>集成商名稱</td>
+                                <td>
+                                    點擊選擇集成商，可複選<br>
+                                    預設顯示全部集成商資料<br>
+                                </td>
+                                <td>下拉選單，非必填<br>下拉框提示文字：請選擇</td>
+                            </tr>
+                            <tr>
+                                <td>遊戲商名稱</td>
+                                <td>
+                                    點擊選擇遊戲商<br>
+                                    預設顯示全部遊戲商資料<br>
+                                </td>
+                                <td>下拉選單，非必填<br>下拉框提示文字：請選擇</td>
+                            </tr>
+                            <tr>
+                                <td>搜索</td>
+                                <td>點擊觸發搜尋</td>
+                                <td>按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>重置</td>
+                                <td>點擊將搜尋條件回到預設值</td>
+                                <td>按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>列設置功能</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>功能說明：</strong><br>
+                        點擊表格右上方的「列設置」按鈕，可調整表格顯示的欄位、順序和釘選位置。<br>
+                        設定會即時生效，並在當前頁面中保持。<br>
+                        導出則是原始欄位和順序不受列設置影響。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">功能項目</th>
+                                <th width="60%">功能說明</th>
+                                <th width="25%">操作方式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>全選控制</td>
+                                <td>
+                                    一鍵選擇或取消選擇所有欄位<br>
+                                    當部分欄位被選中時，顯示半選狀態<br>
+                                </td>
+                                <td>點擊「全選」勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>欄位顯示控制</td>
+                                <td>
+                                    控制每個欄位是否在表格中顯示<br>
+                                    未勾選的欄位將在表格中隱藏<br>
+                                    表格中的第一欄為鎖定，不可隱藏
+                                </td>
+                                <td>點擊欄位名稱前的勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>拖拽排序</td>
+                                <td>
+                                    點擊左側的上下箭頭調整欄位在表格中的顯示順序<br>
+                                    調整後的順序會即時反映在表格中
+                                </td>
+                                <td>點擊左側的「↑↓」箭頭圖示</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到左側</td>
+                                <td>
+                                    將選中的欄位固定在表格最左側<br>
+                                    釘選的欄位在橫向滾動時保持可見
+                                </td>
+                                <td>點擊「釘選到左側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到右側</td>
+                                <td>
+                                    將選中的欄位固定在表格最右側<br>
+                                    釘選的欄位在橫向滾動時保持可見<br>
+                                </td>
+                                <td>點擊「釘選到右側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消釘選</td>
+                                <td>
+                                    移除欄位的左側或右側釘選狀態<br>
+                                    欄位將回到正常的滾動區域<br>
+                                </td>
+                                <td>點擊「取消釘選」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>重置設定</td>
+                                <td>
+                                    清除所有自定義的排序和釘選設定<br>
+                                    回到系統初始的欄位配置
+                                </td>
+                                <td>點擊「重置」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>保存設定</td>
+                                <td>
+                                    應用當前的欄位配置到表格顯示<br>
+                                    設定在當前瀏覽器頁面中保持有效<br>
+                                </td>
+                                <td>點擊「保存」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消操作</td>
+                                <td>
+                                    放棄當前的所有配置更改<br>
+                                    回到進入設定前的狀態
+                                </td>
+                                <td>點擊「取消」按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>資料表說明</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>重要提醒：</strong><br>
+                        點擊複製圖標可快速複製ID或標識符到剪貼板。<br>
+                        一進頁面會呈現目前所有的遊戲商資訊。<br>
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">欄位</th>
+                                <th width="60%">內容說明</th>
+                                <th width="25%">顯示模式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>ID</td>
+                                <td>
+                                    遊戲商的唯一識別碼<br>
+                                    點擊複製圖標可複製到剪貼板<br>
+                                </td>
+                                <td>文字顯示＋複製圖標</td>
+                            </tr>
+                            <tr>
+                                <td>遊戲商名稱</td>
+                                <td>顯示遊戲商的正式名稱</td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>集成商配置</td>
+                                <td>
+                                    顯示該遊戲商有配置的集成商和點位％數<br>
+                                    不同集成商用不同顏色區分<br>
+                                </td>
+                                <td>tag標籤＋百分比<br>
+                                    小數點二位，需補0<br>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>遊戲商標識符</td>
+                                <td>
+                                    遊戲商標識符(同簡稱)<br>
+                                    點擊複製圖標可複製到剪貼板<br>
+                                    用於系統內部識別
+                                </td>
+                                <td>文字顯示＋複製圖標</td>
+                            </tr>
+                            <tr>
+                                <td>類型</td>
+                                <td>
+                                    顯示該遊戲商的遊戲類型，不可編輯<br>
+                                    系統(代表System，不是由遊戲商)<br>
+                                    電子遊戲(Slot)<br>
+                                    真人遊戲(Live)
+                                </td>
+                                <td>tag顯示</td>
+                            </tr>
+                            <tr>
+                                <td>狀態</td>
+                                <td>
+                                    切換開關控制遊戲商啟用/停用狀態<br>
+                                    影響所有代理對該遊戲商的使用權限
+                                </td>
+                                <td>開關</td>
+                            </tr>
+                            <tr>
+                                <td>種類排序</td>
+                                <td>控制遊戲商在前站排序，數字越小排序越前</td>
+                                <td>數字輸入框</td>
+                            </tr>
+                            <tr>
+                                <td>創建時間</td>
+                                <td>記錄遊戲商的創建時間</td>
+                                <td>時間格式</td>
+                            </tr>
+                            <tr>
+                                <td>更新時間</td>
+                                <td>記錄遊戲商資訊的最後更新時間</td>
+                                <td>時間格式</td>
+                            </tr>
+                            <tr>
+                                <td>操作</td>
+                                <td>提供編輯功能按鈕，用於修改集成商配置</td>
+                                <td>按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">集成商</h2>
+                <button class="close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="provider-title" id="providerTitle">遊戲商名稱</div>
+                <div class="integrator-list">
+                    <div class="integrator-row" id="opsRow">
+                        <div class="integrator-info">
+                            <div class="integrator-dot ops"></div>
+                            <span class="integrator-name">OPS</span>
+                            <span class="integrator-status" id="opsStatus">停用</span>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <input type="number" id="opsPercentage" class="percentage-input" min="0" max="100" step="0.01" placeholder="0.00" disabled>
+                            <span class="percentage-label">%</span>
+                        </div>
+                    </div>
+                    <div class="integrator-row" id="zfRow">
+                        <div class="integrator-info">
+                            <div class="integrator-dot zf"></div>
+                            <span class="integrator-name">ZF</span>
+                            <span class="integrator-status" id="zfStatus">停用</span>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <input type="number" id="zfPercentage" class="percentage-input" min="0" max="100" step="0.01" placeholder="0.00" disabled>
+                            <span class="percentage-label">%</span>
+                        </div>
+                    </div>
+                    <div class="integrator-row" id="directRow">
+                        <div class="integrator-info">
+                            <div class="integrator-dot direct"></div>
+                            <span class="integrator-name">Direct</span>
+                            <span class="integrator-status" id="directStatus">停用</span>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <input type="number" id="directPercentage" class="percentage-input" min="0" max="100" step="0.01" placeholder="0.00" disabled>
+                            <span class="percentage-label">%</span>
+                        </div>
+                    </div>
+                    <div class="integrator-row" id="kumaRow">
+                        <div class="integrator-info">
+                            <div class="integrator-dot kuma"></div>
+                            <span class="integrator-name">Kuma</span>
+                            <span class="integrator-status" id="kumaStatus">停用</span>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <input type="number" id="kumaPercentage" class="percentage-input" min="0" max="100" step="0.01" placeholder="0.00" disabled>
+                            <span class="percentage-label">%</span>
+                        </div>
+                    </div>
+                    <div class="integrator-row" id="omgRow">
+                        <div class="integrator-info">
+                            <div class="integrator-dot omg"></div>
+                            <span class="integrator-name">OMG</span>
+                            <span class="integrator-status" id="omgStatus">停用</span>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <input type="number" id="omgPercentage" class="percentage-input" min="0" max="100" step="0.01" placeholder="0.00" disabled>
+                            <span class="percentage-label">%</span>
+                        </div>
+                    </div>
+                    <div class="integrator-row" id="ninegameRow">
+                        <div class="integrator-info">
+                            <div class="integrator-dot ninegame"></div>
+                            <span class="integrator-name">9game</span>
+                            <span class="integrator-status" id="ninegameStatus">停用</span>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <input type="number" id="ninegamePercentage" class="percentage-input" min="0" max="100" step="0.01" placeholder="0.00" disabled>
+                            <span class="percentage-label">%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-reset" onclick="resetIntegrators()">重置</button>
+                <button class="btn btn-save" onclick="saveProvider()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 搜索功能
+        function searchProviders() {
+            const integrator = document.getElementById('integratorSelect').value;
+            const provider = document.getElementById('providerSelect').value;
+            
+            const tableBody = document.getElementById('providerTableBody');
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+            
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const providerCell = row.cells[1].textContent;
+                
+                const matchProvider = !provider || providerCell.includes(provider);
+                const matchIntegrator = !integrator; // 簡化集成商匹配邏輯
+                
+                if (matchProvider && matchIntegrator) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            showNotification(`找到 ${visibleCount} 個匹配的遊戲商記錄`, 'success');
+        }
+
+        // 重置搜索
+        function resetSearch() {
+            document.getElementById('integratorSelect').value = '';
+            document.getElementById('providerSelect').value = '';
+            
+            const tableBody = document.getElementById('providerTableBody');
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+            
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+            
+            showNotification('搜索已重置', 'success');
+        }
+
+        // 狀態切換
+        function toggleStatus(element) {
+            element.classList.toggle('active');
+            const isActive = element.classList.contains('active');
+            showNotification(`狀態已${isActive ? '啟用' : '停用'}`, 'success');
+        }
+
+        // 編輯功能 - 編輯百分比配置
+        function editProvider(button) {
+            try {
+                const row = button.closest('tr');
+                const providerName = row.cells[1].textContent.trim();
+                
+                // 設置遊戲商名稱標題
+                document.getElementById('providerTitle').textContent = providerName;
+                
+                // 重置所有集成商狀態
+                resetAllIntegrators();
+                
+                // 解析現有的集成商配置
+                const integrationConfig = row.cells[2].querySelectorAll('.integration-item');
+                
+                integrationConfig.forEach(item => {
+                    const name = item.querySelector('.integration-name').textContent.toLowerCase();
+                    const percentage = parseFloat(item.querySelector('.integration-percentage').textContent);
+                    
+                    // 設置對應的集成商為啟用狀態並填入百分比
+                    const statusElement = document.getElementById(name + 'Status');
+                    const percentageElement = document.getElementById(name + 'Percentage');
+                    const rowElement = document.getElementById(name + 'Row');
+                    
+                    if (statusElement && percentageElement && rowElement) {
+                        statusElement.textContent = '啟用';
+                        percentageElement.disabled = false;
+                        percentageElement.value = percentage.toFixed(2);
+                        percentageElement.placeholder = '';
+                        rowElement.classList.remove('disabled');
+                    }
+                });
+                
+                // 顯示模態框
+                document.getElementById('editModal').style.display = 'block';
+                showNotification(`正在編輯 ${providerName} 的集成商配置`, 'info');
+                
+            } catch (error) {
+                console.error('編輯功能錯誤:', error);
+                showNotification('編輯功能出現錯誤，請稍後再試', 'error');
+            }
+        }
+
+        // 重置所有集成商狀態
+        function resetAllIntegrators() {
+            const integrators = ['ops', 'zf', 'direct', 'kuma', 'omg', 'ninegame'];
+            integrators.forEach(name => {
+                const statusElement = document.getElementById(name + 'Status');
+                const percentageElement = document.getElementById(name + 'Percentage');
+                const rowElement = document.getElementById(name + 'Row');
+                
+                if (statusElement) statusElement.textContent = '停用';
+                if (percentageElement) {
+                    percentageElement.disabled = true;
+                    percentageElement.value = '';
+                    percentageElement.placeholder = '0.00';
+                }
+                if (rowElement) rowElement.classList.add('disabled');
+            });
+        }
+
+        // 關閉編輯視窗
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // 保存集成商配置
+        function saveProvider() {
+            try {
+                const providerName = document.getElementById('providerTitle').textContent;
+                const activeIntegrators = [];
+                const integrators = ['ops', 'zf', 'direct', 'kuma', 'omg', 'ninegame'];
+                
+                // 收集啟用的集成商和百分比
+                integrators.forEach(name => {
+                    const statusElement = document.getElementById(name + 'Status');
+                    const percentageElement = document.getElementById(name + 'Percentage');
+                    
+                    if (statusElement && statusElement.textContent === '啟用') {
+                        const percentage = parseFloat(percentageElement.value) || 0;
+                        if (percentage > 0 && percentage <= 100) {
+                            activeIntegrators.push({
+                                name: name,
+                                displayName: name.toUpperCase(),
+                                percentage: percentage
+                            });
+                        }
+                    }
+                });
+
+                if (activeIntegrators.length === 0) {
+                    showNotification('沒有找到有效的集成商配置', 'error');
+                    return;
+                }
+
+                // 檢查是否有超過100%的配置
+                const invalidIntegrators = activeIntegrators.filter(item => item.percentage > 100);
+                if (invalidIntegrators.length > 0) {
+                    showNotification('集成商百分比不能超過100%', 'error');
+                    return;
+                }
+
+                // 更新表格中的集成商配置
+                updateTableIntegration(providerName, activeIntegrators);
+
+                // 模擬保存操作
+                console.log('保存集成商配置:', { provider: providerName, integrators: activeIntegrators });
+                showNotification('正在保存集成商配置...', 'info');
+                
+                setTimeout(() => {
+                    closeEditModal();
+                    showNotification(`${providerName} 的集成商配置已成功保存`, 'success');
+                }, 800);
+                
+            } catch (error) {
+                console.error('保存配置錯誤:', error);
+                showNotification('保存失敗，請稍後再試', 'error');
+            }
+        }
+
+        // 更新表格中的集成商配置
+        function updateTableIntegration(providerName, integrators) {
+            const tableBody = document.getElementById('providerTableBody');
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+            
+            // 找到對應的遊戲商行
+            const targetRow = rows.find(row => {
+                const nameCell = row.cells[1];
+                return nameCell && nameCell.textContent.trim() === providerName;
+            });
+            
+            if (!targetRow) {
+                console.error('未找到對應的遊戲商行:', providerName);
+                return;
+            }
+            
+            // 清空現有的集成商配置
+            const integrationCell = targetRow.cells[2];
+            integrationCell.innerHTML = '<div class="integration-config"></div>';
+            const configContainer = integrationCell.querySelector('.integration-config');
+            
+            // 添加新的集成商配置
+            integrators.forEach(integrator => {
+                const integrationItem = document.createElement('div');
+                integrationItem.className = 'integration-item';
+                integrationItem.innerHTML = `
+                    <div class="integration-dot ${integrator.name}"></div>
+                    <span class="integration-name">${integrator.displayName}</span>
+                    <span class="integration-percentage">${integrator.percentage.toFixed(2)}%</span>
+                `;
+                configContainer.appendChild(integrationItem);
+            });
+        }
+
+        // 點擊模態框外部關閉
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                closeEditModal();
+            }
+        }
+
+        // 複製到剪貼板功能
+        function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() {
+                    showNotification('已複製到剪貼板: ' + text, 'success');
+                }).catch(function(err) {
+                    fallbackCopyTextToClipboard(text);
+                });
+            } else {
+                fallbackCopyTextToClipboard(text);
+            }
+        }
+
+        // 備用複製方法
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showNotification('已複製到剪貼板: ' + text, 'success');
+            } catch (err) {
+                showNotification('複製失敗，請手動複製', 'error');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        // 分頁功能
+        let currentPage = 1;
+        const totalPages = 958;
+
+        function goToPage(page) {
+            if (page === 'prev' && currentPage > 1) {
+                currentPage--;
+            } else if (page === 'next' && currentPage < totalPages) {
+                currentPage++;
+            } else if (typeof page === 'number' && page >= 1 && page <= totalPages) {
+                currentPage = page;
+            } else {
+                return;
+            }
+            
+            updatePagination();
+            showNotification(`跳轉到第 ${currentPage} 頁`, 'success');
+        }
+
+        function jumpToPage() {
+            const pageInput = document.getElementById('jumpPageInput');
+            const page = parseInt(pageInput.value);
+            
+            if (page >= 1 && page <= totalPages) {
+                goToPage(page);
+                pageInput.value = '';
+            } else {
+                showNotification('請輸入有效的頁碼', 'error');
+            }
+        }
+
+        function changePageSize(size) {
+            showNotification(`每頁顯示 ${size} 條記錄`, 'success');
+        }
+
+        function updatePagination() {
+            const pageButtons = document.querySelectorAll('.page-btn');
+            pageButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent == currentPage) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            const prevBtn = document.querySelector('.page-btn[onclick*="prev"]');
+            const nextBtn = document.querySelector('.page-btn[onclick*="next"]');
+            
+            if (prevBtn) prevBtn.disabled = currentPage === 1;
+            if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+        }
+
+        // 通知系統
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 6px;
+                color: white;
+                font-size: 14px;
+                z-index: 10001;
+                transition: all 0.3s ease;
+                max-width: 400px;
+                word-wrap: break-word;
+                ${type === 'success' ? 'background: #67c23a;' : 
+                  type === 'error' ? 'background: #f56c6c;' : 
+                  'background: #409eff;'}
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            updatePagination();
+            initColSettings();
+            console.log('遊戲商設定頁面初始化完成');
+        });
+
+        // ===== 列設置功能 =====
+        const DEFAULT_COLUMNS = [
+            { key: 'col-id',         label: 'ID',       visible: true, pin: null },
+            { key: 'col-name',       label: '遊戲商名稱', visible: true, pin: null },
+            { key: 'col-integrator', label: '集成商配置', visible: true, pin: null },
+            { key: 'col-identifier', label: '遊戲商標識符', visible: true, pin: null },
+            { key: 'col-type',       label: '類型',      visible: true, pin: null },
+            { key: 'col-status',     label: '狀態',      visible: true, pin: null },
+            { key: 'col-sort',       label: '種類排序',  visible: true, pin: null },
+            { key: 'col-created',    label: '創建時間',  visible: true, pin: null },
+            { key: 'col-updated',    label: '更新時間',  visible: true, pin: null },
+            { key: 'col-action',     label: '操作',      visible: true, pin: null },
+        ];
+
+        let colSettings = JSON.parse(JSON.stringify(DEFAULT_COLUMNS));
+        let tempColSettings = [];
+        let dragSrcIdx = null;
+
+        function initColSettings() {
+            // Add data-col attributes to th and td elements
+            const table = document.querySelector('#providerTableBody').closest('table');
+            const headers = table.querySelectorAll('thead th');
+            const keys = DEFAULT_COLUMNS.map(c => c.key);
+            headers.forEach((th, i) => {
+                th.setAttribute('data-col', keys[i]);
+            });
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                Array.from(row.cells).forEach((td, i) => {
+                    td.setAttribute('data-col', keys[i]);
+                });
+            });
+        }
+
+        function openColSettings() {
+            tempColSettings = JSON.parse(JSON.stringify(colSettings));
+            renderColModal();
+            document.getElementById('colSettingsModal').style.display = 'block';
+        }
+
+        function closeColSettings() {
+            document.getElementById('colSettingsModal').style.display = 'none';
+        }
+
+        function renderColModal() {
+            const body = document.getElementById('colModalBody');
+            const allChecked = tempColSettings.every(c => c.visible);
+            document.getElementById('colSelectAllCheck').checked = allChecked;
+
+            body.innerHTML = tempColSettings.map((col, idx) => `
+                <div class="col-item" draggable="true" data-idx="${idx}"
+                     ondragstart="colDragStart(event,${idx})"
+                     ondragover="colDragOver(event)"
+                     ondrop="colDrop(event,${idx})"
+                     ondragend="colDragEnd(event)">
+                    <span class="col-drag-handle" title="拖曳排序">⠿</span>
+                    <input type="checkbox" class="col-item-check" id="colCheck_${idx}"
+                        ${col.visible ? 'checked' : ''}
+                        onchange="toggleColVisible(${idx}, this.checked)">
+                    <label class="col-item-label" for="colCheck_${idx}">${col.label}</label>
+                    <div class="col-pin-btns">
+                        <button class="col-pin-btn ${col.pin === 'left' ? 'pinned-left' : ''}"
+                            onclick="setPinCol(${idx}, 'left')">釘選到左側</button>
+                        <button class="col-pin-btn"
+                            onclick="setPinCol(${idx}, null)">取消釘選</button>
+                        <button class="col-pin-btn ${col.pin === 'right' ? 'pinned-right' : ''}"
+                            onclick="setPinCol(${idx}, 'right')">釘選到右側</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleSelectAll(checked) {
+            tempColSettings.forEach(c => c.visible = checked);
+            renderColModal();
+        }
+
+        function toggleColVisible(idx, checked) {
+            tempColSettings[idx].visible = checked;
+            const allChecked = tempColSettings.every(c => c.visible);
+            document.getElementById('colSelectAllCheck').checked = allChecked;
+        }
+
+        function setPinCol(idx, side) {
+            tempColSettings[idx].pin = side;
+            renderColModal();
+        }
+
+        function resetColSettings() {
+            tempColSettings = JSON.parse(JSON.stringify(DEFAULT_COLUMNS));
+            renderColModal();
+        }
+
+        function saveColSettings() {
+            colSettings = JSON.parse(JSON.stringify(tempColSettings));
+            applyColSettings();
+            closeColSettings();
+            showNotification('列設置已保存', 'success');
+        }
+
+        function applyColSettings() {
+            const table = document.querySelector('#providerTableBody').closest('table');
+
+            // Reorder columns based on settings: left-pinned first, then normal, then right-pinned
+            const ordered = [
+                ...colSettings.filter(c => c.pin === 'left'),
+                ...colSettings.filter(c => c.pin === null),
+                ...colSettings.filter(c => c.pin === 'right'),
+            ];
+
+            // Apply visibility
+            colSettings.forEach(col => {
+                const cells = table.querySelectorAll(`[data-col="${col.key}"]`);
+                cells.forEach(cell => {
+                    if (col.visible) {
+                        cell.classList.remove('col-hidden');
+                    } else {
+                        cell.classList.add('col-hidden');
+                    }
+                });
+            });
+
+            // Reorder columns in DOM
+            const thead = table.querySelector('thead tr');
+            const tbodyRows = table.querySelectorAll('tbody tr');
+
+            ordered.forEach(col => {
+                const th = thead.querySelector(`[data-col="${col.key}"]`);
+                if (th) thead.appendChild(th);
+                tbodyRows.forEach(row => {
+                    const td = row.querySelector(`[data-col="${col.key}"]`);
+                    if (td) row.appendChild(td);
+                });
+            });
+        }
+
+        // Drag and drop for reordering
+        function colDragStart(event, idx) {
+            dragSrcIdx = idx;
+            event.dataTransfer.effectAllowed = 'move';
+            event.currentTarget.style.opacity = '0.5';
+        }
+
+        function colDragOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+        }
+
+        function colDrop(event, idx) {
+            event.preventDefault();
+            if (dragSrcIdx === null || dragSrcIdx === idx) return;
+            const moved = tempColSettings.splice(dragSrcIdx, 1)[0];
+            tempColSettings.splice(idx, 0, moved);
+            dragSrcIdx = idx;
+            renderColModal();
+        }
+
+        function colDragEnd(event) {
+            event.currentTarget.style.opacity = '';
+            dragSrcIdx = null;
+        }
+
+        // Close col modal on backdrop click
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('colSettingsModal');
+            if (e.target === modal) closeColSettings();
+        });
+    </script>
+
+    <!-- Column Settings Modal -->
+    <div id="colSettingsModal" class="col-modal">
+        <div class="col-modal-content">
+            <div class="col-modal-header">
+                <h3>列設置</h3>
+                <button class="col-modal-close" onclick="closeColSettings()">✕</button>
+            </div>
+            <div class="col-modal-top-bar">
+                <label class="col-select-all">
+                    <input type="checkbox" id="colSelectAllCheck" class="col-item-check" onchange="toggleSelectAll(this.checked)" checked>
+                    全選
+                </label>
+                <button class="col-reset-btn" onclick="resetColSettings()">重置</button>
+            </div>
+            <div class="col-modal-body" id="colModalBody"></div>
+            <div class="col-modal-footer">
+                <button class="col-cancel-btn" onclick="closeColSettings()">取消</button>
+                <button class="col-save-btn" onclick="saveColSettings()">保存</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

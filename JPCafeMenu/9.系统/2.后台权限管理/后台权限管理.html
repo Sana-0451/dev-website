@@ -1,0 +1,2763 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>權限管理系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .search-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .search-select {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 120px;
+            transition: all 0.2s ease;
+            background: white;
+            color: #606266;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23909399' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 8px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 32px;
+        }
+
+        .search-select:hover {
+            border-color: #c0c4cc;
+        }
+
+        .search-select:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+
+        .search-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-label {
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .search-input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 150px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #409eff;
+        }
+
+        .search-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+            min-width: 80px;
+        }
+
+        .btn-primary {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .btn-primary:hover {
+            background: #66b1ff;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .btn-secondary:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .table-header {
+            background: #fafafa;
+            border-radius: 8px 8px 0 0;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #e8e8e8;
+            border-right: 1px solid #e8e8e8;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #606266;
+        }
+
+        tbody tr:nth-child(odd) {
+            background: #fafafa;
+        }
+
+        tbody tr:hover {
+            background: #f0f9ff;
+        }
+
+        .role-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            margin: 1px;
+            background: #f0f8ff;
+            border: 1px solid #b3d8ff;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #1565c0;
+        }
+
+        .type-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .type-tag.admin {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #66bb6a;
+        }
+
+        .type-tag.agent {
+            background: #fff3e0;
+            color: #e65100;
+            border: 1px solid #ffb74d;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #409eff;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .switch.disabled .slider {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .switch.disabled input:checked + .slider {
+            background-color: #ddd;
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            font-size: 12px;
+            margin-right: 4px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            background: white;
+            color: #606266;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            border-radius: 8px;
+            width: 600px;
+            max-width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e8e8e8;
+            border-radius: 8px 8px 0 0;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .close {
+            font-size: 28px;
+            color: #999;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .required {
+            color: #f56c6c;
+            margin-left: 2px;
+        }
+
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-input:disabled {
+            background: #f5f5f5;
+            color: #999;
+        }
+
+        .permission-box {
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: #fafafa;
+        }
+
+        .permission-group {
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .permission-group:last-child {
+            border-bottom: none;
+        }
+
+        .permission-group-header {
+            padding: 10px 12px;
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .permission-group-header:hover {
+            background: #ebebeb;
+        }
+
+        .permission-sub-group {
+            background: white;
+        }
+
+        .permission-sub-header {
+            padding: 8px 12px 8px 30px;
+            background: white;
+            font-weight: 500;
+            color: #555;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .permission-sub-header:hover {
+            background: #f8f9fa;
+        }
+
+        .permission-items {
+            background: white;
+        }
+
+        .permission-item {
+            padding: 6px 12px 6px 60px;
+            display: flex;
+            align-items: center;
+        }
+
+        .permission-item:hover {
+            background: #f8f9fa;
+        }
+
+        .permission-item input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        .permission-item label {
+            font-size: 13px;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .toggle-icon {
+            display: inline-block;
+            margin-right: 8px;
+            transition: transform 0.2s;
+            font-size: 12px;
+            width: 12px;
+        }
+
+        .toggle-icon.expanded {
+            transform: rotate(90deg);
+        }
+
+        .permission-items.hidden,
+        .permission-sub-group.hidden {
+            display: none;
+        }
+
+        .group-checkbox {
+            margin-right: 8px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: #fafafa;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .error-message {
+            color: #f56c6c;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .info-card h3 {
+            background: #f8f9fa;
+            margin: 0;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .info-table th {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            text-align: center;
+            font-weight: 600;
+            color: #606266;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #666;
+            line-height: 1.4;
+            vertical-align: top;
+        }
+
+        .info-table td:first-child {
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .info-table td:nth-child(2) {
+            text-align: left;
+        }
+
+        .info-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .info-table tbody tr:hover {
+            background: #fafafa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>後台權限</h1>
+        </div>
+
+        <div class="search-section">
+            <div class="search-row">
+                <div class="search-item">
+                    <label class="search-label">權限名稱:</label>
+                    <input type="text" id="searchName" class="search-input" placeholder=" ">
+                </div>
+                <div class="search-item">
+                    <label class="search-label">權限標識:</label>
+                    <input type="text" id="searchName" class="search-input" placeholder=" ">
+                </div>
+                <div class="search-item">
+                    <label class="search-label">所屬代理：</label>
+                    <select id="agent" class="search-select">
+                        <option value="">請選擇</option>
+                        <option value="System">System</option>
+                        <option value="nabe">nabe</option>
+                        <option value="jp_ma_admin_lv2">jp_ma_admin_lv2</option>
+                        <option value="promo">promo</option>
+                    </select>
+                </div>
+            </div>
+            <div class="search-buttons">
+                <button class="btn btn-primary" onclick="searchRoles()">搜索</button>
+                <button class="btn btn-secondary" onclick="resetSearch()">重置</button>
+            </div>
+        </div>
+
+        <div class="table-header">
+            <button class="btn btn-secondary" onclick="openAddModal()">+ 新增權限</button>
+            <button class="btn btn-secondary" onclick="openColumnModal()">列設置</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>權限ID</th>
+                        <th>權限名稱</th>
+                        <th>權限標識</th>
+                        <th>所屬代理</th>
+                        <th>備註</th>
+                        <th>創建時間</th>
+                        <th>更新時間</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td>R001</td>
+                        <td>超級管理員</td>
+                        <td><span class="role-tag">超級管理員</span></td>
+                        <td>system</td>
+                        <td>系統最高權限,不可編輯</td>
+                        <td>2024-12-15 10:30:25</td>
+                        <td>2025-01-20 14:22:18</td>
+                        <td>
+                            <button class="action-btn" onclick="openViewModal(this)">查看</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>R002</td>
+                        <td>系統管理員</td>
+                        <td><span class="role-tag">系統管理員</span></td>
+                        <td>system</td>
+                        <td>負責系統配置和用戶管理</td>
+                        <td>2024-12-15 10:30:25</td>
+                        <td>2025-01-18 09:15:33</td>
+                        <td>
+                            <button class="action-btn" onclick="openViewModal(this)">查看</button>
+                            <button class="action-btn" onclick="openEditModal(this)">編輯</button>
+                            <button class="action-btn" onclick="deleteRole(this)">刪除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>R003</td>
+                        <td>財務人員</td>
+                        <td><span class="role-tag">財務人員</span></td>
+                        <td>system</td>
+                        <td>管理財務報表</td>
+                        <td>2025-01-10 14:20:18</td>
+                        <td>2025-01-15 16:45:22</td>
+                        <td>
+                            <button class="action-btn" onclick="openViewModal(this)">查看</button>
+                            <button class="action-btn" onclick="openEditModal(this)">編輯</button>
+                            <button class="action-btn" onclick="deleteRole(this)">刪除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>R004</td>
+                        <td>General Channel</td>
+                        <td><span class="role-tag">General Channel</span></td>
+                        <td>nabe</td>
+                        <td>nabe線總代</td>
+                        <td>2025-01-10 14:20:18</td>
+                        <td>2025-01-15 16:45:22</td>
+                        <td>
+                            <button class="action-btn" onclick="openViewModal(this)">查看</button>
+                            <button class="action-btn" onclick="openEditModal(this)">編輯</button>
+                            <button class="action-btn" onclick="deleteRole(this)">刪除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>R005</td>
+                        <td>Japan-master-admin</td>
+                        <td><span class="role-tag">Japan-master-admin</span></td>
+                        <td>jp_ma_admin_lv2</td>
+                        <td>善德線總代</td>
+                        <td>2025-01-10 14:20:18</td>
+                        <td>2025-01-15 16:45:22</td>
+                        <td>
+                            <button class="action-btn" onclick="openViewModal(this)">查看</button>
+                            <button class="action-btn" onclick="openEditModal(this)">編輯</button>
+                            <button class="action-btn" onclick="deleteRole(this)">刪除</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="pagination">
+                <div class="pagination-info">共 1 頁 3 條,共計 3 條</div>
+            </div>
+        </div>
+
+        <!-- 系統說明 -->
+        <div style="margin-top: 30px;">
+            <div class="info-card">
+                <h3>系統規則</h3>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">規則類型</th>
+                            <th style="width: 80%;">規則內容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>權限功能</td>
+                            <td>該功能可以讓使用者自定義「權限角色」,並將權限角色賦予所有可登入後台的帳號。<br>後台帳號介面會顯示該標識。</td>
+                        </tr>
+                        <tr>
+                            <td>預設權限</td>
+                            <td>系統預設「超級管理員」角色。(不可刪除、不可關閉)<br>超級管理員擁有所有權限。(含隱藏頁面)</td>
+                        </tr>
+                        <tr>
+                            <td>修改權限</td>
+                            <td>修改權限後,使用該權限的後台帳號也會隨之更新其權限。<br>刪除權限時需判斷是否有人正在使用,如果有，則需彈出提示，不可刪除。</td>
+                        </tr>
+                        <tr>
+                            <td>所屬代理</td>
+                            <td>創建時所選擇的代理線，代表為該代理線專用的權限角色。<br>
+                                其他代理線的後台帳號不可使用該權限角色。<br>
+                                目前程式固定為 0=system、1=nabe、2=jp_ma_admin_lv2、3=promo
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>搜尋功能列</h3>
+                <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin: 16px; font-size: 13px; color: #1565c0;">
+                    <strong>重要提醒:</strong><br>
+                    一進畫面就帶入預設值,並顯示搜尋出來的資料。<br>
+                    點擊「重置」按鈕回到預設值,如果按下搜尋時是空值,則自動帶入預設值。<br>
+                    <br>
+                    搜索條件如在二行以上,右方會出現「展開/收起」按鈕(一行則不顯示按鈕)。<br>
+                    收起時為一行搜索條件﹢一行搜索、重置按鈕。
+                </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">欄位</th>
+                            <th style="width: 60%;">內容說明</th>
+                            <th style="width: 25%;">模式</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>權限名稱</td>
+                            <td>輸入權限名稱進行搜尋<br>
+                                預設空值,代表全部</td>
+                            <td>輸入框,非必填<br>模糊匹配</td>
+                        </tr>
+                        <tr>
+                            <td>權限標識</td>
+                            <td>輸入權限標識進行搜尋<br>
+                                預設空值,代表全部</td>
+                            <td>輸入框,非必填<br>模糊匹配</td>
+                        </tr>
+                        <tr>
+                            <td>所屬代理</td>
+                            <td>
+                                點擊選擇所屬代理，僅可選總代帳號<br>
+                                預設空值,代表全部</td>
+                            </td>
+                            <td>下拉選單，非必填</td>
+                        </tr>
+                        <tr>
+                            <td>搜索</td>
+                            <td>點擊觸發搜尋</td>
+                            <td>按鈕</td>
+                        </tr>
+                        <tr>
+                            <td>重置</td>
+                            <td>點擊將搜尋條件回到預設值</td>
+                            <td>按鈕</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>新增權限功能</h3>
+                <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin: 16px; font-size: 13px; color: #1565c0;">
+                    <strong>功能說明:</strong><br>
+                    點擊表格右上方的「+ 新增權限」按鈕,彈出新增權限視窗。<br>
+                    確認新增的權限會立即顯示在頁面中,並可進行編輯和刪除操作。<br>
+                    <strong style="color: #f56c6c;">警告:權限ID由系統自動產生。</strong>
+                </div>
+                
+                <!-- 新增權限視窗預覽 -->
+                <div style="margin: 20px 0; text-align: center;">
+                    <div style="display: inline-block; background: white; border-radius: 8px; width: 600px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); border: 1px solid #e8e8e8; text-align: left;">
+                        <div style="padding: 20px 24px; border-bottom: 1px solid #e8e8e8; border-radius: 8px 8px 0 0; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center;">
+                            <div style="font-size: 18px; font-weight: 600; color: #333;">新增權限</div>
+                            <span style="font-size: 28px; color: #999; cursor: pointer; line-height: 1;">&times;</span>
+                        </div>
+                        <div style="padding: 24px; max-height: 400px; overflow-y: auto;">
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">權限名稱<span style="color: #f56c6c; margin-left: 2px;">*</span></label>
+                                <input type="text" style="width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box;" placeholder="請輸入權限名稱" value="營運管理員">
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">權限標識<span style="color: #f56c6c; margin-left: 2px;">*</span></label>
+                                <input type="text" style="width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box;" placeholder="請輸入權限標識" value="operation_admin">
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">所屬代理<span style="color: #f56c6c; margin-left: 2px;">*</span></label>
+                                <input type="text" style="width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box;" placeholder="請選擇代理" value="nabe">
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">備註</label>
+                                <textarea style="width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; resize: vertical; min-height: 60px; box-sizing: border-box; font-family: inherit;" placeholder="請輸入權限備註說明">負責日常運營和用戶管理</textarea>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">功能配置</label>
+                                <div style="margin-bottom: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
+                                    <button style="padding: 6px 12px; font-size: 13px; min-width: 70px; border-radius: 6px; border: 1px solid #dcdfe6; background: white; color: #606266; cursor: pointer;">全選</button>
+                                    <button style="padding: 6px 12px; font-size: 13px; min-width: 70px; border-radius: 6px; border: 1px solid #dcdfe6; background: white; color: #606266; cursor: pointer;">取消全選</button>
+                                    <button style="padding: 6px 12px; font-size: 13px; min-width: 70px; border-radius: 6px; border: 1px solid #dcdfe6; background: white; color: #606266; cursor: pointer;">展開全部</button>
+                                    <button style="padding: 6px 12px; font-size: 13px; min-width: 70px; border-radius: 6px; border: 1px solid #dcdfe6; background: white; color: #606266; cursor: pointer;">收起全部</button>
+                                </div>
+                                <div style="border: 1px solid #e8e8e8; border-radius: 4px; max-height: 150px; overflow-y: auto; background: #fafafa;">
+                                    <!-- 賬戶管理 -->
+                                    <div style="border-bottom: 1px solid #f0f0f0;">
+                                        <div style="padding: 10px 12px; background: #f5f5f5; font-weight: 600; color: #333; border-bottom: 1px solid #e8e8e8; cursor: pointer; user-select: none; display: flex; align-items: center;">
+                                            <span style="display: inline-block; margin-right: 8px; font-size: 12px; width: 12px;">▶</span>
+                                            <input type="checkbox" style="margin-right: 8px;">
+                                            <span>賬戶管理</span>
+                                        </div>
+                                    </div>
+                                    <!-- 代理管理 -->
+                                    <div style="border-bottom: 1px solid #f0f0f0;">
+                                        <div style="padding: 10px 12px; background: #f5f5f5; font-weight: 600; color: #333; border-bottom: 1px solid #e8e8e8; cursor: pointer; user-select: none; display: flex; align-items: center;">
+                                            <span style="display: inline-block; margin-right: 8px; font-size: 12px; width: 12px; transform: rotate(90deg);">▶</span>
+                                            <input type="checkbox" style="margin-right: 8px;" checked>
+                                            <span>代理管理</span>
+                                        </div>
+                                        <div style="background: white;">
+                                            <div style="padding: 8px 12px 8px 30px; background: white; font-weight: 500; color: #555; cursor: pointer; display: flex; align-items: center;">
+                                                <span style="display: inline-block; margin-right: 8px; font-size: 12px; width: 12px; transform: rotate(90deg);">▶</span>
+                                                <input type="checkbox" style="margin-right: 8px;" checked>
+                                                <span>代理商戶</span>
+                                            </div>
+                                            <div style="background: white;">
+                                                <div style="padding: 6px 12px 6px 60px; display: flex; align-items: center;">
+                                                    <input type="checkbox" style="margin-right: 8px;" checked>
+                                                    <label style="font-size: 13px; color: #555;">新增</label>
+                                                </div>
+                                                <div style="padding: 6px 12px 6px 60px; display: flex; align-items: center;">
+                                                    <input type="checkbox" style="margin-right: 8px;" checked>
+                                                    <label style="font-size: 13px; color: #555;">顯示</label>
+                                                </div>
+                                                <div style="padding: 6px 12px 6px 60px; display: flex; align-items: center;">
+                                                    <input type="checkbox" style="margin-right: 8px;">
+                                                    <label style="font-size: 13px; color: #555;">編輯</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- 運營系統 -->
+                                    <div>
+                                        <div style="padding: 10px 12px; background: #f5f5f5; font-weight: 600; color: #333; cursor: pointer; user-select: none; display: flex; align-items: center;">
+                                            <span style="display: inline-block; margin-right: 8px; font-size: 12px; width: 12px;">▶</span>
+                                            <input type="checkbox" style="margin-right: 8px;">
+                                            <span>運營系統</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="padding: 16px 24px; border-top: 1px solid #e8e8e8; display: flex; justify-content: flex-end; gap: 12px; background: #fafafa; border-radius: 0 0 8px 8px;">
+                            <button style="padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid #dcdfe6; background: white; color: #606266;">取消</button>
+                            <button style="padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid #409eff; background: #409eff; color: white;">確認新增</button>
+                        </div>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 12px; color: #999;">新增權限視窗預覽，此為介面示意，功能達成即可，最終以uat操作畫面為準。</p>
+                </div>
+                
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">欄位名稱</th>
+                            <th style="width: 60%;">欄位說明</th>
+                            <th style="width: 25%;">驗證規則</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>權限名稱</td>
+                            <td>權限的名稱</td>
+                            <td>文字格式,必填<br>最多20個字符</td>
+                        </tr>
+                        <tr>
+                            <td>權限標識</td>
+                            <td>權限的標識tag，用於後台帳號頁面呈現</td>
+                            <td>文字格式,選填<br>最多20個字符</td>
+                        </tr>
+                        <tr>
+                            <td>所屬代理</td>
+                            <td>該權限的group群組，代表該權限屬於哪一條代理線專用</td>
+                            <td>下拉選單,必填</td>
+                        </tr>
+                        <tr>
+                            <td>備註</td>
+                            <td>該權限的使用說明</td>
+                            <td>文字格式,選填<br>最多50個字符</td>
+                        </tr>
+                        <tr>
+                            <td>功能配置</td>
+                            <td>選擇該權限包含的後台功能項目<br>採用三層樹狀結構展示</td>
+                            <td>多選勾選框<br>支援全選/反選</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>編輯權限功能</h3>
+                <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin: 16px; font-size: 13px; color: #1565c0;">
+                    <strong>功能說明:</strong><br>
+                    點擊表格中「編輯」按鈕,彈出編輯權限視窗。<br>
+                    僅限自定義權限可編輯,系統預設權限(超級管理員)不可編輯。<br>
+                    <strong style="color: #f56c6c;">警告:修改權限後,使用該權限的後台帳號會連動更新功能權限。</strong>
+                </div>
+                
+                <!-- 編輯權限視窗預覽 -->
+                <div style="margin: 20px 0; text-align: center;">
+                    <div style="display: inline-block; background: white; border-radius: 8px; width: 600px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); border: 1px solid #e8e8e8; text-align: left;">
+                        <div style="padding: 20px 24px; border-bottom: 1px solid #e8e8e8; border-radius: 8px 8px 0 0; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center;">
+                            <div style="font-size: 18px; font-weight: 600; color: #333;">編輯權限</div>
+                            <span style="font-size: 28px; color: #999; cursor: pointer; line-height: 1;">&times;</span>
+                        </div>
+                        <div style="padding: 24px; max-height: 400px; overflow-y: auto;">
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">權限ID</label>
+                                <input type="text" style="width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box; background: #f5f5f5; color: #999;" value="R002" disabled>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">權限名稱<span style="color: #f56c6c; margin-left: 2px;">*</span></label>
+                                <input type="text" style="width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box;" placeholder="請輸入權限名稱" value="系統管理員">
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">權限標識</label>
+                                <input type="text" style="width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box;" placeholder="請輸入權限標識" value="system_admin">
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">所屬代理</label>
+                                <input type="text" style="width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box; background: #f5f5f5; color: #999;" value="nabe" disabled>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">備註</label>
+                                <textarea style="width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; resize: vertical; min-height: 60px; box-sizing: border-box; font-family: inherit;" placeholder="請輸入權限備註說明">負責系統配置和用戶管理</textarea>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">功能配置</label>
+                                <div style="margin-bottom: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
+                                    <button style="padding: 6px 12px; font-size: 13px; min-width: 70px; border-radius: 6px; border: 1px solid #dcdfe6; background: white; color: #606266; cursor: pointer;">全選</button>
+                                    <button style="padding: 6px 12px; font-size: 13px; min-width: 70px; border-radius: 6px; border: 1px solid #dcdfe6; background: white; color: #606266; cursor: pointer;">取消全選</button>
+                                    <button style="padding: 6px 12px; font-size: 13px; min-width: 70px; border-radius: 6px; border: 1px solid #dcdfe6; background: white; color: #606266; cursor: pointer;">展開全部</button>
+                                    <button style="padding: 6px 12px; font-size: 13px; min-width: 70px; border-radius: 6px; border: 1px solid #dcdfe6; background: white; color: #606266; cursor: pointer;">收起全部</button>
+                                </div>
+                                <div style="border: 1px solid #e8e8e8; border-radius: 4px; max-height: 120px; overflow-y: auto; background: #fafafa;">
+                                    <div style="padding: 10px 12px; background: #f5f5f5; font-weight: 600; color: #333; border-bottom: 1px solid #e8e8e8;">
+                                        <input type="checkbox" style="margin-right: 8px;" checked>
+                                        <span>賬戶管理</span>
+                                    </div>
+                                    <div style="padding: 10px 12px; background: #f5f5f5; font-weight: 600; color: #333; border-bottom: 1px solid #e8e8e8;">
+                                        <input type="checkbox" style="margin-right: 8px;" checked>
+                                        <span>系統</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="padding: 16px 24px; border-top: 1px solid #e8e8e8; display: flex; justify-content: flex-end; gap: 12px; background: #fafafa; border-radius: 0 0 8px 8px;">
+                            <button style="padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid #dcdfe6; background: white; color: #606266;">取消</button>
+                            <button style="padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid #409eff; background: #409eff; color: white;">確認修改</button>
+                        </div>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 12px; color: #999;">編輯權限視窗預覽，此為介面示意，功能達成即可，最終以uat操作畫面為準。</p>
+                </div>
+                
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">欄位名稱</th>
+                            <th style="width: 60%;">欄位說明</th>
+                            <th style="width: 25%;">編輯規則</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>權限ID</td>
+                            <td>權限ID不可修改<br>以灰色禁用狀態顯示</td>
+                            <td>不可編輯</td>
+                        </tr>
+                        <tr>
+                            <td>權限名稱</td>
+                            <td>可修改權限顯示名稱<br>修改後立即更新顯示</td>
+                            <td>必填,文字格式</td>
+                        </tr>
+                        <tr>
+                            <td>權限標識</td>
+                            <td>可修改權限的標識tag<br>修改後立即更新顯示</td>
+                            <td>必填,文字格式</td>
+                        </tr>
+                        <tr>
+                            <td>所屬代理</td>
+                            <td>該權限的group群組，代表該權限屬於哪一條代理線專用</td>
+                            <td>不可編輯</td>
+                        </tr>
+                        <tr>
+                            <td>備註</td>
+                            <td>可修改權限說明<br>用於記錄權限用途變更或補充資訊</td>
+                            <td>非必填,文字格式</td>
+                        </tr>
+                        <tr>
+                            <td>功能配置</td>
+                            <td>可修改該權限包含的功能項目<br>採用三層樹狀結構展示<br>支援展開/收合操作</td>
+                            <td>多選勾選框<br>可自由勾選</td>
+                        </tr>
+                        <tr>
+                            <td>更新資訊</td>
+                            <td>系統自動更新修改人和更新時間<br>保留原始創建資訊,新增修改記錄</td>
+                            <td>系統自動更新<br>無需手動輸入</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>刪除權限功能</h3>
+                <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin: 16px; font-size: 13px; color: #1565c0;">
+                    <strong>功能說明:</strong><br>
+                    點擊表格中「刪除」按鈕,彈出二次確認對話框。<br>
+                    僅限自定義權限可刪除,系統預設權限(超級管理員)不可刪除。<br>
+                    <strong style="color: #f56c6c;">警告:如果有帳號正使用該權限，則不可刪除。</strong>
+                </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">操作步驟</th>
+                            <th style="width: 60%;">操作說明</th>
+                            <th style="width: 25%;">注意事項</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>標題</td>
+                            <td>提示</td>
+                            <td>共用元件應該都是提示</td>
+                        </tr>
+                        <tr>
+                            <td>內容</td>
+                            <td>顯示「確定要刪除權限 "XXX" 嗎?」</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>按鈕</td>
+                            <td>選擇「確認」或「取消」<br>
+                                確認:立即執行刪除操作<br>
+                                取消:關閉對話框,不執行任何操作</td>
+                            <td>刪除操作不可復原</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>查看功能詳情</h3>
+                <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin: 16px; font-size: 13px; color: #1565c0;">
+                    <strong>功能說明:</strong><br>
+                    點擊表格中「查看」按鈕,彈出查看權限功能視窗。<br>
+                    以唯讀方式顯示該權限所擁有的所有功能項目,沒有權限的功能不顯示。<br>
+                    採用三層樹狀結構展示,方便查閱權限範圍。
+                </div>
+                
+                <!-- 查看權限視窗預覽 -->
+                <div style="margin: 20px 0; text-align: center;">
+                    <div style="display: inline-block; background: white; border-radius: 8px; width: 600px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); border: 1px solid #e8e8e8; text-align: left;">
+                        <div style="padding: 20px 24px; border-bottom: 1px solid #e8e8e8; border-radius: 8px 8px 0 0; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center;">
+                            <div style="font-size: 18px; font-weight: 600; color: #333;">查看功能詳情</div>
+                            <span style="font-size: 28px; color: #999; cursor: pointer; line-height: 1;">&times;</span>
+                        </div>
+                        <div style="padding: 24px; max-height: 400px; overflow-y: auto;">
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">權限ID</label>
+                                <input type="text" style="width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box; background: #f5f5f5; color: #999;" value="R003" disabled>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">權限名稱</label>
+                                <input type="text" style="width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box; background: #f5f5f5; color: #999;" value="財務人員" disabled>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">所屬代理</label>
+                                <input type="text" style="width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; box-sizing: border-box; background: #f5f5f5; color: #999;" value="nabe" disabled>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">備註</label>
+                                <textarea style="width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; resize: vertical; min-height: 60px; box-sizing: border-box; font-family: inherit; background: #f5f5f5; color: #999;" disabled>管理財務報表</textarea>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">功能配置</label>
+                                <div style="border: 1px solid #e8e8e8; border-radius: 4px; max-height: 200px; overflow-y: auto; background: #fafafa;">
+                                    <!-- 財務系統 -->
+                                    <div style="border-bottom: 1px solid #f0f0f0;">
+                                        <div style="padding: 10px 12px; background: #f5f5f5; font-weight: 600; color: #333; border-bottom: 1px solid #e8e8e8; cursor: pointer; user-select: none; display: flex; align-items: center;">
+                                            <span style="display: inline-block; margin-right: 8px; font-size: 12px; width: 12px; transform: rotate(90deg);">▶</span>
+                                            <input type="checkbox" style="margin-right: 8px;" checked disabled>
+                                            <span>財務系統</span>
+                                        </div>
+                                        <div style="background: white;">
+                                            <div style="padding: 8px 12px 8px 30px; background: white; font-weight: 500; color: #555; cursor: pointer; display: flex; align-items: center;">
+                                                <span style="display: inline-block; margin-right: 8px; font-size: 12px; width: 12px; transform: rotate(90deg);">▶</span>
+                                                <input type="checkbox" style="margin-right: 8px;" checked disabled>
+                                                <span>財務報表</span>
+                                            </div>
+                                            <div style="background: white;">
+                                                <div style="padding: 6px 12px 6px 60px; display: flex; align-items: center;">
+                                                    <input type="checkbox" style="margin-right: 8px;" checked disabled>
+                                                    <label style="font-size: 13px; color: #555;">導出</label>
+                                                </div>
+                                            </div>
+                                            <div style="padding: 8px 12px 8px 30px; background: white; font-weight: 500; color: #555; cursor: pointer; display: flex; align-items: center;">
+                                                <span style="display: inline-block; margin-right: 8px; font-size: 12px; width: 12px; transform: rotate(90deg);">▶</span>
+                                                <input type="checkbox" style="margin-right: 8px;" checked disabled>
+                                                <span>集成商報表</span>
+                                            </div>
+                                            <div style="background: white;">
+                                                <div style="padding: 6px 12px 6px 60px; display: flex; align-items: center;">
+                                                    <input type="checkbox" style="margin-right: 8px;" checked disabled>
+                                                    <label style="font-size: 13px; color: #555;">導出</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- 支付管理 -->
+                                    <div>
+                                        <div style="padding: 10px 12px; background: #f5f5f5; font-weight: 600; color: #333; border-bottom: 1px solid #e8e8e8; cursor: pointer; user-select: none; display: flex; align-items: center;">
+                                            <span style="display: inline-block; margin-right: 8px; font-size: 12px; width: 12px; transform: rotate(90deg);">▶</span>
+                                            <input type="checkbox" style="margin-right: 8px;" checked disabled>
+                                            <span>支付管理</span>
+                                        </div>
+                                        <div style="background: white;">
+                                            <div style="padding: 8px 12px 8px 30px; background: white; font-weight: 500; color: #555; display: flex; align-items: center;">
+                                                <span style="display: inline-block; margin-right: 8px; font-size: 12px; width: 12px; transform: rotate(90deg);">▶</span>
+                                                <input type="checkbox" style="margin-right: 8px;" checked disabled>
+                                                <span>支付交易報表</span>
+                                            </div>
+                                            <div style="background: white;">
+                                                <div style="padding: 6px 12px 6px 60px; display: flex; align-items: center;">
+                                                    <input type="checkbox" style="margin-right: 8px;" checked disabled>
+                                                    <label style="font-size: 13px; color: #555;">導出</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="padding: 16px 24px; border-top: 1px solid #e8e8e8; display: flex; justify-content: flex-end; gap: 12px; background: #fafafa; border-radius: 0 0 8px 8px;">
+                            <button style="padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid #dcdfe6; background: white; color: #606266;">關閉</button>
+                        </div>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 12px; color: #999;">查看權限視窗預覽，此為介面示意，功能達成即可，最終以uat操作畫面為準。</p>
+                </div>
+                
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">顯示內容</th>
+                            <th style="width: 60%;">內容說明</th>
+                            <th style="width: 25%;">顯示方式</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>權限ID</td>
+                            <td>顯示權限的唯一識別碼</td>
+                            <td>文字顯示,禁用狀態</td>
+                        </tr>
+                        <tr>
+                            <td>權限名稱</td>
+                            <td>顯示權限的名稱</td>
+                            <td>文字顯示,禁用狀態</td>
+                        </tr>
+                        <tr>
+                            <td>備註</td>
+                            <td>顯示權限的詳細說明</td>
+                            <td>文字顯示,禁用狀態</td>
+                        </tr>
+                        <tr>
+                            <td>功能配置</td>
+                            <td>顯示該權限包含的所有功能項目<br>以三層樹狀結構展示</td>
+                            <td>樹狀勾選框<br>禁用狀態,僅供查看</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                    <h3>列設置功能</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>功能說明：</strong><br>
+                        點擊表格右上方的「列設置」按鈕，可調整表格顯示的欄位、順序和釘選位置。<br>
+                        設定會即時生效，並在當前頁面中保持。<br>
+                        導出則是原始欄位及順序不受列設置影響。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">功能項目</th>
+                                <th width="60%">功能說明</th>
+                                <th width="25%">操作方式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>全選控制</td>
+                                <td>
+                                    一鍵選擇或取消選擇所有欄位<br>
+                                    當部分欄位被選中時，顯示半選狀態<br>
+                                </td>
+                                <td>點擊「全選」勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>欄位顯示控制</td>
+                                <td>
+                                    控制每個欄位是否在表格中顯示<br>
+                                    未勾選的欄位將在表格中隱藏<br>
+                                    表格中的第一欄為鎖定，不可隱藏
+                                </td>
+                                <td>點擊欄位名稱前的勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>拖拽排序</td>
+                                <td>
+                                    點擊左側的上下箭頭調整欄位在表格中的顯示順序<br>
+                                    調整後的順序會即時反映在表格中
+                                </td>
+                                <td>點擊左側的「↑↓」箭頭圖示</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到左側</td>
+                                <td>
+                                    將選中的欄位固定在表格最左側<br>
+                                    釘選的欄位在橫向捲動時保持可見
+                                </td>
+                                <td>點擊「釘選到左側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到右側</td>
+                                <td>
+                                    將選中的欄位固定在表格最右側<br>
+                                    釘選的欄位在橫向捲動時保持可見<br>
+                                </td>
+                                <td>點擊「釘選到右側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消釘選</td>
+                                <td>
+                                    移除欄位的左側或右側釘選狀態<br>
+                                    欄位將回到正常的捲動區域<br>
+                                </td>
+                                <td>點擊「取消釘選」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>重置設定</td>
+                                <td>
+                                    清除所有自定義的排序和釘選設定<br>
+                                    回到系統初始的欄位配置
+                                </td>
+                                <td>點擊「重置」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>保存設定</td>
+                                <td>
+                                    應用當前的欄位配置到表格顯示<br>
+                                    設定在當前瀏覽器頁面中保持有效<br>
+                                </td>
+                                <td>點擊「保存」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消操作</td>
+                                <td>
+                                    放棄當前的所有配置更改<br>
+                                    回到進入設定前的狀態
+                                </td>
+                                <td>點擊「取消」按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            <div class="info-card">
+                <h3>資料表說明</h3>
+                <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin: 16px; font-size: 13px; color: #1565c0;">
+                    <strong>重要提醒:</strong><br>
+                    系統預設權限(超級管理員),不可編輯或刪除。<br>
+                    自定義權限可進行編輯和刪除操作。<br>
+                    資料表預設按ID排序，新創的權限角色在最後方。
+                </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 8%;">排序</th>
+                            <th style="width: 15%;">欄位</th>
+                            <th style="width: 57%;">內容說明</th>
+                            <th style="width: 20%;">顯示模式</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>✓</td>
+                            <td>權限ID</td>
+                            <td>顯示權限的唯一識別編號,由系統自動產生</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>權限名稱</td>
+                            <td>顯示權限的名稱</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>權限標識</td>
+                            <td>顯示權限的標識碼,以標籤形式呈現</td>
+                            <td>標籤顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>所屬代理</td>
+                            <td>顯示該權限專屬於哪一條代理線</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>備註</td>
+                            <td>顯示權限的詳細描述或使用說明</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>✓</td>
+                            <td>創建時間</td>
+                            <td>顯示權限的建立時間<br>例:2024-05-31 00:00:00</td>
+                            <td>時間格式</td>
+                        </tr>
+                        <tr>
+                            <td>✓</td>
+                            <td>更新時間</td>
+                            <td>顯示權限的最後修改時間<br>例:2024-05-31 00:00:00</td>
+                            <td>時間格式</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>操作</td>
+                            <td>提供顯示、編輯和刪除功能按鈕<br>系統預設權限僅顯示查看功能選項</td>
+                            <td>按鈕</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增權限彈窗 -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">新增權限</div>
+                <span class="close" onclick="closeAddModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">權限名稱<span class="required">*</span></label>
+                    <input type="text" id="addRoleName" class="form-input" placeholder="請輸入權限名稱">
+                    <div class="error-message" id="addNameError">請輸入權限名稱</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">權限標識</label>
+                    <input type="text" id="addRoleTag" class="form-input" placeholder="請輸入權限標識">
+                </div>
+                <div class="search-item">
+                    <label class="search-label">所屬代理：</label>
+                    <select id="agent" class="search-select">
+                        <option value="">請選擇</option>
+                        <option value="System">System</option>
+                        <option value="nabe">nabe</option>
+                        <option value="jp_ma_admin_lv2">jp_ma_admin_lv2</option>
+                        <option value="promo">promo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">備註</label>
+                    <textarea id="addRemark" class="form-textarea" placeholder="請輸入權限備註說明"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">功能配置</label>
+                    <div style="margin-bottom: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; min-width: 70px;" onclick="selectAllPermissions('add')">全選</button>
+                        <button type="button" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; min-width: 70px;" onclick="unselectAllPermissions('add')">取消全選</button>
+                        <button type="button" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; min-width: 70px;" onclick="expandAllPermissions('add')">展開全部</button>
+                        <button type="button" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; min-width: 70px;" onclick="collapseAllPermissions('add')">收起全部</button>
+                    </div>
+                    <div class="permission-box" id="addPermissionBox"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddModal()">取消</button>
+                <button class="btn btn-primary" onclick="submitAdd()">確認新增</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 編輯權限彈窗 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">編輯權限</div>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">權限ID</label>
+                    <input type="text" id="editRoleId" class="form-input" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">權限名稱<span class="required">*</span></label>
+                    <input type="text" id="editRoleName" class="form-input" placeholder="請輸入權限名稱">
+                    <div class="error-message" id="editNameError">請輸入權限名稱</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">權限標識</label>
+                    <input type="text" id="editRoleTag" class="form-input" placeholder="請輸入權限標識">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">備註</label>
+                    <textarea id="editRemark" class="form-textarea" placeholder="請輸入權限備註說明"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">功能配置</label>
+                    <div style="margin-bottom: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; min-width: 70px;" onclick="selectAllPermissions('edit')">全選</button>
+                        <button type="button" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; min-width: 70px;" onclick="unselectAllPermissions('edit')">取消全選</button>
+                        <button type="button" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; min-width: 70px;" onclick="expandAllPermissions('edit')">展開全部</button>
+                        <button type="button" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; min-width: 70px;" onclick="collapseAllPermissions('edit')">收起全部</button>
+                    </div>
+                    <div class="permission-box" id="editPermissionBox"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditModal()">取消</button>
+                <button class="btn btn-primary" onclick="submitEdit()">確認修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 查看功能彈窗 -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">查看功能詳情</div>
+                <span class="close" onclick="closeViewModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">權限ID</label>
+                    <input type="text" id="viewRoleId" class="form-input" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">權限類型</label>
+                    <input type="text" id="viewRoleType" class="form-input" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">權限名稱</label>
+                    <input type="text" id="viewRoleName" class="form-input" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">備註</label>
+                    <textarea id="viewRemark" class="form-textarea" disabled></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">功能配置</label>
+                    <div class="permission-box" id="viewPermissionBox"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeViewModal()">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 刪除確認對話框 -->
+    <div id="deleteDialog" class="modal">
+        <div style="background: white; margin: 15% auto; border-radius: 8px; width: 400px; max-width: 90%; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
+            <div style="background: #fff2e8; padding: 20px 24px; border-bottom: 1px solid #e8e8e8; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 24px;">⚠️</span>
+                <div style="font-size: 16px; font-weight: 600; color: #333;">提示</div>
+            </div>
+            <div style="padding: 24px; color: #666; font-size: 14px; line-height: 1.5;">
+                確定要刪除權限 "<span id="deleteRoleName" style="font-weight: 600; color: #333;"></span>" 嗎?
+            </div>
+            <div style="padding: 16px 24px; border-top: 1px solid #e8e8e8; display: flex; justify-content: flex-end; gap: 12px; background: #fafafa; border-radius: 0 0 8px 8px;">
+                <button class="btn btn-secondary" onclick="closeDeleteDialog()">取消</button>
+                <button class="btn" style="background: #f56c6c; color: white; border-color: #f56c6c;" onclick="confirmDelete()">確認</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 列設置彈窗 -->
+    <div id="columnModal" class="modal">
+        <div class="modal-content" style="width: 600px;">
+            <div class="modal-header">
+                <div class="modal-title">列設置</div>
+                <span class="close" onclick="closeColumnModal()">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 20px 24px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center;">
+                        <input type="checkbox" id="selectAll" onclick="toggleSelectAll()" checked style="margin-right: 8px;">
+                        <label for="selectAll" style="font-weight: 500; cursor: pointer; font-size: 14px;">全選</label>
+                    </div>
+                    <button class="btn btn-secondary" style="min-width: 60px; padding: 6px 12px; font-size: 13px;" onclick="resetColumnSettings()">重置</button>
+                </div>
+                
+                <div style="border: 1px solid #e8e8e8; border-radius: 4px; background: white;">
+                    <div style="display: flex; align-items: center; padding: 10px 12px; background: #f8f9fa; border-bottom: 1px solid #e8e8e8; font-weight: 600; font-size: 13px; color: #606266;">
+                        <div style="width: 40px;"></div>
+                        <div style="width: 40px;"></div>
+                        <div style="flex: 1;">欄位名稱</div>
+                        <div style="width: 280px; text-align: center;">操作</div>
+                    </div>
+                    
+                    <div id="columnList">
+                        <div style="display: flex; align-items: center; padding: 10px 12px; border-bottom: 1px solid #f0f0f0;">
+                            <span style="width: 40px; text-align: center; cursor: move; color: #999; font-size: 16px;">⇅</span>
+                            <input type="checkbox" checked disabled style="width: 40px; margin: 0;">
+                            <div style="flex: 1; font-size: 14px; color: #333;">權限ID</div>
+                            <div style="width: 280px; display: flex; gap: 8px; justify-content: center;">
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;" disabled>釘選到左側</button>
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;" disabled>取消釘選</button>
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;" disabled>釘選到右側</button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; padding: 10px 12px; border-bottom: 1px solid #f0f0f0;">
+                            <span style="width: 40px; text-align: center; cursor: move; color: #999; font-size: 16px;">⇅</span>
+                            <input type="checkbox" checked style="width: 40px; margin: 0;">
+                            <div style="flex: 1; font-size: 14px; color: #333;">權限類型</div>
+                            <div style="width: 280px; display: flex; gap: 8px; justify-content: center;">
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">釘選到左側</button>
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">取消釘選</button>
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">釘選到右側</button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; padding: 10px 12px; border-bottom: 1px solid #f0f0f0;">
+                            <span style="width: 40px; text-align: center; cursor: move; color: #999; font-size: 16px;">⇅</span>
+                            <input type="checkbox" checked style="width: 40px; margin: 0;">
+                            <div style="flex: 1; font-size: 14px; color: #333;">權限名稱</div>
+                            <div style="width: 280px; display: flex; gap: 8px; justify-content: center;">
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">釘選到左側</button>
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">取消釘選</button>
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">釘選到右側</button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; padding: 10px 12px; border-bottom: 1px solid #f0f0f0;">
+                            <span style="width: 40px; text-align: center; cursor: move; color: #999; font-size: 16px;">⇅</span>
+                            <input type="checkbox" checked style="width: 40px; margin: 0;">
+                            <div style="flex: 1; font-size: 14px; color: #333;">權限標識</div>
+                            <div style="width: 280px; display: flex; gap: 8px; justify-content: center;">
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">釘選到左側</button>
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">取消釘選</button>
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">釘選到右側</button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; padding: 10px 12px; border-bottom: 1px solid #f0f0f0;">
+                            <span style="width: 40px; text-align: center; cursor: move; color: #999; font-size: 16px;">⇅</span>
+                            <input type="checkbox" checked style="width: 40px; margin: 0;">
+                            <div style="flex: 1; font-size: 14px; color: #333;">備註</div>
+                            <div style="width: 280px; display: flex; gap: 8px; justify-content: center;">
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">釘選到左側</button>
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">取消釘選</button>
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">釘選到右側</button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; padding: 10px 12px; border-bottom: 1px solid #f0f0f0;">
+                            <span style="width: 40px; text-align: center; cursor: move; color: #999; font-size: 16px;">⇅</span>
+                            <input type="checkbox" checked style="width: 40px; margin: 0;">
+                            <div style="flex: 1; font-size: 14px; color: #333;">狀態</div>
+                            <div style="width: 280px; display: flex; gap: 8px; justify-content: center;">
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">釘選到左側</button>
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">取消釘選</button>
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">釘選到右側</button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; padding: 10px 12px; border-bottom: 1px solid #f0f0f0;">
+                            <span style="width: 40px; text-align: center; cursor: move; color: #999; font-size: 16px;">⇅</span>
+                            <input type="checkbox" checked style="width: 40px; margin: 0;">
+                            <div style="flex: 1; font-size: 14px; color: #333;">創建時間</div>
+                            <div style="width: 280px; display: flex; gap: 8px; justify-content: center;">
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">釘選到左側</button>
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">取消釘選</button>
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">釘選到右側</button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; padding: 10px 12px; border-bottom: 1px solid #f0f0f0;">
+                            <span style="width: 40px; text-align: center; cursor: move; color: #999; font-size: 16px;">⇅</span>
+                            <input type="checkbox" checked style="width: 40px; margin: 0;">
+                            <div style="flex: 1; font-size: 14px; color: #333;">更新時間</div>
+                            <div style="width: 280px; display: flex; gap: 8px; justify-content: center;">
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">釘選到左側</button>
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">取消釘選</button>
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">釘選到右側</button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; padding: 10px 12px;">
+                            <span style="width: 40px; text-align: center; cursor: move; color: #999; font-size: 16px;">⇅</span>
+                            <input type="checkbox" checked style="width: 40px; margin: 0;">
+                            <div style="flex: 1; font-size: 14px; color: #333;">操作</div>
+                            <div style="width: 280px; display: flex; gap: 8px; justify-content: center;">
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">釘選到左側</button>
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">取消釘選</button>
+                                <button class="btn btn-secondary" style="min-width: 80px; padding: 4px 8px; font-size: 12px;">釘選到右側</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeColumnModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveColumnSettings()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentRow = null;
+        let deleteTargetRow = null;
+
+        function getFullPermissionTree(prefix = 'add') {
+            return `
+                <div class="permission-group">
+                    <div class="permission-group-header" onclick="togglePermGroup('${prefix}-group1')">
+                        <span class="toggle-icon" id="icon-${prefix}-group1">▶</span>
+                        <input type="checkbox" class="group-checkbox">
+                        <span>賬戶管理</span>
+                    </div>
+                    <div class="permission-sub-group hidden" id="${prefix}-group1">
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub1-1')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub1-1">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>個人賬戶</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub1-1">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>新增</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>顯示</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>編輯</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub1-2')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub1-2">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>賬戶錢包</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub1-2">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>系統上分</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>系統下分</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="permission-group">
+                    <div class="permission-group-header" onclick="togglePermGroup('${prefix}-group2')">
+                        <span class="toggle-icon" id="icon-${prefix}-group2">▶</span>
+                        <input type="checkbox" class="group-checkbox">
+                        <span>代理管理</span>
+                    </div>
+                    <div class="permission-sub-group hidden" id="${prefix}-group2">
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub2-1')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub2-1">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>代理商戶</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub2-1">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>新增</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>顯示</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>編輯</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>下載exe</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub2-2')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub2-2">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>代理錢包</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub2-2">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>系統上分</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>系統下分</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub2-3')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub2-3">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>上分請求</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub2-3">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>新增</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>刪除此單</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>重新發送</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub2-4')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub2-4">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>上分請求審批</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub2-4">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>通過/駁回</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub2-5')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub2-5">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>自動補分</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub2-5">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>自動補分</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub2-6')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub2-6">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>代理出入金統計</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub2-6">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>導出</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="permission-group">
+                    <div class="permission-group-header" onclick="togglePermGroup('${prefix}-group3')">
+                        <span class="toggle-icon" id="icon-${prefix}-group3">▶</span>
+                        <input type="checkbox" class="group-checkbox">
+                        <span>遊戲商管理</span>
+                    </div>
+                    <div class="permission-sub-group hidden" id="${prefix}-group3">
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub3-1')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub3-1">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>遊戲商設置</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub3-1">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>編輯</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub3-2')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub3-2">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>遊戲商接入</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub3-2">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>新增</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>顯示</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>編輯</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>刪除</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>狀態開關</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="permission-group">
+                    <div class="permission-group-header" onclick="togglePermGroup('${prefix}-group4')">
+                        <span class="toggle-icon" id="icon-${prefix}-group4">▶</span>
+                        <input type="checkbox" class="group-checkbox">
+                        <span>遊戲管理</span>
+                    </div>
+                    <div class="permission-sub-group hidden" id="${prefix}-group4">
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub4-1')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub4-1">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>遊戲清單</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub4-1">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>顯示</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>編輯</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub4-2')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub4-2">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>遊戲接入</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub4-2">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>新增</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>顯示</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>編輯</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>刪除</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>狀態開關</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>集成商切換</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>遊戲種類匯入</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="permission-group">
+                    <div class="permission-group-header" onclick="togglePermGroup('${prefix}-group5')">
+                        <span class="toggle-icon" id="icon-${prefix}-group5">▶</span>
+                        <input type="checkbox" class="group-checkbox">
+                        <span>內容管理</span>
+                    </div>
+                    <div class="permission-sub-group hidden" id="${prefix}-group5">
+                        <div class="permission-items" style="padding-left: 30px;">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>公告設置</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>Banner設置</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>Logo設置</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>瀏覽器頁籤設置</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>淺徒圖示設置</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>Footer設置</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="permission-group">
+                    <div class="permission-group-header" onclick="togglePermGroup('${prefix}-group6')">
+                        <span class="toggle-icon" id="icon-${prefix}-group6">▶</span>
+                        <input type="checkbox" class="group-checkbox">
+                        <span>運營系統</span>
+                    </div>
+                    <div class="permission-sub-group hidden" id="${prefix}-group6">
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub6-1')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub6-1">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>會員賬變紀錄</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub6-1">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>導出</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub6-2')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub6-2">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>注單明細</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub6-2">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>導出</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub6-3')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub6-3">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>IP白名單</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub6-3">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>新增</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>編輯</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>刪除</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub6-4')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub6-4">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>交易明細</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub6-4">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>導出</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub6-5')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub6-5">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>代理賬變明細</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub6-5">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>導出</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub6-6')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub6-6">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>遊戲統計報表</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub6-6">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>導出</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub6-7')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub6-7">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>每日代理報表</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub6-7">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>導出</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="permission-group">
+                    <div class="permission-group-header" onclick="togglePermGroup('${prefix}-group7')">
+                        <span class="toggle-icon" id="icon-${prefix}-group7">▶</span>
+                        <input type="checkbox" class="group-checkbox">
+                        <span>財務系統</span>
+                    </div>
+                    <div class="permission-sub-group hidden" id="${prefix}-group7">
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub7-1')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub7-1">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>財務報表</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub7-1">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>導出</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub7-2')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub7-2">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>集成商報表</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub7-2">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>導出</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub7-3')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub7-3">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>遊戲商報表</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub7-3">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>導出</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub7-4')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub7-4">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>遊戲報表</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub7-4">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>導出</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="permission-group">
+                    <div class="permission-group-header" onclick="togglePermGroup('${prefix}-group8')">
+                        <span class="toggle-icon" id="icon-${prefix}-group8">▶</span>
+                        <input type="checkbox" class="group-checkbox">
+                        <span>支付管理</span>
+                    </div>
+                    <div class="permission-sub-group hidden" id="${prefix}-group8">
+                        <div class="permission-items" style="padding-left: 30px;">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>風控審核</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub8-1')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub8-1">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>支付交易報表</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub8-1">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>導出</label>
+                            </div>
+                        </div>
+                        <div class="permission-items" style="padding-left: 30px;">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>出款審核列表</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>支付渠道設置</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="permission-group">
+                    <div class="permission-group-header" onclick="togglePermGroup('${prefix}-group9')">
+                        <span class="toggle-icon" id="icon-${prefix}-group9">▶</span>
+                        <input type="checkbox" class="group-checkbox">
+                        <span>系統</span>
+                    </div>
+                    <div class="permission-sub-group hidden" id="${prefix}-group9">
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub9-1')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub9-1">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>管理員</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub9-1">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>新增</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>顯示</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>編輯</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>更新翻譯檔</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub9-2')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub9-2">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>角色</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub9-2">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>新增</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>編輯</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>顯示</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>刪除</label>
+                            </div>
+                        </div>
+                        <div class="permission-items" style="padding-left: 30px;">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>欄位權限</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub9-3')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub9-3">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>操作日誌</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub9-3">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>刪除</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="permission-group">
+                    <div class="permission-group-header" onclick="togglePermGroup('${prefix}-group10')">
+                        <span class="toggle-icon" id="icon-${prefix}-group10">▶</span>
+                        <input type="checkbox" class="group-checkbox">
+                        <span>網咖系統</span>
+                    </div>
+                    <div class="permission-sub-group hidden" id="${prefix}-group10">
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub10-1')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub10-1">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>會員實時餘額管理</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub10-1">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>老闆鍵</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>系統上分</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>系統下分</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>投注紀錄</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>上下分紀錄</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub10-2')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub10-2">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>會員賬變紀錄</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub10-2">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>導出</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub10-3')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub10-3">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>注單明細</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub10-3">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>導出</label>
+                            </div>
+                        </div>
+                        <div class="permission-sub-header" onclick="toggleSubGroup('${prefix}-sub10-4')">
+                            <span class="toggle-icon" id="icon-${prefix}-sub10-4">▶</span>
+                            <input type="checkbox" class="group-checkbox">
+                            <span>每日最大賠付表</span>
+                        </div>
+                        <div class="permission-items hidden" id="${prefix}-sub10-4">
+                            <div class="permission-item">
+                                <input type="checkbox">
+                                <label>導出</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openAddModal() {
+            document.getElementById('addRoleName').value = '';
+            document.getElementById('addRoleTag').value = '';
+            document.getElementById('addRemark').value = '';
+            document.getElementById('addNameError').style.display = 'none';
+            document.getElementById('addTypeError').style.display = 'none';
+            document.querySelector('input[name="addRoleType"][value="admin"]').checked = true;
+            document.getElementById('addPermissionBox').innerHTML = getFullPermissionTree('add');
+            setupPermissionCheckboxListeners('add');
+            document.getElementById('addModal').style.display = 'block';
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').style.display = 'none';
+        }
+
+        function submitAdd() {
+            const name = document.getElementById('addRoleName').value.trim();
+            if (!name) {
+                document.getElementById('addNameError').style.display = 'block';
+                return;
+            }
+            
+            const typeRadio = document.querySelector('input[name="addRoleType"]:checked');
+            if (!typeRadio) {
+                document.getElementById('addTypeError').style.display = 'block';
+                return;
+            }
+            
+            const tag = document.getElementById('addRoleTag').value.trim();
+            const remark = document.getElementById('addRemark').value.trim();
+            const roleId = 'R' + String(Date.now()).slice(-3);
+            const roleType = typeRadio.value;
+            const typeText = roleType === 'admin' ? '管理員' : '子帳號';
+            const typeClass = roleType === 'admin' ? 'admin' : 'agent';
+            
+            const tbody = document.getElementById('tableBody');
+            const row = tbody.insertRow();
+            row.innerHTML = `<td>${roleId}</td><td><span class="type-tag ${typeClass}">${typeText}</span></td><td>${name}</td><td><span class="role-tag">${tag || name}</span></td><td>${remark || '無'}</td><td><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></td><td>${getCurrentTime()}</td><td>${getCurrentTime()}</td><td><button class="action-btn" onclick="openViewModal(this)">查看</button><button class="action-btn" onclick="openEditModal(this)">編輯</button><button class="action-btn" onclick="deleteRole(this)">刪除</button></td>`;
+            
+            closeAddModal();
+            alert('權限新增成功');
+        }
+
+        function openEditModal(btn) {
+            currentRow = btn.closest('tr');
+            const cells = currentRow.cells;
+            
+            document.getElementById('editRoleId').value = cells[0].textContent;
+            
+            // 設置權限類型(禁用狀態)
+            const typeTag = cells[1].querySelector('.type-tag');
+            const isAdmin = typeTag.classList.contains('admin');
+            document.querySelector('input[name="editRoleType"][value="admin"]').checked = isAdmin;
+            document.querySelector('input[name="editRoleType"][value="agent"]').checked = !isAdmin;
+            
+            document.getElementById('editRoleName').value = cells[2].textContent;
+            document.getElementById('editRoleTag').value = cells[3].querySelector('.role-tag').textContent;
+            document.getElementById('editRemark').value = cells[4].textContent === '無' ? '' : cells[4].textContent;
+            document.getElementById('editNameError').style.display = 'none';
+            document.getElementById('editPermissionBox').innerHTML = getFullPermissionTree('edit');
+            setupPermissionCheckboxListeners('edit');
+            
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            currentRow = null;
+        }
+
+        function submitEdit() {
+            const name = document.getElementById('editRoleName').value.trim();
+            if (!name) {
+                document.getElementById('editNameError').style.display = 'block';
+                return;
+            }
+            
+            const tag = document.getElementById('editRoleTag').value.trim();
+            const remark = document.getElementById('editRemark').value.trim();
+            
+            if (currentRow) {
+                currentRow.cells[2].textContent = name;
+                // 權限類型不修改,保持原樣
+                currentRow.cells[3].querySelector('.role-tag').textContent = tag || name;
+                currentRow.cells[4].textContent = remark || '無';
+                currentRow.cells[7].textContent = getCurrentTime();
+            }
+            
+            closeEditModal();
+            alert('權限修改成功');
+        }
+
+        function openViewModal(btn) {
+            const row = btn.closest('tr');
+            const cells = row.cells;
+            
+            document.getElementById('viewRoleId').value = cells[0].textContent;
+            document.getElementById('viewRoleName').value = cells[1].textContent;
+            document.getElementById('viewRoleType').value = cells[2].textContent;
+            document.getElementById('viewRemark').value = cells[4].textContent === '無' ? '' : cells[4].textContent;
+            
+            document.getElementById('viewPermissionBox').innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">該權限暫無功能配置</div>';
+            
+            document.getElementById('viewModal').style.display = 'block';
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').style.display = 'none';
+        }
+
+        function deleteRole(btn) {
+            deleteTargetRow = btn.closest('tr');
+            const roleName = deleteTargetRow.cells[1].textContent;
+            
+            document.getElementById('deleteRoleName').textContent = roleName;
+            document.getElementById('deleteDialog').style.display = 'block';
+        }
+
+        function closeDeleteDialog() {
+            document.getElementById('deleteDialog').style.display = 'none';
+            deleteTargetRow = null;
+        }
+
+        function confirmDelete() {
+            if (deleteTargetRow) {
+                const roleName = deleteTargetRow.cells[1].textContent;
+                deleteTargetRow.remove();
+                closeDeleteDialog();
+                alert(`權限 "${roleName}" 已刪除`);
+            }
+        }
+
+        function searchRoles() {
+            const searchText = document.getElementById('searchName').value.toLowerCase();
+            const rows = document.querySelectorAll('#tableBody tr');
+            
+            rows.forEach(row => {
+                const name = row.cells[1].textContent.toLowerCase();
+                row.style.display = name.includes(searchText) ? '' : 'none';
+            });
+        }
+
+        function resetSearch() {
+            document.getElementById('searchName').value = '';
+            document.querySelectorAll('#tableBody tr').forEach(row => {
+                row.style.display = '';
+            });
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+        }
+
+        function togglePermGroup(groupId) {
+            const group = document.getElementById(groupId);
+            const icon = document.getElementById(`icon-${groupId}`);
+            
+            if (group && icon) {
+                if (group.classList.contains('hidden')) {
+                    group.classList.remove('hidden');
+                    icon.classList.add('expanded');
+                } else {
+                    group.classList.add('hidden');
+                    icon.classList.remove('expanded');
+                }
+            }
+        }
+
+        function toggleSubGroup(subId) {
+            const sub = document.getElementById(subId);
+            const icon = document.getElementById(`icon-${subId}`);
+            
+            if (sub && icon) {
+                if (sub.classList.contains('hidden')) {
+                    sub.classList.remove('hidden');
+                    icon.classList.add('expanded');
+                } else {
+                    sub.classList.add('hidden');
+                    icon.classList.remove('expanded');
+                }
+            }
+        }
+
+        function openViewModal(btn) {
+            const row = btn.closest('tr');
+            const cells = row.cells;
+            const roleId = cells[0].textContent;
+            
+            document.getElementById('viewRoleId').value = roleId;
+            document.getElementById('viewRoleType').value = cells[1].textContent;
+            document.getElementById('viewRoleName').value = cells[2].textContent;
+            document.getElementById('viewRemark').value = cells[4].textContent === '無' ? '' : cells[4].textContent;
+            
+            // 根據角色ID獲取對應的權限並生成權限樹
+            const rolePermissions = getRolePermissions(roleId);
+            const viewTree = generateViewPermissionTree(rolePermissions);
+            document.getElementById('viewPermissionBox').innerHTML = viewTree;
+            
+            document.getElementById('viewModal').style.display = 'block';
+        }
+
+        // 獲取角色的權限配置(示例數據)
+        function getRolePermissions(roleId) {
+            const permissionsMap = {
+                'R001': {
+                    '賬戶管理': {
+                        '個人賬戶': ['新增', '顯示', '編輯'],
+                        '賬戶錢包': ['系統上分', '系統下分']
+                    },
+                    '代理管理': {
+                        '代理商戶': ['新增', '顯示', '編輯', '下載exe'],
+                        '代理錢包': ['系統上分', '系統下分'],
+                        '上分請求': ['新增', '刪除此單', '重新發送'],
+                        '上分請求審批': ['通過/駁回'],
+                        '自動補分': ['自動補分'],
+                        '代理出入金統計': ['導出']
+                    },
+                    '遊戲商管理': {
+                        '遊戲商設置': ['編輯'],
+                        '遊戲商接入': ['新增', '顯示', '編輯', '刪除', '狀態開關']
+                    },
+                    '遊戲管理': {
+                        '遊戲清單': ['顯示', '編輯'],
+                        '遊戲接入': ['新增', '顯示', '編輯', '刪除', '狀態開關', '集成商切換', '遊戲種類匯入']
+                    },
+                    '內容管理': ['公告設置', 'Banner設置', 'Logo設置', '瀏覽器頁籤設置', '淺徒圖示設置', 'Footer設置'],
+                    '運營系統': {
+                        '會員賬變紀錄': ['導出'],
+                        '注單明細': ['導出'],
+                        'IP白名單': ['新增', '編輯', '刪除'],
+                        '交易明細': ['導出'],
+                        '代理賬變明細': ['導出'],
+                        '遊戲統計報表': ['導出'],
+                        '每日代理報表': ['導出']
+                    },
+                    '財務系統': {
+                        '財務報表': ['導出'],
+                        '集成商報表': ['導出'],
+                        '遊戲商報表': ['導出'],
+                        '遊戲報表': ['導出']
+                    },
+                    '支付管理': {
+                        '_direct': ['風控審核', '出款審核列表', '支付渠道設置'],
+                        '支付交易報表': ['導出']
+                    },
+                    '系統': {
+                        '管理員': ['新增', '顯示', '編輯', '更新翻譯檔'],
+                        '角色': ['新增', '編輯', '顯示', '刪除'],
+                        '_direct': ['欄位權限'],
+                        '操作日誌': ['刪除']
+                    },
+                    '網咖系統': {
+                        '會員實時餘額管理': ['老闆鍵', '系統上分', '系統下分', '投注紀錄', '上下分紀錄'],
+                        '會員賬變紀錄': ['導出'],
+                        '注單明細': ['導出'],
+                        '每日最大賠付表': ['導出']
+                    }
+                },
+                'R002': {
+                    '賬戶管理': {
+                        '個人賬戶': ['新增', '顯示', '編輯']
+                    },
+                    '代理管理': {
+                        '代理商戶': ['顯示', '編輯']
+                    },
+                    '系統': {
+                        '管理員': ['顯示'],
+                        '角色': ['顯示']
+                    }
+                },
+                'R003': {
+                    '財務系統': {
+                        '財務報表': ['導出'],
+                        '集成商報表': ['導出'],
+                        '遊戲商報表': ['導出'],
+                        '遊戲報表': ['導出']
+                    },
+                    '支付管理': {
+                        '支付交易報表': ['導出']
+                    }
+                }
+            };
+            return permissionsMap[roleId] || {};
+        }
+
+        // 生成查看模式的權限樹(只顯示有權限的部分)
+        function generateViewPermissionTree(permissions) {
+            if (Object.keys(permissions).length === 0) {
+                return '<div style="padding: 20px; text-align: center; color: #999;">該權限暫無功能配置</div>';
+            }
+            
+            let html = '';
+            let groupIndex = 0;
+            
+            for (const [groupName, items] of Object.entries(permissions)) {
+                groupIndex++;
+                const groupId = `view-group-${groupIndex}`;
+                
+                html += `
+                    <div class="permission-group">
+                        <div class="permission-group-header" onclick="togglePermGroup('${groupId}')">
+                            <span class="toggle-icon expanded" id="icon-${groupId}">▶</span>
+                            <input type="checkbox" class="group-checkbox" checked disabled>
+                            <span>${groupName}</span>
+                        </div>
+                        <div class="permission-sub-group" id="${groupId}">
+                `;
+                
+                // 判斷是否為直接權限項(如內容管理)
+                if (Array.isArray(items)) {
+                    // 直接權限項
+                    html += '<div class="permission-items" style="padding-left: 30px;">';
+                    items.forEach(item => {
+                        html += `
+                            <div class="permission-item">
+                                <input type="checkbox" checked disabled>
+                                <label>${item}</label>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                } else {
+                    // 有子群組的權限
+                    let subIndex = 0;
+                    for (const [subName, actions] of Object.entries(items)) {
+                        subIndex++;
+                        
+                        // 處理直接項目(如支付管理的風控審核等)
+                        if (subName === '_direct' && Array.isArray(actions)) {
+                            html += '<div class="permission-items" style="padding-left: 30px;">';
+                            actions.forEach(action => {
+                                html += `
+                                    <div class="permission-item">
+                                        <input type="checkbox" checked disabled>
+                                        <label>${action}</label>
+                                    </div>
+                                `;
+                            });
+                            html += '</div>';
+                            continue;
+                        }
+                        
+                        const subId = `${groupId}-sub${subIndex}`;
+                        html += `
+                            <div class="permission-sub-header" onclick="toggleSubGroup('${subId}')">
+                                <span class="toggle-icon expanded" id="icon-${subId}">▶</span>
+                                <input type="checkbox" class="group-checkbox" checked disabled>
+                                <span>${subName}</span>
+                            </div>
+                            <div class="permission-items" id="${subId}">
+                        `;
+                        
+                        actions.forEach(action => {
+                            html += `
+                                <div class="permission-item">
+                                    <input type="checkbox" checked disabled>
+                                    <label>${action}</label>
+                                </div>
+                            `;
+                        });
+                        
+                        html += '</div>';
+                    }
+                }
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            return html;
+        }
+
+        function selectAllPermissions(prefix) {
+            const container = document.getElementById(`${prefix}PermissionBox`);
+            const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = true);
+        }
+
+        function unselectAllPermissions(prefix) {
+            const container = document.getElementById(`${prefix}PermissionBox`);
+            const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = false);
+        }
+
+        function expandAllPermissions(prefix) {
+            const container = document.getElementById(`${prefix}PermissionBox`);
+            const groups = container.querySelectorAll('.permission-sub-group, .permission-items');
+            groups.forEach(group => {
+                group.classList.remove('hidden');
+            });
+            const icons = container.querySelectorAll('.toggle-icon');
+            icons.forEach(icon => {
+                icon.classList.add('expanded');
+            });
+        }
+
+        function collapseAllPermissions(prefix) {
+            const container = document.getElementById(`${prefix}PermissionBox`);
+            const groups = container.querySelectorAll('.permission-sub-group, .permission-items');
+            groups.forEach(group => {
+                group.classList.add('hidden');
+            });
+            const icons = container.querySelectorAll('.toggle-icon');
+            icons.forEach(icon => {
+                icon.classList.remove('expanded');
+            });
+        }
+
+        function setupPermissionCheckboxListeners(prefix) {
+            const container = document.getElementById(`${prefix}PermissionBox`);
+            
+            container.querySelectorAll('.group-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const parent = this.closest('.permission-group-header, .permission-sub-header');
+                    if (!parent) return;
+                    
+                    let childContainer = null;
+                    if (parent.classList.contains('permission-group-header')) {
+                        childContainer = parent.nextElementSibling;
+                    } else if (parent.classList.contains('permission-sub-header')) {
+                        childContainer = parent.nextElementSibling;
+                    }
+                    
+                    if (childContainer) {
+                        const allCheckboxes = childContainer.querySelectorAll('input[type="checkbox"]');
+                        allCheckboxes.forEach(cb => {
+                            if (!cb.disabled) {
+                                cb.checked = this.checked;
+                            }
+                        });
+                    }
+                });
+            });
+        }
+
+        function openColumnModal() {
+            document.getElementById('columnModal').style.display = 'block';
+        }
+
+        function closeColumnModal() {
+            document.getElementById('columnModal').style.display = 'none';
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('#columnList input[type="checkbox"]:not([disabled])');
+            checkboxes.forEach(cb => cb.checked = selectAll.checked);
+        }
+
+        function resetColumnSettings() {
+            const checkboxes = document.querySelectorAll('#columnList input[type="checkbox"]:not([disabled])');
+            checkboxes.forEach(cb => cb.checked = true);
+            document.getElementById('selectAll').checked = true;
+        }
+
+        function saveColumnSettings() {
+            alert('列設置已保存');
+            closeColumnModal();
+        }
+
+        window.onclick = function(event) {
+            const modals = ['addModal', 'editModal', 'viewModal', 'deleteDialog', 'columnModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                    if (modalId === 'editModal') currentRow = null;
+                    if (modalId === 'deleteDialog') deleteTargetRow = null;
+                }
+            });
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,1868 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>集成商報表</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 0;
+            margin-top: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .search-first-row {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .search-additional-rows {
+            padding: 0 20px 20px 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            transition: all 0.3s ease;
+        }
+
+        .search-section.collapsed .search-additional-rows {
+            display: none;
+        }
+
+        .collapse-toggle {
+            font-size: 14px;
+            color: #409eff;
+            cursor: pointer;
+            transition: color 0.2s;
+            margin-left: auto;
+        }
+
+        .collapse-toggle:hover {
+            color: #337ecc;
+        }
+
+        .search-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-label {
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .search-input {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 120px;
+            transition: all 0.2s ease;
+            background: white;
+            color: #606266;
+            outline: none;
+        }
+
+        .search-input:hover {
+            border-color: #c0c4cc;
+        }
+
+        .search-input:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+
+        .search-select {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 120px;
+            transition: all 0.2s ease;
+            background: white;
+            color: #606266;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23909399' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 8px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 32px;
+        }
+
+        .search-select:hover {
+            border-color: #c0c4cc;
+        }
+
+        .search-select:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+
+        .date-range {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .date-input {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 150px;
+        }
+
+        .search-buttons {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+            padding: 0 20px 20px 20px;
+        }
+
+        .search-btn, .reset-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+            min-width: 70px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .search-btn {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .search-btn:hover {
+            background: #66b1ff;
+            border-color: #66b1ff;
+        }
+
+        .search-btn:active {
+            background: #3a8ee6;
+            border-color: #3a8ee6;
+        }
+
+        .reset-btn {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .reset-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .reset-btn:active {
+            background: #d9ecff;
+            border-color: #3a8ee6;
+            color: #3a8ee6;
+        }
+
+        /* Table Header */
+        .table-header {
+            background: #fafafa;
+            border-radius: 8px 8px 0 0;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8e8e8;
+            margin-bottom: 0;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .table-header-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+            min-width: 70px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .table-header-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .table-header-btn:active {
+            background: #d9ecff;
+            border-color: #3a8ee6;
+            color: #3a8ee6;
+        }
+
+        /* Game Report Table */
+        .report-table {
+            background: white;
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #e8e8e8;
+            border-right: 1px solid #e8e8e8;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #606266;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+
+        .sortable:hover {
+            color: #409eff;
+        }
+
+        .sortable::after {
+            content: '⇅';
+            position: absolute;
+            right: 5px;
+            color: #ccc;
+            font-size: 12px;
+        }
+
+        .provider-name {
+            color: #409eff;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .provider-name:hover {
+            text-decoration: underline;
+        }
+
+        .platform-tag {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .platform-zf {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .platform-ops {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .platform-kuma {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .amount {
+            font-weight: 600;
+            text-align: right !important;
+            color: #333;
+        }
+
+        .total-row {
+            background: #666 !important;
+            color: white;
+            font-weight: 600;
+        }
+
+        .total-row td {
+            color: white;
+        }
+
+        .timezone {
+            color: #666;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .date-range-display {
+            color: #666;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .page-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .page-btn.active {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 20px;
+        }
+
+        .page-size-select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .jump-page {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 20px;
+        }
+
+        .jump-input {
+            width: 60px;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* System Info Section */
+        .system-info-section {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .info-card h3 {
+            background: #f8f9fa;
+            margin: 0;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: white;
+        }
+
+        .info-table th {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            text-align: center;
+            font-weight: 600;
+            color: #606266;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #666;
+            line-height: 1.4;
+            vertical-align: top;
+            text-align: center;
+        }
+
+        .info-table td:nth-child(2) {
+            text-align: left;
+        }
+
+        .info-table td:nth-child(3) {
+            text-align: left;
+        }
+
+        .info-table td:first-child {
+            font-weight: 500;
+        }
+
+        .info-table td:last-child {
+            text-align: left;
+        }
+
+        .info-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .info-table tbody tr:hover {
+            background: #fafafa;
+        }
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        /* Column Settings Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 8px;
+            width: 600px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8e8e8;
+            background: #fafafa;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .column-settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .select-all {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .select-all input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+
+        .reset-btn-small {
+            padding: 6px 12px;
+            border: 1px solid #dcdfe6;
+            background: white;
+            color: #606266;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .reset-btn-small:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .column-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            gap: 12px;
+        }
+
+        .column-item:last-child {
+            border-bottom: none;
+        }
+
+        .drag-handle {
+            cursor: pointer;
+            color: #ccc;
+            font-size: 14px;
+            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+        }
+
+        .drag-handle:hover {
+            color: #409eff;
+        }
+
+        .arrow-up, .arrow-down {
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+        }
+
+        .arrow-up {
+            border-bottom: 6px solid currentColor;
+        }
+
+        .arrow-down {
+            border-top: 6px solid currentColor;
+        }
+
+        .column-checkbox {
+            width: 16px;
+            height: 16px;
+        }
+
+        .column-name {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .column-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            border: 1px solid #dcdfe6;
+            background: white;
+            color: #606266;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-start;
+            gap: 12px;
+            padding: 16px 20px;
+            border-top: 1px solid #e8e8e8;
+            background: #fafafa;
+        }
+
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+        }
+
+        .modal-btn-primary {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .modal-btn-primary:hover {
+            background: #66b1ff;
+            border-color: #66b1ff;
+        }
+
+        .modal-btn-secondary {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        /* Timezone Settings Styles */
+        .timezone-modal {
+            width: 90vw;
+            max-width: 1200px;
+            height: 85vh;
+        }
+
+        .timezone-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-height: 65vh;
+            overflow-y: auto;
+        }
+
+        .integrator-section {
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .integrator-header {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .integrator-header h4 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .game-providers-grid {
+            padding: 8px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 6px;
+        }
+
+        .provider-timezone-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: white;
+            border: 1px solid #f0f0f0;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .provider-timezone-item:hover {
+            background: #f9f9f9;
+            border-color: #e0e0e0;
+        }
+
+        .provider-name {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .timezone-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <div class="container">
+            <div class="header">
+                <h1>集成商報表</h1>
+            </div>
+
+            <!-- Search Section -->
+            <div class="search-section" id="searchSection">
+                <div class="search-first-row">
+                    <div class="search-item">
+                        <label class="search-label">資料來源：</label>
+                        <select id="dataType" class="search-select">
+                            <option value="注單明細" selected>注單明細</option>
+                            <option value="交易明細">交易明細</option>
+                        </select>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">注單統計時區：</label>
+                        <select id="timezone" class="search-select">
+                            <option value="">請選擇</option>
+                            <option value="UTC-4">UTC-4</option>
+                            <option value="UTC+0">UTC+0</option>
+                            <option value="UTC+4">UTC+4</option>
+                            <option value="UTC+7">UTC+7</option>
+                            <option value="UTC+8">UTC+8</option>
+                            <option value="UTC+9">UTC+9</option>
+                        </select>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">🕒</label>
+                        <div class="date-range">
+                            <input type="date" id="startDate" class="date-input" value="2025-05-25">
+                            <span>~</span>
+                            <input type="date" id="endDate" class="date-input" value="2025-05-25">
+                        </div>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">所屬代理：</label>
+                        <select id="agent" class="search-select">
+                            <option value="">請選擇</option>
+                            <option value="System">System</option>
+                            <option value="Agent001">Agent001</option>
+                        </select>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">集成商：</label>
+                        <select id="integrator" class="search-select">
+                            <option value="">請選擇</option>
+                            <option value="ZF">ZF</option>
+                            <option value="OPS">OPS</option>
+                            <option value="Kuma">Kuma</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="search-buttons">
+                    <button class="search-btn" onclick="searchReports()">🔍 搜索</button>
+                    <button class="reset-btn" onclick="resetSearch()">重置</button>
+                </div>
+            </div>
+
+            <!-- Table Header -->
+            <div class="table-header">
+                <button class="table-header-btn" onclick="showTimezoneSettings()">時區設置</button>
+                <button class="table-header-btn" onclick="exportReport()">導出</button>
+                <button class="table-header-btn" onclick="columnSettings()">列設置</button>
+            </div>
+
+            <div class="report-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>集成商名稱</th>
+                            <th>總投注</th>
+                            <th>總派彩</th>
+                            <th class="sortable" onclick="sortTable('totalProfit')">總輸贏</th>
+                            <th class="sortable" onclick="sortTable('gameCount')">集成商成本</th>
+                            <th class="sortable" onclick="sortTable('validBet')">投注筆數</th>
+                            <th>注單統計時區</th>
+                            <th>時間區間</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTableBody">
+                        <tr class="total-row">
+                            <td>總計</td>
+                            <td class="amount">123,122,400.00</td>
+                            <td class="amount">121,122,400.00</td>
+                            <td class="amount">2,000,000.00</td>
+                            <td class="amount">148,739.77</td>
+                            <td class="amount">62,234</td>
+                            <td>-</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td><a href="#" class="game-name">zf</a></td>
+                            <td class="amount">56,789,400.00</td>
+                            <td class="amount">56,234,150.00</td>
+                            <td class="amount">555,250.00</td>
+                            <td class="amount">47,196.25</td>
+                            <td class="amount">15,234</td>
+                            <td class="timezone">UTC +9</td>
+                            <td class="date-range-display">2025/5/26 00:00 ~ 2025/5/26 23:59</td>
+                        </tr>
+                        <tr>
+                            <td><a href="#" class="game-name">ops</a></td>
+                            <td class="amount">43,678,900.00</td>
+                            <td class="amount">42,945,230.00</td>
+                            <td class="amount">733,670.00</td>
+                            <td class="amount">53,191.08</td>
+                            <td class="amount">28,765</td>
+                            <td class="timezone">UTC +9</td>
+                            <td class="date-range-display">2025/5/26 00:00 ~ 2025/5/26 23:59</td>
+                        </tr>
+                        <tr>
+                            <td><a href="#" class="game-name">Kuma</a></td>
+                            <td class="amount">22,654,100.00</td>
+                            <td class="amount">21,943,020.00</td>
+                            <td class="amount">711,080.00</td>
+                            <td class="amount">48,353.44</td>
+                            <td class="amount">18,235</td>
+                            <td class="timezone">UTC +9</td>
+                            <td class="date-range-display">2025/5/26 00:00 ~ 2025/5/26 23:59</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="pagination">
+                    <div class="pagination-info">
+                        共 1 頁 3 條，共計 3 條
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" disabled>‹</button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn" disabled>›</button>
+                        <div class="page-size-selector">
+                            <select class="page-size-select">
+                                <option value="10" selected>10</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                        <div class="jump-page">
+                            <input type="number" class="jump-input" placeholder="1" min="1" max="1">
+                            <button class="page-btn">跳轉</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 系統說明區塊 -->
+            <div class="system-info-section">
+                <div class="info-card">
+                    <h3>系統規則</h3>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="20%">規則類型</th>
+                                <th width="80%">規則內容</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>資料來源</td>
+                                <td>此為統計報表，可選擇資料來源（交易明細 or 注單明細）以方便交收使用</td>
+                            </tr>
+                            <tr>
+                                <td>成本計算</td>
+                                <td>集成商成本＝遊戲商報表中，相同集成商的遊戲商成本加總<br>
+                            </tr>
+                            <tr>
+                                <td>數據更新</td>
+                                <td>每小時自動更新遊戲統計數據，確保數據即時性</td>
+                            </tr>
+                            <tr>
+                                <td>搜尋限制</td>
+                                <td>最多僅限查詢3個月(含本月)，一次最多查詢31天</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>搜尋功能列</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>重要提醒：</strong><br>
+                        一進畫面就帶入預設值，並顯示搜索出來的資料。<br>
+                        點擊「重置」按鈕回到預設值，如果按下搜尋時是空值，則自動帶入預設值。<br>
+                        <br>
+                        搜索條件如在二行以上，右方會出現「展開/收起」按鈕(一行則不顯示按鈕)。<br>
+                        收起時為一行搜索條件＋一行搜索、重置按鈕。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">欄位</th>
+                                <th width="60%">內容說明</th>
+                                <th width="25%">模式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>資料來源</td>
+                                <td>
+                                    點擊選擇資料的來源<br>
+                                    預設顯示交易明細<br>
+                                    下拉選單：注單明細、交易明細
+                                </td>
+                                <td>下拉選單，必填</td>
+                            </tr>
+                            <tr>
+                                <td>注單統計時區</td>
+                                <td>
+                                    點擊可選擇不同時區進行數據統計<br>
+                                    預設空白(各家遊戲商的各自時區不同)<br>
+                                    下拉選單：UTC-4、+0、+4、+7、+8、+9
+                                </td>
+                                <td>下拉選單，非必填<br>下拉框提示文字：請選擇</td>
+                            </tr>
+                            <tr>
+                                <td>時間</td>
+                                <td>
+                                    點擊選擇搜尋的時間範圍<br>                                  
+                                    預設為今天<br>
+                                    例：今天2025/5/26顯示：2025/5/26 00:00 ~ 2025/5/26 23:59
+                                </td>
+                                <td>時間選擇器</td>
+                            </tr>
+                            <tr>
+                                <td>所屬代理</td>
+                                <td>
+                                    點擊選擇所屬代理<br>
+                                    預設顯示全部代理資料<br>
+                                    所選代理的資料一定包含下級代理數據<br>
+                                </td>
+                                <td>下拉選單，非必填<br>下拉框提示文字：請選擇</td>
+                            </tr>
+                            <tr>
+                                <td>集成商名稱</td>
+                                <td>
+                                    點擊選擇集成商，可複選<br>
+                                    預設顯示全部集成商資料<br>
+                                </td>
+                                <td>下拉選單，非必填<br>下拉框提示文字：請選擇</td>
+                            </tr>
+                            <tr>
+                                <td>搜索</td>
+                                <td>點擊觸發搜尋</td>
+                                <td>按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>重置</td>
+                                <td>點擊將搜尋條件回到預設值</td>
+                                <td>按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>列設置功能</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>功能說明：</strong><br>
+                        點擊表格右上方的「列設置」按鈕，可調整表格顯示的欄位、順序和釘選位置。<br>
+                        設定會即時生效，並在當前頁面中保持。<br>
+                        導出則是原始欄位及順序不受列設置影響。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">功能項目</th>
+                                <th width="60%">功能說明</th>
+                                <th width="25%">操作方式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>全選控制</td>
+                                <td>
+                                    一鍵選擇或取消選擇所有欄位<br>
+                                    當部分欄位被選中時，顯示半選狀態<br>
+                                </td>
+                                <td>點擊「全選」勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>欄位顯示控制</td>
+                                <td>
+                                    控制每個欄位是否在表格中顯示<br>
+                                    未勾選的欄位將在表格中隱藏<br>
+                                    表格中的第一欄為鎖定，不可隱藏
+                                </td>
+                                <td>點擊欄位名稱前的勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>拖拽排序</td>
+                                <td>
+                                    點擊左側的上下箭頭調整欄位在表格中的顯示順序<br>
+                                    調整後的順序會即時反映在表格中
+                                </td>
+                                <td>點擊左側的「↑↓」箭頭圖示</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到左側</td>
+                                <td>
+                                    將選中的欄位固定在表格最左側<br>
+                                    釘選的欄位在橫向捲動時保持可見
+                                </td>
+                                <td>點擊「釘選到左側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到右側</td>
+                                <td>
+                                    將選中的欄位固定在表格最右側<br>
+                                    釘選的欄位在橫向捲動時保持可見<br>
+                                </td>
+                                <td>點擊「釘選到右側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消釘選</td>
+                                <td>
+                                    移除欄位的左側或右側釘選狀態<br>
+                                    欄位將回到正常的捲動區域<br>
+                                </td>
+                                <td>點擊「取消釘選」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>重置設定</td>
+                                <td>
+                                    清除所有自定義的排序和釘選設定<br>
+                                    回到系統初始的欄位配置
+                                </td>
+                                <td>點擊「重置」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>保存設定</td>
+                                <td>
+                                    應用當前的欄位配置到表格顯示<br>
+                                    設定在當前瀏覽器頁面中保持有效<br>
+                                </td>
+                                <td>點擊「保存」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消操作</td>
+                                <td>
+                                    放棄當前的所有配置更改<br>
+                                    回到進入設定前的狀態
+                                </td>
+                                <td>點擊「取消」按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>資料表說明</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>重要提醒：</strong><br>
+                        總計列和標題列為頁頂固定不可上下拖動，可左右拖曳。<br>
+                        總計列為所有頁數的數據加總，部分欄位不顯示。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="8%">排序</th>
+                                <th width="15%">欄位</th>
+                                <th width="57%">內容說明</th>
+                                <th width="20%">顯示模式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>-</td>
+                                <td>列設置</td>
+                                <td>可自定義顯示欄位，調整欄位順序</td>
+                                <td>按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>導出</td>
+                                <td>將搜索結果導出為xlsx格式，不受列設置影響<br>
+                                    Ex檔名：2025-05-26-0000-2025-05-26-2359 集成商报表.xlsx
+                                </td>
+                                <td>按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>集成商名稱</td>
+                                <td>
+                                    顯示集成商名稱<br>
+                                    點擊可跳轉至遊戲商報表，查看該集成商的詳細資訊<br>
+                                </td>
+                                <td>藍色文字＋點擊功能</td>
+                            </tr>
+                            <tr>
+                                <td>✓</td>
+                                <td>總投注</td>
+                                <td>顯示該集成商所有注單的投注加總</td>
+                                <td>數字顯示<br>小數點2位，需補0</td>
+                            </tr>
+                            <tr>
+                                <td>✓</td>
+                                <td>總派彩</td>
+                                <td>顯示該集成商所有注單的派彩加總</td>
+                                <td>數字顯示<br>小數點2位，需補0</td>
+                            </tr>
+                            <tr>
+                                <td>✓</td>
+                                <td>總輸贏</td>
+                                <td>顯示該集成商所有注單的輸贏加總</td>
+                                <td>數字顯示<br>小數點2位，需補0</td>
+                            <tr>
+                            <tr>
+                                <td>✓</td>
+                                <td>集成商成本</td>
+                                <td>
+                                    顯示該集成商的總成本<br>
+                                    集成商成本＝遊戲商報表中，相同集成商的遊戲商成本加總
+                                </td>
+                                <td>數字顯示<br>小數點2位，需補0</td>
+                            </tr>
+                            <tr>
+                                <td>✓</td>
+                                <td>投注筆數</td>
+                                <td>顯示該遊戲商所有注單中，投注>0的注單筆數</td>
+                                <td>數字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>注單統計時區</td>
+                                <td>顯示列表中注單的統計時區<br>
+                                預設不顯示（因集成商中每家遊戲商的時區各自不同）</td>
+                                <td>時區格式</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>時間區間</td>
+                                <td>
+                                    顯示列表中注單的搜取時間範圍<br>
+                                    例：2024-05-31 00:00 ~ 2024-05-31 23:59
+                                </td>
+                                <td>時間格式</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Column Settings Modal -->
+    <div class="modal-overlay" id="columnSettingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">列設置</div>
+                <button class="modal-close" onclick="closeColumnSettings()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="column-settings-header">
+                    <div class="select-all">
+                        <input type="checkbox" id="selectAllColumns" onchange="toggleAllColumns()">
+                        <label for="selectAllColumns">全选</label>
+                    </div>
+                    <button class="reset-btn-small" onclick="resetColumnSettings()">重置</button>
+                </div>
+                <div class="column-list" id="columnList">
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" id="col-name" checked>
+                        <div class="column-name">集成商名稱</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" id="col-total-bet" checked>
+                        <div class="column-name">總投注</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" id="col-total-payout" checked>
+                        <div class="column-name">總派彩</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" id="col-total-profit" checked>
+                        <div class="column-name">總輸贏</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" id="col-game-cost" checked>
+                        <div class="column-name">遊戲商成本</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" id="col-bet-count" checked>
+                        <div class="column-name">總投注筆數</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-secondary" onclick="closeColumnSettings()">取消</button>
+                <button class="modal-btn modal-btn-primary" onclick="saveColumnSettings()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timezone Settings Modal -->
+    <div class="modal-overlay" id="timezoneSettingsModal">
+        <div class="modal timezone-modal">
+            <div class="modal-header">
+                <div class="modal-title">時區設置</div>
+                <button class="modal-close" onclick="closeTimezoneSettings()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="timezone-grid">
+                    <div class="integrator-section">
+                        <div class="integrator-header">
+                            <h4>OPS</h4>
+                        </div>
+                        <div class="game-providers-grid">
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Nolimit City</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Evolution Gaming</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Pragmatic Play</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Relax Gaming</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Peter & Sons</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">PragmaticPlay LIVE</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Hacksaw</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Play'n GO</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Netent</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">BGaming</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Big Time Gaming</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Skywind</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Habanero</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Red Tiger</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Yggdrasil</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Push Gaming</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Thunderkick</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Quickspin</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">ELK Studios</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Kalamba Games</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="integrator-section">
+                        <div class="integrator-header">
+                            <h4>ZF</h4>
+                        </div>
+                        <div class="game-providers-grid">
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Nolimit City</span>
+                                <span class="timezone-badge">UTC+7</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Evolution Gaming</span>
+                                <span class="timezone-badge">UTC+7</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Pragmatic Play</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Relax Gaming</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Peter & Sons</span>
+                                <span class="timezone-badge">UTC+8</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">PragmaticPlay LIVE</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Hacksaw</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">PGSoft</span>
+                                <span class="timezone-badge">UTC+8</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Play'n GO</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Netent</span>
+                                <span class="timezone-badge">UTC+7</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Big Time Gaming</span>
+                                <span class="timezone-badge">UTC+7</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Skywind</span>
+                                <span class="timezone-badge">UTC+8</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Habanero</span>
+                                <span class="timezone-badge">UTC+8</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Red Tiger</span>
+                                <span class="timezone-badge">UTC+7</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Yggdrasil</span>
+                                <span class="timezone-badge">UTC+7</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Push Gaming</span>
+                                <span class="timezone-badge">UTC+8</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Thunderkick</span>
+                                <span class="timezone-badge">UTC+7</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Quickspin</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">ELK Studios</span>
+                                <span class="timezone-badge">UTC+8</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Kalamba Games</span>
+                                <span class="timezone-badge">UTC+7</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="integrator-section">
+                        <div class="integrator-header">
+                            <h4>Direct</h4>
+                        </div>
+                        <div class="game-providers-grid">
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Viva</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Rich Gaming</span>
+                                <span class="timezone-badge">UTC+8</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Taishan</span>
+                                <span class="timezone-badge">UTC+9</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="integrator-section">
+                        <div class="integrator-header">
+                            <h4>Kuma</h4>
+                        </div>
+                        <div class="game-providers-grid">
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Pragmatic Play</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">PragmaticPlay LIVE</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="integrator-section">
+                        <div class="integrator-header">
+                            <h4>9game</h4>
+                        </div>
+                        <div class="game-providers-grid">
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">Pragmatic Play</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                            <div class="provider-timezone-item">
+                                <span class="provider-name">nineGame</span>
+                                <span class="timezone-badge">UTC+0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-secondary" onclick="closeTimezoneSettings()">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 等待DOM加載完成
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // 篩選區域收折功能
+            window.toggleSearchSection = function() {
+                const searchSection = document.getElementById('searchSection');
+                const collapseToggle = document.getElementById('collapseToggle');
+                
+                searchSection.classList.toggle('collapsed');
+                
+                if (searchSection.classList.contains('collapsed')) {
+                    collapseToggle.textContent = '展開';
+                } else {
+                    collapseToggle.textContent = '收起';
+                }
+            };
+            
+            // 列設置功能
+            window.columnSettings = function() {
+                console.log('打開列設置功能');
+                document.getElementById('columnSettingsModal').classList.add('show');
+                updateSelectAllState();
+            };
+
+            // 遊戲商時區設置功能
+            window.showTimezoneSettings = function() {
+                console.log('打開遊戲商時區設置');
+                document.getElementById('timezoneSettingsModal').classList.add('show');
+            };
+
+            // 關閉時區設置彈窗
+            window.closeTimezoneSettings = function() {
+                document.getElementById('timezoneSettingsModal').classList.remove('show');
+            };
+
+            // 關閉列設置彈窗
+            window.closeColumnSettings = function() {
+                document.getElementById('columnSettingsModal').classList.remove('show');
+            };
+
+            // 點擊彈窗外部關閉
+            document.getElementById('columnSettingsModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeColumnSettings();
+                }
+            });
+
+            // 點擊時區設置彈窗外部關閉
+            document.getElementById('timezoneSettingsModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeTimezoneSettings();
+                }
+            });
+
+            // 全選/取消全選
+            window.toggleAllColumns = function() {
+                const selectAllCheckbox = document.getElementById('selectAllColumns');
+                const columnCheckboxes = document.querySelectorAll('.column-checkbox');
+                
+                columnCheckboxes.forEach(checkbox => {
+                    checkbox.checked = selectAllCheckbox.checked;
+                });
+            };
+
+            // 更新全選狀態
+            function updateSelectAllState() {
+                const selectAllCheckbox = document.getElementById('selectAllColumns');
+                const columnCheckboxes = document.querySelectorAll('.column-checkbox');
+                const checkedCount = Array.from(columnCheckboxes).filter(cb => cb.checked).length;
+                
+                if (checkedCount === columnCheckboxes.length) {
+                    selectAllCheckbox.checked = true;
+                    selectAllCheckbox.indeterminate = false;
+                } else if (checkedCount === 0) {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = false;
+                } else {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = true;
+                }
+            }
+
+            // 監聽列複選框變化
+            document.addEventListener('change', function(e) {
+                if (e.target.classList.contains('column-checkbox')) {
+                    updateSelectAllState();
+                }
+            });
+
+            // 重置列設置
+            window.resetColumnSettings = function() {
+                const columnCheckboxes = document.querySelectorAll('.column-checkbox');
+                columnCheckboxes.forEach(checkbox => {
+                    checkbox.checked = true;
+                });
+                updateSelectAllState();
+                showNotification('列設置已重置', 'success');
+            };
+
+            // 保存列設置
+            window.saveColumnSettings = function() {
+                const selectedColumns = [];
+                document.querySelectorAll('.column-checkbox:checked').forEach(checkbox => {
+                    const columnName = checkbox.closest('.column-item').querySelector('.column-name').textContent;
+                    selectedColumns.push(columnName);
+                });
+                
+                console.log('保存的列設置:', selectedColumns);
+                showNotification('列設置已保存', 'success');
+                closeColumnSettings();
+            };
+            
+            // 導出功能
+            window.exportReport = function() {
+                console.log('導出集成商報表');
+                showNotification('報表導出功能開發中...', 'success');
+            };
+            
+            // 搜索功能
+            let originalTableData = null;
+            
+            window.searchReports = function() {
+                const dataType = document.getElementById('dataType').value;
+                const timezone = document.getElementById('timezone').value;
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                const agent = document.getElementById('agent').value;
+                const integrator = document.getElementById('integrator').value;
+                
+                const tableBody = document.getElementById('reportTableBody');
+                const rows = Array.from(tableBody.querySelectorAll('tr'));
+                
+                if (originalTableData === null) {
+                    originalTableData = tableBody.innerHTML;
+                }
+                
+                let visibleCount = 0;
+                
+                rows.forEach(row => {
+                    if (row.classList.contains('total-row')) {
+                        row.style.display = '';
+                        return;
+                    }
+                    
+                    const integratorCell = row.cells[0].textContent;
+                    
+                    const matchIntegrator = !integrator || integratorCell.includes(integrator);
+                    
+                    const isMatch = matchIntegrator;
+                    
+                    if (isMatch) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                
+                showSearchResults(visibleCount);
+                
+                console.log(`搜索完成: 找到 ${visibleCount} 條結果`);
+                console.log('搜索條件:', { dataType, timezone, startDate, endDate, agent, integrator });
+            };
+            
+            window.resetSearch = function() {
+                document.getElementById('dataType').value = '注單明細';
+                document.getElementById('timezone').value = '+9';
+                document.getElementById('startDate').value = '2025-05-25';
+                document.getElementById('endDate').value = '2025-05-25';
+                document.getElementById('agent').value = '';
+                document.getElementById('integrator').value = '';
+                
+                const tableBody = document.getElementById('reportTableBody');
+                
+                if (originalTableData !== null) {
+                    tableBody.innerHTML = originalTableData;
+                    originalTableData = null;
+                }
+                
+                const noResults = document.querySelector('.no-results');
+                if (noResults) {
+                    noResults.remove();
+                }
+                
+                console.log('搜索已重置');
+                showNotification('搜索已重置', 'success');
+            };
+            
+            // 顯示搜索結果
+            function showSearchResults(count) {
+                const tableBody = document.getElementById('reportTableBody');
+                const existingNoResults = document.querySelector('.no-results');
+                
+                if (existingNoResults) {
+                    existingNoResults.remove();
+                }
+                
+                if (count === 0) {
+                    const noResultsDiv = document.createElement('tr');
+                    noResultsDiv.className = 'no-results';
+                    noResultsDiv.innerHTML = `
+                        <td colspan="8">
+                            <div style="text-align: center; padding: 40px 20px; color: #999;">
+                                <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">📊</div>
+                                <div style="font-size: 16px; margin-bottom: 8px;">未找到符合條件的集成商報表</div>
+                                <div style="font-size: 14px;">請調整搜索條件後重試</div>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(noResultsDiv);
+                } else {
+                    showNotification(`找到 ${count} 個匹配的集成商記錄`, 'success');
+                }
+            }
+            
+            // 排序功能
+            window.sortTable = function(column) {
+                console.log(`排序欄位: ${column}`);
+                showNotification(`按 ${column} 排序`, 'success');
+            };
+            
+            // 通知系統
+            window.showNotification = function(message, type = 'success') {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 12px 20px;
+                    border-radius: 6px;
+                    color: white;
+                    font-size: 14px;
+                    z-index: 10001;
+                    transition: all 0.3s ease;
+                    ${type === 'success' ? 'background: #67c23a;' : 'background: #f56c6c;'}
+                `;
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        document.body.removeChild(notification);
+                    }, 300);
+                }, 3000);
+            };
+            
+            console.log('集成商報表頁面初始化完成');
+        });
+    </script>
+</body>
+</html>

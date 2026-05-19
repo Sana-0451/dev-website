@@ -1,0 +1,3374 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>遊戲清單管理系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .main-content {
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .search-first-row {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-label {
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .search-input, .search-select {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 120px;
+            background: white;
+            color: #606266;
+        }
+
+        .search-buttons {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+            padding: 0 20px 20px 20px;
+        }
+
+        .search-btn, .reset-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid;
+            min-width: 70px;
+        }
+
+        .search-btn {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .reset-btn {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        /* Table Header */
+        .table-header {
+            background: #fafafa;
+            border-radius: 8px 8px 0 0;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-summary {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+        }
+
+        .status-count {
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 13px;
+            background: #e8f5e8;
+            color: #67c23a;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .table-header-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            border: 1px solid #dcdfe6;
+            background: white;
+            color: #606266;
+        }
+
+        .table-header-btn:hover {
+            background: #f0f8ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        /* Table */
+        .report-table {
+            background: white;
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 2000px;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 12px 8px;
+            text-align: center !important;
+            border-bottom: 1px solid #e8e8e8;
+            border-right: 1px solid #e8e8e8;
+            white-space: nowrap;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #606266;
+        }
+
+        .game-name {
+            max-width: 150px;
+            font-weight: 500;
+        }
+
+        .game-id {
+            font-family: monospace;
+            max-width: 120px;
+        }
+
+        .provider-name {
+            font-weight: 500;
+            max-width: 120px;
+        }
+
+        .game-code {
+            font-family: monospace;
+            font-weight: 600;
+            color: #409eff;
+            max-width: 80px;
+        }
+
+        .game-key {
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+            max-width: 140px;
+        }
+
+        .game-note {
+            max-width: 120px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .integrator-tag {
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 500;
+            display: inline-block;
+            margin: 1px;
+        }
+
+        .integrator-zf {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .integrator-ops {
+            background: #e8f5e8;
+            color: #388e3c;
+        }
+
+        .integrator-kuma {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .integrator-direct {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .available-integrators {
+            display: flex;
+            gap: 4px;
+            flex-wrap: nowrap;
+            justify-content: center;
+        }
+
+        .integrator-switch {
+            padding: 6px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 12px;
+            background: white;
+            cursor: pointer;
+            min-width: 80px;
+        }
+
+        .status-tag {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-active {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .status-inactive {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .status-maintenance {
+            background: #fff8e1;
+            color: #f57c00;
+        }
+
+        /* 第一層：遊戲類型標籤（主要分類） */
+        .game-type-tag {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+            margin-right: 4px;
+        }
+
+        .type-live {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .type-electronic {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .type-fishing {
+            background: #e0f7fa;
+            color: #00838f;
+        }
+
+        .type-card {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .type-lottery {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .type-sports {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .type-arcade {
+            background: #e8f5e8;
+            color: #388e3c;
+        }
+
+        /* 第二層：子類型標籤（遊戲類別） */
+        .subtype-tag {
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 500;
+            background: #f5f5f5;
+            color: #666;
+            display: inline-block;
+            margin-right: 4px;
+        }
+
+        /* 第三層：變體標籤（特殊版本） */
+        .variant-tag {
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 9px;
+            font-weight: 500;
+            background: white;
+            color: #999;
+            border: 1px solid #e0e0e0;
+            display: inline-block;
+        }
+
+        .variant-lightning {
+            border-color: #ffd700;
+            color: #ff9800;
+            background: #fffbf0;
+        }
+
+        .variant-speed {
+            border-color: #ff5722;
+            color: #ff5722;
+            background: #fff5f5;
+        }
+
+        .variant-vip {
+            border-color: #9c27b0;
+            color: #9c27b0;
+            background: #f9f5ff;
+        }
+
+        .variant-mini {
+            border-color: #00bcd4;
+            color: #00bcd4;
+            background: #f0faff;
+        }
+
+        .variant-mega {
+            border-color: #4caf50;
+            color: #4caf50;
+            background: #f1f8f4;
+        }
+
+        .variant-commission-free {
+            border-color: #2196f3;
+            color: #2196f3;
+            background: #f0f7ff;
+        }
+
+        /* 標籤容器 */
+        .game-tags-container {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .maintenance-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .maintenance-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .switch-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .switch-slider {
+            background-color: #f56c6c;
+        }
+
+        input:checked + .switch-slider:before {
+            transform: translateX(20px);
+        }
+
+        .game-status-slider {
+            background-color: #ccc;
+        }
+
+        input:checked + .game-status-slider {
+            background-color: #67c23a;
+        }
+
+        input:checked + .game-status-slider:before {
+            transform: translateX(20px);
+        }
+
+        .action-btn-small {
+            padding: 3px 8px;
+            border: 1px solid #dcdfe6;
+            background: white;
+            color: #606266;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .action-btn-small.edit {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            z-index: 10001;
+            background: #67c23a;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+        }
+
+        .notification.error {
+            background: #f56c6c;
+        }
+
+        /* 編輯彈出視窗樣式 */
+        .edit-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .edit-modal.show {
+            display: block;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 8px;
+            width: 600px;
+            max-width: 90%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 20px 24px;
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 16px;
+        }
+
+        .form-col {
+            flex: 1;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+            color: #606266;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            height: 80px;
+        }
+
+        .form-input:disabled {
+            background: #f5f7fa;
+            color: #c0c4cc;
+        }
+
+        .icon-section {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .icon-preview {
+            flex: 0 0 120px;
+        }
+
+        .icon-upload {
+            flex: 1;
+        }
+
+        .icon-preview-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 120px;
+            height: 120px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e8e8e8;
+        }
+
+        .icon-preview-container img {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 6px;
+        }
+
+        .no-icon-placeholder {
+            color: #999;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .upload-area {
+            border: 2px dashed #dcdfe6;
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+            background: #fafafa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .upload-area:hover {
+            border-color: #409eff;
+            background: #f0f8ff;
+        }
+
+        .upload-area.drag-over {
+            border-color: #409eff;
+            background: #f0f8ff;
+        }
+
+        .upload-icon {
+            font-size: 24px;
+            color: #c0c4cc;
+            margin-bottom: 8px;
+        }
+
+        .upload-text {
+            color: #606266;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .upload-hint {
+            color: #909399;
+            font-size: 10px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            flex-shrink: 0;
+            background: white;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid;
+            min-width: 80px;
+        }
+
+        .modal-btn-primary {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .modal-btn-default {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        /* 系統說明區域 */
+        .system-info {
+            margin-top: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .info-section {
+            padding: 24px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-section:last-child {
+            border-bottom: none;
+        }
+
+        .info-section h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #409eff;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 20px;
+            border-left: 4px solid #409eff;
+        }
+
+        .info-card h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .info-card ul {
+            list-style: none;
+            margin: 0;
+        }
+
+        .info-card li {
+            padding: 4px 0;
+            color: #666;
+            font-size: 14px;
+            position: relative;
+            padding-left: 16px;
+        }
+
+        .info-card li::before {
+            content: "•";
+            color: #409eff;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .guide-steps {
+            display: grid;
+            gap: 20px;
+        }
+
+        .step {
+            display: flex;
+            gap: 16px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #67c23a;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            background: #67c23a;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .step-content h5 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .step-content p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .tech-info {
+            display: grid;
+            gap: 12px;
+        }
+
+        .tech-item {
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #666;
+            border-left: 3px solid #e6a23c;
+        }
+
+        .tech-item strong {
+            color: #333;
+        }
+
+
+        /* 匯入 Modal 樣式 */
+        .import-section {
+            margin-bottom: 20px;
+        }
+
+        .import-instructions {
+            background: #f0f8ff;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #409eff;
+        }
+
+        .import-instructions h4 {
+            margin: 0 0 12px 0;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .import-instructions ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #666;
+        }
+
+        .import-instructions li {
+            margin: 6px 0;
+            line-height: 1.6;
+        }
+
+        .upload-area-large {
+            border: 2px dashed #dcdfe6;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+
+        .upload-area-large:hover {
+            border-color: #409eff;
+            background: #f0f8ff;
+        }
+
+        .upload-area-large.drag-over {
+            border-color: #409eff;
+            background: #e6f7ff;
+        }
+
+        .upload-icon-large {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .upload-text-large {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .upload-hint-large {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .preview-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .preview-section h4 {
+            margin: 0 0 16px 0;
+            color: #333;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preview-count {
+            background: #e6f7ff;
+            color: #409eff;
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .preview-table-container {
+            overflow: auto;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .preview-table th {
+            background: #f8f9fa;
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 2px solid #e8e8e8;
+            font-weight: 600;
+            color: #606266;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .preview-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #606266;
+        }
+
+        .preview-table tr:hover {
+            background: #f8f9fa;
+        }
+
+
+        /* 排序管理樣式 */
+        .sort-filters {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #606266;
+            margin-bottom: 8px;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+            color: #606266;
+        }
+
+        .sort-instructions {
+            background: #e6f7ff;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #409eff;
+        }
+
+        .instruction-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 4px 0;
+            font-size: 13px;
+            color: #606266;
+        }
+
+        .instruction-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .sort-list-section {
+            margin-top: 24px;
+        }
+
+        .sort-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .sort-list-header h4 {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .btn-add-game {
+            padding: 8px 16px;
+            background: #409eff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-add-game:hover {
+            background: #66b1ff;
+        }
+
+        .sort-list {
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            background: white;
+            overflow-y: auto;
+        }
+
+        .sort-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            background: white;
+            transition: all 0.2s;
+            cursor: move;
+        }
+
+        .sort-item:hover {
+            background: #f8f9fa;
+        }
+
+        .sort-item:last-child {
+            border-bottom: none;
+        }
+
+        .sort-item.dragging {
+            opacity: 0.5;
+            background: #e6f7ff;
+        }
+
+        .drag-handle {
+            font-size: 20px;
+            color: #999;
+            cursor: grab;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .sort-item-order {
+            font-size: 14px;
+            font-weight: 600;
+            color: #409eff;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .sort-item-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sort-item-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .sort-item-code {
+            font-size: 12px;
+            color: #999;
+            font-family: monospace;
+        }
+
+        .sort-item-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge-hot {
+            background: #fff5f5;
+            color: #f56c6c;
+        }
+
+        .badge-new {
+            background: #f0f9ff;
+            color: #409eff;
+        }
+
+        .sort-item-remove {
+            padding: 4px 12px;
+            background: #f5f5f5;
+            color: #999;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sort-item-remove:hover {
+            background: #ffebee;
+            color: #f56c6c;
+        }
+
+        .sort-empty {
+            padding: 60px 20px;
+            text-align: center;
+            color: #999;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-text {
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .btn-secondary {
+            padding: 8px 16px;
+            background: white;
+            color: #606266;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: #f0f8ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        /* 遊戲選擇器 */
+        .game-selector-section {
+            margin-top: 24px;
+        }
+
+        .selector-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .selector-header h4 {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .btn-back {
+            padding: 6px 12px;
+            background: #f5f5f5;
+            color: #606266;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-back:hover {
+            background: #e8e8e8;
+        }
+
+        .selector-search {
+            margin-bottom: 16px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 16px;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .game-selector-list {
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            background: white;
+            overflow-y: auto;
+        }
+
+        .selector-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.2s;
+        }
+
+        .selector-item:hover {
+            background: #f8f9fa;
+        }
+
+        .selector-item:last-child {
+            border-bottom: none;
+        }
+
+        .selector-item-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .selector-item-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .selector-item-code {
+            font-size: 12px;
+            color: #999;
+            font-family: monospace;
+        }
+
+        .selector-item-add {
+            padding: 6px 16px;
+            background: #409eff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .selector-item-add:hover {
+            background: #66b1ff;
+        }
+
+        .selector-item-add:disabled {
+            background: #e8e8e8;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .form-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #409eff;
+            border-bottom: 1px solid #e8f4ff;
+            padding-bottom: 6px;
+            margin-bottom: 14px;
+            margin-top: 4px;
+        }
+
+        .icon-dual-section {
+            display: flex;
+            gap: 20px;
+        }
+
+        .icon-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .icon-col-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #606266;
+        }
+
+        .upload-area-sm {
+            height: 90px;
+            padding: 12px;
+        }
+
+        .upload-area-sm .upload-icon {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .upload-area-sm .upload-text {
+            font-size: 11px;
+        }
+
+        .upload-area-sm .upload-hint {
+            font-size: 10px;
+        }
+        @media (max-width: 768px) {
+            .modal-content {
+                margin: 2% auto;
+                max-height: 95vh;
+                width: 95%;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .step {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .step-number {
+                align-self: center;
+            }
+            
+            .filter-row {
+                flex-direction: column;
+            }
+            
+            .filter-group {
+                min-width: 100%;
+            }
+        }
+    </style>
+    <!-- SheetJS for Excel/CSV Import -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <main class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>遊戲清單</h1>
+            </div>
+
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="search-first-row">
+                    <div class="search-item">
+                        <label class="search-label">集成商：</label>
+                        <select class="search-select">
+                            <option value="">請選擇</option>
+                            <option value="zf">ZF</option>
+                            <option value="ops">OPS</option>
+                            <option value="kuma">Kuma</option>
+                            <option value="direct">Direct</option>
+                        </select>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">遊戲名稱：</label>
+                        <input type="text" class="search-input" placeholder="請輸入名稱">
+                    </div>
+                </div>
+                <div class="search-buttons">
+                    <button class="search-btn">搜索</button>
+                    <button class="reset-btn">重置</button>
+                </div>
+            </div>
+
+            <!-- Table Header -->
+            <div class="table-header">
+                <div class="status-summary">
+                    <span class="status-item">
+                        <span>啟用遊戲：</span>
+                        <span class="status-count">5</span>
+                    </span>
+                    <span class="status-item">
+                        <span>停用遊戲：</span>
+                        <span class="status-count">2</span>
+                    </span>
+                </div>
+                <div class="header-buttons">
+                    <button class="table-header-btn" onclick="openSortModal()">🔢 排序管理</button>
+                    <button class="table-header-btn" onclick="downloadTemplate()">📥 下載範本</button>
+                    <button class="table-header-btn" onclick="openImportModal()">📊 批量匯入</button>
+                    <button class="table-header-btn" onclick="addNewGame()">➕ 新增遊戲</button>
+                </div>
+            </div>
+
+            <div class="report-table">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>遊戲ID</th>
+                                <th>遊戲商</th>
+                                <th>遊戲名稱</th>
+                                <th>可用集成商</th>
+                                <th>當前集成商</th>
+                                <th style="min-width: 180px;">遊戲分類</th>
+                                <th>遊戲商狀態</th>
+                                <th>遊戲狀態</th>
+                                <th>維護</th>
+                                <th>備注</th>
+                                <th>創建時間</th>
+                                <th>更新時間</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="game-code">10125</td>
+                                <td class="provider-name">Pragmatic Play</td>
+                                <td class="game-name">Big Bass Bonanza</td>
+                                <td>
+                                    <div class="available-integrators">
+                                        <span class="integrator-tag integrator-zf">ZF</span>
+                                        <span class="integrator-tag integrator-ops">OPS</span>
+                                        <span class="integrator-tag integrator-kuma">KUMA</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <select class="integrator-switch" onchange="switchIntegrator('10125', this.value)">
+                                        <option value="zf" selected>ZF</option>
+                                        <option value="ops">OPS</option>
+                                        <option value="kuma">KUMA</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <div class="game-tags-container">
+                                        <span class="game-type-tag type-electronic">電子</span>
+                                        <span class="subtype-tag">老虎機</span>
+                                        <span class="variant-tag variant-mega">Megaways</span>
+                                    </div>
+                                </td>
+                                <td><span class="status-tag status-active">啟用</span></td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox" checked onchange="toggleGameStatus('10125', this.checked)">
+                                        <span class="switch-slider game-status-slider"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox" onchange="toggleMaintenance('10125', this.checked)">
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </td>
+                                <td class="game-note">熱門釣魚遊戲</td>
+                                <td>2025-08-15 09:30</td>
+                                <td>2025-09-05 14:30</td>
+                                <td>
+                                    <button class="action-btn-small edit" onclick="editGame('vs20fruitsw')">編輯</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="game-code">20347</td>
+                                <td class="provider-name">Evolution</td>
+                                <td class="game-name">European Roulette</td>
+                                <td>
+                                    <div class="available-integrators">
+                                        <span class="integrator-tag integrator-direct">DIRECT</span>
+                                        <span class="integrator-tag integrator-ops">OPS</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <select class="integrator-switch">
+                                        <option value="direct" selected>DIRECT</option>
+                                        <option value="ops">OPS</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <div class="game-tags-container">
+                                        <span class="game-type-tag type-live">真人</span>
+                                        <span class="subtype-tag">輪盤</span>
+                                        <span class="variant-tag">經典版</span>
+                                    </div>
+                                </td>
+                                <td><span class="status-tag status-active">啟用</span></td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox" checked onchange="toggleGameStatus('20347', this.checked)">
+                                        <span class="switch-slider game-status-slider"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox">
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </td>
+                                <td class="game-note">經典輪盤</td>
+                                <td>2025-07-20 11:45</td>
+                                <td>2025-09-05 12:15</td>
+                                <td>
+                                    <button class="action-btn-small edit" onclick="editGame('roul_eur_1')">編輯</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="game-code">30592</td>
+                                <td class="provider-name">Spribe</td>
+                                <td class="game-name">Aviator</td>
+                                <td>
+                                    <div class="available-integrators">
+                                        <span class="integrator-tag integrator-kuma">KUMA</span>
+                                        <span class="integrator-tag integrator-zf">ZF</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <select class="integrator-switch">
+                                        <option value="kuma" selected>KUMA</option>
+                                        <option value="zf">ZF</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <div class="game-tags-container">
+                                        <span class="game-type-tag type-arcade">街機</span>
+                                        <span class="subtype-tag">崩潰遊戲</span>
+                                    </div>
+                                </td>
+                                <td><span class="status-tag status-active">啟用</span></td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox" checked onchange="toggleGameStatus('30592', this.checked)">
+                                        <span class="switch-slider game-status-slider"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox">
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </td>
+                                <td class="game-note">創新玩法</td>
+                                <td>2025-08-05 16:20</td>
+                                <td>2025-09-05 10:45</td>
+                                <td>
+                                    <button class="action-btn-small edit" onclick="editGame('spb_aviator')">編輯</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="game-code">15783</td>
+                                <td class="provider-name">Play'n GO</td>
+                                <td class="game-name">Book of Dead</td>
+                                <td>
+                                    <div class="available-integrators">
+                                        <span class="integrator-tag integrator-zf">ZF</span>
+                                        <span class="integrator-tag integrator-ops">OPS</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <select class="integrator-switch">
+                                        <option value="zf" selected>ZF</option>
+                                        <option value="ops">OPS</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <div class="game-tags-container">
+                                        <span class="game-type-tag type-electronic">電子</span>
+                                        <span class="subtype-tag">老虎機</span>
+                                        <span class="variant-tag">經典款</span>
+                                    </div>
+                                </td>
+                                <td><span class="status-tag status-maintenance">維護中</span></td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox" onchange="toggleGameStatus('15783', this.checked)">
+                                        <span class="switch-slider game-status-slider"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </td>
+                                <td class="game-note">正在更新中</td>
+                                <td>2025-06-12 14:15</td>
+                                <td>2025-09-05 09:20</td>
+                                <td>
+                                    <button class="action-btn-small edit" onclick="editGame('pn_bookdead')">編輯</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="game-code">20689</td>
+                                <td class="provider-name">Evolution</td>
+                                <td class="game-name">Speed Baccarat</td>
+                                <td>
+                                    <div class="available-integrators">
+                                        <span class="integrator-tag integrator-ops">OPS</span>
+                                        <span class="integrator-tag integrator-direct">DIRECT</span>
+                                        <span class="integrator-tag integrator-zf">ZF</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <select class="integrator-switch">
+                                        <option value="ops" selected>OPS</option>
+                                        <option value="direct">DIRECT</option>
+                                        <option value="zf">ZF</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <div class="game-tags-container">
+                                        <span class="game-type-tag type-live">真人</span>
+                                        <span class="subtype-tag">百家樂</span>
+                                        <span class="variant-tag variant-speed">快速版</span>
+                                    </div>
+                                </td>
+                                <td><span class="status-tag status-active">啟用</span></td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox" checked onchange="toggleGameStatus('20689', this.checked)">
+                                        <span class="switch-slider game-status-slider"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox">
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </td>
+                                <td class="game-note">快速版本</td>
+                                <td>2025-07-18 13:30</td>
+                                <td>2025-09-05 08:15</td>
+                                <td>
+                                    <button class="action-btn-small edit" onclick="editGame('bac_speed_1')">編輯</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="game-code">40156</td>
+                                <td class="provider-name">BNG</td>
+                                <td class="game-name">Fishing War</td>
+                                <td>
+                                    <div class="available-integrators">
+                                        <span class="integrator-tag integrator-kuma">KUMA</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <select class="integrator-switch">
+                                        <option value="kuma" selected>KUMA</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <div class="game-tags-container">
+                                        <span class="game-type-tag type-fishing">捕魚</span>
+                                        <span class="subtype-tag">多人競技</span>
+                                    </div>
+                                </td>
+                                <td><span class="status-tag status-inactive">停用</span></td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox" onchange="toggleGameStatus('40156', this.checked)">
+                                        <span class="switch-slider game-status-slider"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox">
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </td>
+                                <td class="game-note">需要優化</td>
+                                <td>2025-05-28 10:20</td>
+                                <td>2025-09-04 16:45</td>
+                                <td>
+                                    <button class="action-btn-small edit" onclick="editGame('bng_fishwar')">編輯</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="game-code">10934</td>
+                                <td class="provider-name">Pragmatic Play</td>
+                                <td class="game-name">Texas Hold'em</td>
+                                <td>
+                                    <div class="available-integrators">
+                                        <span class="integrator-tag integrator-zf">ZF</span>
+                                        <span class="integrator-tag integrator-ops">OPS</span>
+                                        <span class="integrator-tag integrator-kuma">KUMA</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <select class="integrator-switch">
+                                        <option value="zf" selected>ZF</option>
+                                        <option value="ops">OPS</option>
+                                        <option value="kuma">KUMA</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <div class="game-tags-container">
+                                        <span class="game-type-tag type-card">棋牌</span>
+                                        <span class="subtype-tag">德州撲克</span>
+                                    </div>
+                                </td>
+                                <td><span class="status-tag status-active">啟用</span></td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox" checked onchange="toggleGameStatus('10934', this.checked)">
+                                        <span class="switch-slider game-status-slider"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox">
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </td>
+                                <td class="game-note">經典撲克</td>
+                                <td>2025-08-10 15:40</td>
+                                <td>2025-09-04 11:18</td>
+                                <td>
+                                    <button class="action-btn-small edit" onclick="editGame('pp_texasholdem')">編輯</button>
+                                </td>
+                            </tr>
+                            <!-- 新增範例：展示三層分類 -->
+                            <tr>
+                                <td class="game-code">20348</td>
+                                <td class="provider-name">Evolution</td>
+                                <td class="game-name">Lightning Roulette</td>
+                                <td>
+                                    <div class="available-integrators">
+                                        <span class="integrator-tag integrator-direct">DIRECT</span>
+                                        <span class="integrator-tag integrator-ops">OPS</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <select class="integrator-switch">
+                                        <option value="direct" selected>DIRECT</option>
+                                        <option value="ops">OPS</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <div class="game-tags-container">
+                                        <span class="game-type-tag type-live">真人</span>
+                                        <span class="subtype-tag">輪盤</span>
+                                        <span class="variant-tag variant-lightning">閃電版</span>
+                                    </div>
+                                </td>
+                                <td><span class="status-tag status-active">啟用</span></td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider game-status-slider"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox">
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </td>
+                                <td class="game-note">高倍數獎金</td>
+                                <td>2025-08-20 10:00</td>
+                                <td>2025-09-05 14:30</td>
+                                <td>
+                                    <button class="action-btn-small edit" onclick="editGame('ev_lightroulette')">編輯</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="game-code">20690</td>
+                                <td class="provider-name">Evolution</td>
+                                <td class="game-name">No Commission Baccarat</td>
+                                <td>
+                                    <div class="available-integrators">
+                                        <span class="integrator-tag integrator-ops">OPS</span>
+                                        <span class="integrator-tag integrator-zf">ZF</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <select class="integrator-switch">
+                                        <option value="ops" selected>OPS</option>
+                                        <option value="zf">ZF</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <div class="game-tags-container">
+                                        <span class="game-type-tag type-live">真人</span>
+                                        <span class="subtype-tag">百家樂</span>
+                                        <span class="variant-tag variant-commission-free">無佣版</span>
+                                    </div>
+                                </td>
+                                <td><span class="status-tag status-active">啟用</span></td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider game-status-slider"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox">
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </td>
+                                <td class="game-note">不抽傭金</td>
+                                <td>2025-07-15 16:30</td>
+                                <td>2025-09-05 11:20</td>
+                                <td>
+                                    <button class="action-btn-small edit" onclick="editGame('ev_ncbaccarat')">編輯</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="game-code">20500</td>
+                                <td class="provider-name">Evolution</td>
+                                <td class="game-name">VIP Blackjack</td>
+                                <td>
+                                    <div class="available-integrators">
+                                        <span class="integrator-tag integrator-direct">DIRECT</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <select class="integrator-switch">
+                                        <option value="direct" selected>DIRECT</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <div class="game-tags-container">
+                                        <span class="game-type-tag type-live">真人</span>
+                                        <span class="subtype-tag">21點</span>
+                                        <span class="variant-tag variant-vip">VIP版</span>
+                                    </div>
+                                </td>
+                                <td><span class="status-tag status-active">啟用</span></td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider game-status-slider"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <label class="maintenance-switch">
+                                        <input type="checkbox">
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </td>
+                                <td class="game-note">高限額桌</td>
+                                <td>2025-08-01 09:15</td>
+                                <td>2025-09-05 13:45</td>
+                                <td>
+                                    <button class="action-btn-small edit" onclick="editGame('ev_vipblackjack')">編輯</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination">
+                    <div class="pagination-info">
+                        共 1 頁 7 條，共計 7 條
+                    </div>
+                </div>
+            </div>
+
+            <!-- 編輯遊戲彈出視窗 -->
+            <div id="editModal" class="edit-modal">
+                <div class="modal-content" style="width: 680px;">
+                    <div class="modal-header">
+                        <h3 id="modalTitle" class="modal-title">編輯遊戲</h3>
+                        <button class="close-btn" onclick="closeEditModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+
+                        <!-- 遊戲 ID (唯讀，僅編輯時顯示) -->
+                        <div id="gameIdGroup" class="form-group" style="display: none;">
+                            <label class="form-label">遊戲 ID <span style="color: #999; font-size: 12px;">(唯讀)</span></label>
+                            <input type="text" id="editGameId" class="form-input" disabled style="background: #f5f5f5; color: #999;">
+                        </div>
+
+                        <!-- 基本資訊 -->
+                        <div class="form-section-title">基本資訊</div>
+                        <div class="form-row">
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label class="form-label">遊戲名稱 <span id="nameReadonlyHint" style="color:#999;font-size:12px;display:none;">(唯讀)</span></label>
+                                    <input type="text" id="editGameName" class="form-input" placeholder="請輸入遊戲名稱">
+                                </div>
+                            </div>
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label class="form-label">遊戲編碼 <span id="codeReadonlyHint" style="color:#999;font-size:12px;display:none;">(唯讀)</span></label>
+                                    <input type="text" id="editGameCode" class="form-input" placeholder="請輸入遊戲編碼">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 分類 -->
+                        <div class="form-section-title">遊戲分類</div>
+                        <div class="form-row">
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label class="form-label">遊戲類型 <span style="color:#f56c6c;">*</span></label>
+                                    <select id="editGameType" class="form-input" onchange="onEditTypeChange()">
+                                        <option value="">請選擇</option>
+                                        <option value="electronic">電子</option>
+                                        <option value="live">真人</option>
+                                        <option value="fishing">捕魚</option>
+                                        <option value="card">棋牌</option>
+                                        <option value="lottery">彩票</option>
+                                        <option value="sports">體育</option>
+                                        <option value="arcade">街機</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label class="form-label">子類型</label>
+                                    <select id="editGameSubtype" class="form-input">
+                                        <option value="">請先選擇類型</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label class="form-label">變體標籤</label>
+                                    <input type="text" id="editGameVariant" class="form-input" placeholder="如：閃電版、VIP版">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 狀態 -->
+                        <div class="form-section-title">狀態設定</div>
+                        <div class="form-row">
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label class="form-label">遊戲狀態</label>
+                                    <select id="editGameStatus" class="form-input">
+                                        <option value="active">啟用</option>
+                                        <option value="inactive">停用</option>
+                                        <option value="maintenance">維護中</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label class="form-label">維護模式</label>
+                                    <select id="editGameMaintenance" class="form-input">
+                                        <option value="0">關閉</option>
+                                        <option value="1">開啟</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 備注 -->
+                        <div class="form-group">
+                            <label class="form-label">備注</label>
+                            <textarea id="editGameNote" class="form-input form-textarea" placeholder="請輸入備注資訊"></textarea>
+                        </div>
+
+                        <!-- 圖示上傳 -->
+                        <div class="form-section-title">遊戲入口圖示</div>
+                        <div class="icon-dual-section">
+                            <!-- 手機版 -->
+                            <div class="icon-col">
+                                <div class="icon-col-label">📱 手機版</div>
+                                <div class="icon-preview-container">
+                                    <img id="mobileIcon" alt="手機版圖示" style="display:none;">
+                                    <div id="mobileIconPlaceholder" class="no-icon-placeholder">未上傳</div>
+                                </div>
+                                <div class="upload-area upload-area-sm" onclick="triggerUpload('mobileIconInput')" ondragover="iconDragOver(event)" ondrop="iconDrop(event,'mobile')">
+                                    <div class="upload-icon">📁</div>
+                                    <div class="upload-text">點擊或拖拽上傳</div>
+                                    <div class="upload-hint">JPG，最大300KB</div>
+                                    <input type="file" id="mobileIconInput" class="file-input" accept=".jpg,.jpeg" onchange="handleIconSelect(event,'mobile')">
+                                </div>
+                            </div>
+                            <!-- 網頁版 -->
+                            <div class="icon-col">
+                                <div class="icon-col-label">🖥️ 網頁版</div>
+                                <div class="icon-preview-container">
+                                    <img id="webIcon" alt="網頁版圖示" style="display:none;">
+                                    <div id="webIconPlaceholder" class="no-icon-placeholder">未上傳</div>
+                                </div>
+                                <div class="upload-area upload-area-sm" onclick="triggerUpload('webIconInput')" ondragover="iconDragOver(event)" ondrop="iconDrop(event,'web')">
+                                    <div class="upload-icon">📁</div>
+                                    <div class="upload-text">點擊或拖拽上傳</div>
+                                    <div class="upload-hint">JPG，最大300KB</div>
+                                    <input type="file" id="webIconInput" class="file-input" accept=".jpg,.jpeg" onchange="handleIconSelect(event,'web')">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button class="modal-btn modal-btn-default" onclick="closeEditModal()">取消</button>
+                        <button class="modal-btn modal-btn-primary" onclick="saveGameEdit()">儲存</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 批量匯入 Modal -->
+            <div id="importModal" class="edit-modal">
+                <div class="modal-content" style="max-width: 900px;">
+                    <div class="modal-header">
+                        <h3 class="modal-title">批量匯入遊戲</h3>
+                        <button class="close-btn" onclick="closeImportModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="import-section">
+                            <div class="import-instructions">
+                                <h4>📋 匯入說明</h4>
+                                <ul>
+                                    <li>支援 Excel (.xlsx) 和 CSV (.csv) 格式</li>
+                                    <li>請使用提供的範本格式，或確保包含以下欄位：</li>
+                                    <li style="margin-left: 20px;">• <strong>遊戲商名稱</strong>（必填）</li>
+                                    <li style="margin-left: 20px;">• <strong>遊戲名稱</strong>（必填）</li>
+                                    <li style="margin-left: 20px;">• <strong>遊戲編碼</strong>（必填）</li>
+                                    <li style="margin-left: 20px;">• <strong>遊戲類型</strong>（選填：電子/真人/捕魚/棋牌/彩票/體育）</li>
+                                    <li style="margin-left: 20px;">• <strong>遊戲子類型</strong>（選填：老虎機/輪盤/百家樂等）</li>
+                                    <li style="margin-left: 20px;">• <strong>遊戲變體</strong>（選填：閃電版/快速版/VIP版/無佣版等）</li>
+                                    <li style="margin-left: 20px;">• <strong>備註</strong>（選填）</li>
+                                    <li>第一行必須是欄位標題</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="upload-area-large" onclick="triggerImportFileUpload()" ondragover="handleImportDragOver(event)" ondrop="handleImportDrop(event)">
+                                <div class="upload-icon-large">📊</div>
+                                <div class="upload-text-large">點擊上傳或拖拽檔案到此處</div>
+                                <div class="upload-hint-large">支援 Excel (.xlsx) 和 CSV (.csv) 格式</div>
+                                <input type="file" id="importFileInput" class="file-input" accept=".xlsx,.xls,.csv" onchange="handleImportFileSelect(event)">
+                            </div>
+                        </div>
+                        
+                        <div id="previewSection" class="preview-section" style="display: none;">
+                            <h4>📝 預覽匯入資料 <span id="previewCount" class="preview-count"></span></h4>
+                            <div class="preview-table-container">
+                                <table id="previewTable" class="preview-table">
+                                    <thead id="previewTableHead"></thead>
+                                    <tbody id="previewTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="modal-btn modal-btn-default" onclick="closeImportModal()">取消</button>
+                        <button id="confirmImportBtn" class="modal-btn modal-btn-primary" onclick="confirmImport()" style="display: none;">確認匯入</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 排序管理 Modal -->
+            <div id="sortModal" class="edit-modal">
+                <div class="modal-content" style="max-width: 1000px;">
+                    <div class="modal-header">
+                        <h3 class="modal-title">🔢 遊戲排序管理</h3>
+                        <button class="close-btn" onclick="closeSortModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- 篩選條件 -->
+                        <div class="sort-filters">
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label class="filter-label">遊戲類型：</label>
+                                    <select id="sortGameType" class="filter-select" onchange="updateSortSubtypes()">
+                                        <option value="">請選擇類型</option>
+                                        <option value="electronic">電子</option>
+                                        <option value="live">真人</option>
+                                        <option value="fishing">捕魚</option>
+                                        <option value="card">棋牌</option>
+                                        <option value="lottery">彩票</option>
+                                        <option value="sports">體育</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label class="filter-label">子類型：</label>
+                                    <select id="sortGameSubtype" class="filter-select" onchange="loadSortList()">
+                                        <option value="">請選擇子類型</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label class="filter-label">排序模式：</label>
+                                    <select id="sortMode" class="filter-select" onchange="loadSortList()">
+                                        <option value="normal">正常排序（分類頁）</option>
+                                        <option value="hot">熱門排序</option>
+                                        <option value="new">最新排序</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 排序說明 -->
+                        <div class="sort-instructions">
+                            <div class="instruction-item">
+                                <span class="instruction-icon">📌</span>
+                                <span><strong>正常排序：</strong>遊戲在分類頁面的顯示順序</span>
+                            </div>
+                            <div class="instruction-item">
+                                <span class="instruction-icon">🔥</span>
+                                <span><strong>熱門排序：</strong>首頁或專區「熱門遊戲」的顯示順序</span>
+                            </div>
+                            <div class="instruction-item">
+                                <span class="instruction-icon">✨</span>
+                                <span><strong>最新排序：</strong>首頁或專區「最新遊戲」的顯示順序</span>
+                            </div>
+                        </div>
+
+                        <!-- 排序列表 -->
+                        <div id="sortListSection" class="sort-list-section" style="display: none;">
+                            <div class="sort-list-header">
+                                <h4 id="sortListTitle">拖拽調整順序</h4>
+                                <button class="btn-add-game" onclick="openGameSelector()">+ 新增遊戲</button>
+                            </div>
+                            <div id="sortList" class="sort-list">
+                                <!-- 動態生成排序項目 -->
+                            </div>
+                            <div class="sort-empty" id="sortEmpty">
+                                <div class="empty-icon">📋</div>
+                                <div class="empty-text">此分類暫無遊戲排序</div>
+                                <button class="btn-secondary" onclick="openGameSelector()">從遊戲庫新增</button>
+                            </div>
+                        </div>
+
+                        <!-- 遊戲選擇器 -->
+                        <div id="gameSelectorSection" class="game-selector-section" style="display: none;">
+                            <div class="selector-header">
+                                <h4>選擇要新增的遊戲</h4>
+                                <button class="btn-back" onclick="closeGameSelector()">← 返回</button>
+                            </div>
+                            <div class="selector-search">
+                                <input type="text" id="gameSelectorSearch" class="search-input" placeholder="搜尋遊戲名稱..." oninput="filterGameSelector()">
+                            </div>
+                            <div id="gameSelectorList" class="game-selector-list">
+                                <!-- 動態生成遊戲選項 -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="modal-btn modal-btn-default" onclick="closeSortModal()">關閉</button>
+                        <button class="modal-btn modal-btn-primary" onclick="saveSortOrder()">💾 儲存排序</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 系統說明區域 -->
+            <div class="system-info">
+                <div class="info-section">
+                    <h3>系統功能說明</h3>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h4>多集成商管理</h4>
+                            <ul>
+                                <li>支持單一遊戲配置多個集成商</li>
+                                <li>可即時切換當前使用的集成商</li>
+                                <li>各集成商獨立狀態管理</li>
+                                <li>支持 ZF、OPS、Kuma、Direct 四種集成商</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="info-card">
+                            <h4>狀態管理</h4>
+                            <ul>
+                                <li>遊戲商狀態：來自遊戲商的狀態資訊</li>
+                                <li>遊戲狀態：系統層面的遊戲開關</li>
+                                <li>維護模式：臨時維護設置</li>
+                                <li>支持批次狀態變更</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="info-card">
+                            <h4>編輯功能</h4>
+                            <ul>
+                                <li>備注管理：為每個遊戲添加備注資訊</li>
+                                <li>圖示預覽：顯示當前遊戲圖示</li>
+                                <li>圖示上傳：支援JPG格式，限制300KB</li>
+                                <li>新增遊戲：完整的遊戲創建功能</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="info-card">
+                            <h4>排序管理</h4>
+                            <ul>
+                                <li>正常排序：設定遊戲在分類頁面的顯示順序</li>
+                                <li>熱門排序：設定首頁「熱門遊戲」專區的順序</li>
+                                <li>最新排序：設定首頁「最新遊戲」專區的順序</li>
+                                <li>拖拽排序：直觀的拖拽操作調整順序</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>操作指南</h3>
+                    <div class="guide-steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h5>新增遊戲</h5>
+                                <p>點擊「新增遊戲」按鈕，填寫遊戲名稱、編碼、備注和上傳圖示。新增的遊戲會立即顯示在列表頂部。</p>
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h5>編輯遊戲資訊</h5>
+                                <p>點擊任何遊戲的「編輯」按鈕，可以查看當前遊戲圖示、修改備注資訊，並上傳新的圖示。</p>
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h5>集成商切換</h5>
+                                <p>在「當前集成商」欄位使用下拉選單，可即時切換遊戲使用的集成商。</p>
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <h5>狀態控制</h5>
+                                <p>遊戲狀態(綠色開關)控制系統層面啟用，維護開關(紅色)用於臨時維護。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>技術說明</h3>
+                    <div class="tech-info">
+                        <div class="tech-item">
+                            <strong>資料更新頻率：</strong>每 5 分鐘自動同步一次遊戲狀態
+                        </div>
+                        <div class="tech-item">
+                            <strong>支持集成商：</strong>ZF Gaming、OPS Platform、Kuma Games、Direct Integration
+                        </div>
+                        <div class="tech-item">
+                            <strong>圖片上傳：</strong>僅支援 JPG 格式，檔案大小限制 300KB
+                        </div>
+                        <div class="tech-item">
+                            <strong>遊戲管理：</strong>支持新增、編輯遊戲，自動生成ID和時間戳
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 全域變數
+        var currentEditingGame = null;
+        window.dynamicGameData = {};
+
+        // 基本交互功能
+        function switchIntegrator(gameId, newIntegrator) {
+            showNotification('遊戲 ' + gameId + ' 已切換到 ' + newIntegrator.toUpperCase());
+        }
+
+        function toggleGameStatus(gameId, isEnabled) {
+            var status = isEnabled ? '已啟用' : '已停用';
+            showNotification('遊戲 ' + gameId + ' ' + status);
+        }
+
+        function toggleMaintenance(gameId, isMaintenanceMode) {
+            var message = isMaintenanceMode ? '已進入維護模式' : '已退出維護模式';
+            showNotification('遊戲 ' + gameId + ' ' + message);
+        }
+
+        // 子類型對應表
+        var subtypeOptions = {
+            electronic: ['老虎機', '街機', '其他'],
+            live: ['輪盤', '百家樂', '21點', '龍虎', '骰寶', '其他'],
+            fishing: ['多人競技', '單人', '其他'],
+            card: ['德州撲克', '麻將', '鬥地主', '其他'],
+            lottery: ['時時彩', '快三', 'PK10', '其他'],
+            sports: ['足球', '籃球', '電競', '其他'],
+            arcade: ['崩潰遊戲', '其他']
+        };
+
+        function onEditTypeChange() {
+            var type = document.getElementById('editGameType').value;
+            var subtypeSelect = document.getElementById('editGameSubtype');
+            subtypeSelect.innerHTML = '<option value="">請選擇</option>';
+            if (type && subtypeOptions[type]) {
+                subtypeOptions[type].forEach(function(s) {
+                    var opt = document.createElement('option');
+                    opt.value = s; opt.textContent = s;
+                    subtypeSelect.appendChild(opt);
+                });
+            }
+        }
+
+        // 編輯遊戲功能
+        function editGame(gameId) {
+            currentEditingGame = gameId;
+            var gameData = getGameData(gameId);
+
+            document.getElementById('modalTitle').textContent = '編輯遊戲';
+            document.getElementById('gameIdGroup').style.display = 'block';
+            document.getElementById('editGameId').value = gameId;
+
+            document.getElementById('editGameName').disabled = true;
+            document.getElementById('editGameCode').disabled = true;
+            document.getElementById('editGameName').style.background = '#f5f5f5';
+            document.getElementById('editGameCode').style.background = '#f5f5f5';
+            document.getElementById('nameReadonlyHint').style.display = 'inline';
+            document.getElementById('codeReadonlyHint').style.display = 'inline';
+
+            document.getElementById('editGameName').value = gameData.name;
+            document.getElementById('editGameCode').value = gameData.code;
+            document.getElementById('editGameNote').value = gameData.note || '';
+            document.getElementById('editGameStatus').value = gameData.status || 'active';
+            document.getElementById('editGameMaintenance').value = gameData.maintenance || '0';
+
+            // 分類
+            document.getElementById('editGameType').value = gameData.typeKey || '';
+            onEditTypeChange();
+            document.getElementById('editGameSubtype').value = gameData.subtype || '';
+            document.getElementById('editGameVariant').value = gameData.variant || '';
+
+            // 圖示
+            setIconPreview('mobile', gameData.mobileIcon || null);
+            setIconPreview('web', gameData.webIcon || null);
+
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        // 新增遊戲功能
+        function addNewGame() {
+            currentEditingGame = null;
+            document.getElementById('modalTitle').textContent = '新增遊戲';
+            document.getElementById('gameIdGroup').style.display = 'none';
+            document.getElementById('editGameId').value = '';
+
+            document.getElementById('editGameName').disabled = false;
+            document.getElementById('editGameCode').disabled = false;
+            document.getElementById('editGameName').style.background = 'white';
+            document.getElementById('editGameCode').style.background = 'white';
+            document.getElementById('nameReadonlyHint').style.display = 'none';
+            document.getElementById('codeReadonlyHint').style.display = 'none';
+
+            document.getElementById('editGameName').value = '';
+            document.getElementById('editGameCode').value = '';
+            document.getElementById('editGameNote').value = '';
+            document.getElementById('editGameStatus').value = 'active';
+            document.getElementById('editGameMaintenance').value = '0';
+            document.getElementById('editGameType').value = '';
+            document.getElementById('editGameSubtype').innerHTML = '<option value="">請先選擇類型</option>';
+            document.getElementById('editGameVariant').value = '';
+
+            setIconPreview('mobile', null);
+            setIconPreview('web', null);
+
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+            currentEditingGame = null;
+            document.getElementById('mobileIconInput').value = '';
+            document.getElementById('webIconInput').value = '';
+        }
+
+        function saveGameEdit() {
+            var name = document.getElementById('editGameName').value;
+            var code = document.getElementById('editGameCode').value;
+            var note = document.getElementById('editGameNote').value;
+            var status = document.getElementById('editGameStatus').value;
+            var maintenance = document.getElementById('editGameMaintenance').value;
+            var typeKey = document.getElementById('editGameType').value;
+            var subtype = document.getElementById('editGameSubtype').value;
+            var variant = document.getElementById('editGameVariant').value;
+            var mobileIcon = document.getElementById('mobileIcon').src || null;
+            var webIcon = document.getElementById('webIcon').src || null;
+            if (document.getElementById('mobileIcon').style.display === 'none') mobileIcon = null;
+            if (document.getElementById('webIcon').style.display === 'none') webIcon = null;
+
+            if (currentEditingGame) {
+                // 更新備注
+                updateGameNote(currentEditingGame, note);
+                showNotification('遊戲資料已更新');
+            } else {
+                if (!name.trim() || !code.trim()) {
+                    showNotification('請填寫遊戲名稱和編碼', 'error');
+                    return;
+                }
+                if (!typeKey) {
+                    showNotification('請選擇遊戲類型', 'error');
+                    return;
+                }
+                addGameToTable(name, code, note, typeKey, subtype, variant, status, maintenance, mobileIcon, webIcon);
+                showNotification('新遊戲已新增');
+            }
+            closeEditModal();
+        }
+
+        // 圖示相關
+        function setIconPreview(type, src) {
+            var img = document.getElementById(type + 'Icon');
+            var placeholder = document.getElementById(type + 'IconPlaceholder');
+            if (src) {
+                img.src = src;
+                img.style.display = 'block';
+                placeholder.style.display = 'none';
+            } else {
+                img.style.display = 'none';
+                placeholder.style.display = 'block';
+            }
+        }
+
+        function triggerUpload(inputId) {
+            document.getElementById(inputId).click();
+        }
+
+        function handleIconSelect(event, type) {
+            var file = event.target.files[0];
+            if (file) processIconFile(file, type);
+        }
+
+        function iconDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('drag-over');
+        }
+
+        function iconDrop(event, type) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('drag-over');
+            var files = event.dataTransfer.files;
+            if (files.length > 0) processIconFile(files[0], type);
+        }
+
+        function processIconFile(file, type) {
+            if (file.type !== 'image/jpeg' && !file.name.toLowerCase().match(/\.(jpg|jpeg)$/)) {
+                showNotification('僅支援 JPG 格式檔案', 'error');
+                return;
+            }
+            if (file.size > 300 * 1024) {
+                showNotification('檔案大小不能超過 300KB', 'error');
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                setIconPreview(type, e.target.result);
+                showNotification((type === 'mobile' ? '手機版' : '網頁版') + '圖示上傳成功');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 新增遊戲到表格
+        function addGameToTable(name, code, note, typeKey, subtype, variant, status, maintenance, mobileIcon, webIcon) {
+            var tbody = document.querySelector('tbody');
+            var newRow = document.createElement('tr');
+
+            var gameId = 'new_' + Date.now();
+            var currentTime = new Date().toLocaleString('zh-TW').replace(/\//g, '-');
+
+            // 類型對應
+            var typeClassMap = { electronic: 'type-electronic', live: 'type-live', fishing: 'type-fishing', card: 'type-card', lottery: 'type-lottery', sports: 'type-sports', arcade: 'type-arcade' };
+            var typeTextMap = { electronic: '電子', live: '真人', fishing: '捕魚', card: '棋牌', lottery: '彩票', sports: '體育', arcade: '街機' };
+            var typeClass = typeClassMap[typeKey] || 'type-electronic';
+            var typeText = typeTextMap[typeKey] || typeKey;
+
+            // 變體標籤
+            var variantClass = '';
+            if (variant) {
+                if (variant.includes('閃電') || variant.includes('Lightning')) variantClass = 'variant-lightning';
+                else if (variant.includes('快速') || variant.includes('Speed')) variantClass = 'variant-speed';
+                else if (variant.includes('VIP')) variantClass = 'variant-vip';
+                else if (variant.includes('Mini') || variant.includes('迷你')) variantClass = 'variant-mini';
+                else if (variant.includes('Mega')) variantClass = 'variant-mega';
+                else if (variant.includes('無佣')) variantClass = 'variant-commission-free';
+            }
+            var variantHtml = variant ? '<span class="variant-tag ' + variantClass + '">' + variant + '</span>' : '';
+
+            // 狀態
+            var statusClassMap = { active: 'status-active', inactive: 'status-inactive', maintenance: 'status-maintenance' };
+            var statusTextMap = { active: '啟用', inactive: '停用', maintenance: '維護中' };
+            var statusClass = statusClassMap[status] || 'status-active';
+            var statusText = statusTextMap[status] || '啟用';
+            var gameChecked = (status === 'active') ? 'checked' : '';
+            var maintChecked = (maintenance === '1') ? 'checked' : '';
+
+            newRow.innerHTML =
+                '<td class="game-id">' + gameId + '</td>' +
+                '<td class="provider-name">新遊戲商</td>' +
+                '<td class="game-name">' + name + '</td>' +
+                '<td><div class="available-integrators"><span class="integrator-tag integrator-zf">ZF</span></div></td>' +
+                '<td><select class="integrator-switch"><option value="zf" selected>ZF</option></select></td>' +
+                '<td><div class="game-tags-container">' +
+                '<span class="game-type-tag ' + typeClass + '">' + typeText + '</span>' +
+                (subtype ? '<span class="subtype-tag">' + subtype + '</span>' : '') +
+                variantHtml +
+                '</div></td>' +
+                '<td><span class="status-tag ' + statusClass + '">' + statusText + '</span></td>' +
+                '<td><label class="maintenance-switch"><input type="checkbox" ' + gameChecked + '><span class="switch-slider game-status-slider"></span></label></td>' +
+                '<td><label class="maintenance-switch"><input type="checkbox" ' + maintChecked + '><span class="switch-slider"></span></label></td>' +
+                '<td class="game-note">' + (note || '-') + '</td>' +
+                '<td>' + currentTime + '</td>' +
+                '<td>' + currentTime + '</td>' +
+                '<td><button class="action-btn-small edit" onclick="editGame(\'' + gameId + '\')">編輯</button></td>';
+
+            tbody.insertBefore(newRow, tbody.firstChild);
+
+            window.dynamicGameData[gameId] = {
+                name: name, id: gameId, code: code, note: note,
+                typeKey: typeKey, subtype: subtype, variant: variant,
+                status: status, maintenance: maintenance,
+                mobileIcon: mobileIcon, webIcon: webIcon
+            };
+        }
+
+        // 獲取遊戲資料
+        function getGameData(gameId) {
+            if (window.dynamicGameData[gameId]) {
+                return window.dynamicGameData[gameId];
+            }
+            
+            var gameMap = {
+                'vs20fruitsw': { 
+                    name: 'Big Bass Bonanza', 
+                    id: 'vs20fruitsw', 
+                    code: '10125', 
+                    note: '熱門釣魚遊戲', 
+                    icon: 'https://via.placeholder.com/100x100/409EFF/FFFFFF?text=🎣'
+                },
+                'roul_eur_1': { 
+                    name: 'European Roulette', 
+                    id: 'roul_eur_1', 
+                    code: '20347', 
+                    note: '經典輪盤', 
+                    icon: 'https://via.placeholder.com/100x100/DC2626/FFFFFF?text=🎰'
+                },
+                'spb_aviator': { 
+                    name: 'Aviator', 
+                    id: 'spb_aviator', 
+                    code: '30592', 
+                    note: '創新玩法', 
+                    icon: 'https://via.placeholder.com/100x100/67C23A/FFFFFF?text=✈️'
+                },
+                'pn_bookdead': { 
+                    name: 'Book of Dead', 
+                    id: 'pn_bookdead', 
+                    code: '15783', 
+                    note: '正在更新中', 
+                    icon: 'https://via.placeholder.com/100x100/F57C00/FFFFFF?text=📖'
+                },
+                'bac_speed_1': { 
+                    name: 'Speed Baccarat', 
+                    id: 'bac_speed_1', 
+                    code: '20689', 
+                    note: '快速版本', 
+                    icon: 'https://via.placeholder.com/100x100/1976D2/FFFFFF?text=🃏'
+                },
+                'bng_fishwar': { 
+                    name: 'Fishing War', 
+                    id: 'bng_fishwar', 
+                    code: '40156', 
+                    note: '需要優化', 
+                    icon: 'https://via.placeholder.com/100x100/009688/FFFFFF?text=🐟'
+                },
+                'pp_texasholdem': { 
+                    name: 'Texas Hold\'em', 
+                    id: 'pp_texasholdem', 
+                    code: '10934', 
+                    note: '經典撲克', 
+                    icon: 'https://via.placeholder.com/100x100/7B1FA2/FFFFFF?text=♠️'
+                }
+            };
+            
+            return gameMap[gameId] || { name: '', id: gameId, code: '', note: '', icon: null };
+        }
+
+        // 更新表格中的備註
+        function updateGameNote(gameId, note) {
+            var rows = document.querySelectorAll('tbody tr');
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                var idCell = row.querySelector('.game-id');
+                if (idCell && idCell.textContent === gameId) {
+                    var noteCell = row.querySelector('.game-note');
+                    if (noteCell) {
+                        noteCell.textContent = note || '-';
+                    }
+                    break;
+                }
+            }
+        }
+
+        // 通知功能
+        function showNotification(message, type) {
+            var notification = document.createElement('div');
+            notification.className = 'notification' + (type === 'error' ? ' error' : '');
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(function() {
+                notification.classList.add('show');
+            }, 10);
+            
+            setTimeout(function() {
+                notification.classList.remove('show');
+                setTimeout(function() {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // 事件監聽器
+        document.addEventListener('click', function(event) {
+            var editModal = document.getElementById('editModal');
+            var importModal = document.getElementById('importModal');
+            var sortModal = document.getElementById('sortModal');
+            if (event.target === editModal) {
+                closeEditModal();
+            }
+            if (event.target === importModal) {
+                closeImportModal();
+            }
+            if (event.target === sortModal) {
+                closeSortModal();
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                var editModal = document.getElementById('editModal');
+                var importModal = document.getElementById('importModal');
+                var sortModal = document.getElementById('sortModal');
+                if (editModal && editModal.classList.contains('show')) {
+                    closeEditModal();
+                }
+                if (importModal && importModal.classList.contains('show')) {
+                    closeImportModal();
+                }
+                if (sortModal && sortModal.classList.contains('show')) {
+                    closeSortModal();
+                }
+            }
+        });
+
+
+
+        // ==================== 排序管理功能 ====================
+        var sortData = {
+            normal: {},
+            hot: {},
+            'new': {}
+        };
+
+        var currentSortConfig = {
+            type: '',
+            subtype: '',
+            mode: 'normal'
+        };
+
+        var sortDraggedEl = null;
+
+        // 從表格讀取遊戲資料（含類型資訊）
+        function getGamesFromTable() {
+            var games = [];
+            var rows = document.querySelectorAll('tbody tr');
+            rows.forEach(function(row) {
+                var idCell = row.querySelector('.game-code') || row.querySelector('.game-id');
+                var nameCell = row.querySelector('.game-name');
+                var providerCell = row.querySelector('.provider-name');
+                var typeTag = row.querySelector('.game-type-tag');
+                var subtypeTag = row.querySelector('.subtype-tag');
+                if (!idCell || !nameCell) return;
+
+                var typeText = typeTag ? typeTag.textContent.trim() : '';
+                var subtypeText = subtypeTag ? subtypeTag.textContent.trim() : '';
+
+                var typeKeyMap = { '電子': 'electronic', '真人': 'live', '捕魚': 'fishing', '棋牌': 'card', '彩票': 'lottery', '體育': 'sports', '街機': 'arcade' };
+                var typeKey = typeKeyMap[typeText] || 'electronic';
+
+                var id = idCell.textContent.trim();
+                games.push({
+                    id: id,
+                    name: nameCell.textContent.trim(),
+                    code: id,
+                    provider: providerCell ? providerCell.textContent.trim() : '',
+                    typeKey: typeKey,
+                    typeText: typeText,
+                    subtypeText: subtypeText
+                });
+            });
+            return games;
+        }
+
+        // 開啟排序 Modal
+        function openSortModal() {
+            document.getElementById('sortModal').classList.add('show');
+            resetSortModal();
+            populateSortTypeOptions();
+        }
+
+        // 關閉排序 Modal
+        function closeSortModal() {
+            document.getElementById('sortModal').classList.remove('show');
+            resetSortModal();
+        }
+
+        // 重置排序 Modal
+        function resetSortModal() {
+            document.getElementById('sortGameType').value = '';
+            document.getElementById('sortGameSubtype').innerHTML = '<option value="">請選擇子類型</option>';
+            document.getElementById('sortMode').value = 'normal';
+            document.getElementById('sortListSection').style.display = 'none';
+            document.getElementById('gameSelectorSection').style.display = 'none';
+            currentSortConfig = { type: '', subtype: '', mode: 'normal' };
+        }
+
+        // 從表格動態產生類型選項
+        function populateSortTypeOptions() {
+            var games = getGamesFromTable();
+            var typeSeen = {};
+            games.forEach(function(g) {
+                if (g.typeKey && g.typeText) typeSeen[g.typeKey] = g.typeText;
+            });
+            var typeSelect = document.getElementById('sortGameType');
+            typeSelect.innerHTML = '<option value="">請選擇類型</option>';
+            Object.keys(typeSeen).forEach(function(key) {
+                var opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = typeSeen[key];
+                typeSelect.appendChild(opt);
+            });
+        }
+
+        // 更新子類型選項（從表格讀取）
+        function updateSortSubtypes() {
+            var type = document.getElementById('sortGameType').value;
+            var subtypeSelect = document.getElementById('sortGameSubtype');
+            subtypeSelect.innerHTML = '<option value="">請選擇子類型</option>';
+            document.getElementById('sortListSection').style.display = 'none';
+
+            if (!type) return;
+
+            var games = getGamesFromTable();
+            var subtypeSeen = {};
+            games.forEach(function(g) {
+                if (g.typeKey === type && g.subtypeText) {
+                    subtypeSeen[g.subtypeText] = true;
+                }
+            });
+
+            Object.keys(subtypeSeen).forEach(function(sub) {
+                var opt = document.createElement('option');
+                opt.value = sub;
+                opt.textContent = sub;
+                subtypeSelect.appendChild(opt);
+            });
+        }
+
+        // 載入排序列表
+        function loadSortList() {
+            var type = document.getElementById('sortGameType').value;
+            var subtype = document.getElementById('sortGameSubtype').value;
+            var mode = document.getElementById('sortMode').value;
+
+            if (!type || !subtype) {
+                document.getElementById('sortListSection').style.display = 'none';
+                return;
+            }
+
+            currentSortConfig = { type: type, subtype: subtype, mode: mode };
+
+            var modeText = mode === 'hot' ? '🔥 熱門排序' : mode === 'new' ? '✨ 最新排序' : '📌 正常排序';
+            var typeText = document.getElementById('sortGameType').selectedOptions[0].text;
+            document.getElementById('sortListTitle').textContent = typeText + ' › ' + subtype + ' › ' + modeText;
+
+            var key = type + '-' + subtype;
+            // 若此分類尚無排序資料，自動帶入符合的遊戲
+            if (!sortData[mode][key]) {
+                var matched = getGamesFromTable().filter(function(g) {
+                    return g.typeKey === type && g.subtypeText === subtype;
+                });
+                sortData[mode][key] = matched.map(function(g) { return g.id; });
+            }
+
+            renderSortList(sortData[mode][key].slice());
+            document.getElementById('sortListSection').style.display = 'block';
+        }
+
+        // 渲染排序列表
+        function renderSortList(gameIds) {
+            var sortList = document.getElementById('sortList');
+            var sortEmpty = document.getElementById('sortEmpty');
+
+            if (gameIds.length === 0) {
+                sortList.style.display = 'none';
+                sortEmpty.style.display = 'block';
+                return;
+            }
+
+            sortList.style.display = 'block';
+            sortEmpty.style.display = 'none';
+            sortList.innerHTML = '';
+
+            var allGames = getGamesFromTable();
+            var gameMap = {};
+            allGames.forEach(function(g) { gameMap[g.id] = g; });
+
+            gameIds.forEach(function(gameId, index) {
+                var g = gameMap[gameId] || { name: gameId, code: '-', provider: '' };
+                var item = document.createElement('div');
+                item.className = 'sort-item';
+                item.draggable = true;
+                item.dataset.gameId = gameId;
+
+                var badge = '';
+                if (currentSortConfig.mode === 'hot') badge = '<span class="sort-item-badge badge-hot">🔥 熱門</span>';
+                else if (currentSortConfig.mode === 'new') badge = '<span class="sort-item-badge badge-new">✨ 最新</span>';
+
+                item.innerHTML =
+                    '<span class="drag-handle">☰</span>' +
+                    '<span class="sort-item-order">' + (index + 1) + '</span>' +
+                    '<div class="sort-item-info">' +
+                    '<span class="sort-item-name">' + g.name + '</span>' +
+                    '<span class="sort-item-code">' + (g.provider ? g.provider + ' · ' : '') + '#' + g.code + '</span>' +
+                    badge +
+                    '</div>' +
+                    '<button class="sort-item-remove" onclick="removeSortItem(\'' + gameId + '\')">移除</button>';
+
+                item.addEventListener('dragstart', sortDragStart);
+                item.addEventListener('dragend', sortDragEnd);
+                item.addEventListener('dragover', sortDragOver);
+                item.addEventListener('drop', sortDrop);
+
+                sortList.appendChild(item);
+            });
+        }
+
+        // 從 DOM 讀取當前排序 ID 清單
+        function getSortIdsFromDOM() {
+            var ids = [];
+            document.querySelectorAll('#sortList .sort-item').forEach(function(item) {
+                ids.push(item.dataset.gameId);
+            });
+            return ids;
+        }
+
+        // 更新排序編號顯示
+        function updateSortOrder() {
+            document.querySelectorAll('#sortList .sort-item').forEach(function(item, index) {
+                item.querySelector('.sort-item-order').textContent = index + 1;
+            });
+        }
+
+        // 移除排序項目
+        function removeSortItem(gameId) {
+            var key = currentSortConfig.type + '-' + currentSortConfig.subtype;
+            var mode = currentSortConfig.mode;
+            // 先從 DOM 讀取最新順序
+            var current = getSortIdsFromDOM();
+            var updated = current.filter(function(id) { return id !== gameId; });
+            sortData[mode][key] = updated;
+            renderSortList(updated);
+        }
+
+        // 拖拽事件
+        function sortDragStart(e) {
+            sortDraggedEl = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function sortDragEnd(e) {
+            this.classList.remove('dragging');
+            sortDraggedEl = null;
+            updateSortOrder();
+        }
+
+        function sortDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            if (this !== sortDraggedEl && this.classList.contains('sort-item')) {
+                var rect = this.getBoundingClientRect();
+                if (e.clientY < rect.top + rect.height / 2) {
+                    this.parentNode.insertBefore(sortDraggedEl, this);
+                } else {
+                    this.parentNode.insertBefore(sortDraggedEl, this.nextSibling);
+                }
+            }
+            return false;
+        }
+
+        function sortDrop(e) {
+            e.stopPropagation();
+            return false;
+        }
+
+        // 開啟遊戲選擇器
+        function openGameSelector() {
+            document.getElementById('sortListSection').style.display = 'none';
+            document.getElementById('gameSelectorSection').style.display = 'block';
+            document.getElementById('gameSelectorSearch').value = '';
+            loadGameSelector();
+        }
+
+        // 關閉遊戲選擇器
+        function closeGameSelector() {
+            document.getElementById('gameSelectorSection').style.display = 'none';
+            document.getElementById('sortListSection').style.display = 'block';
+        }
+
+        // 載入遊戲選擇器（只顯示符合類型的遊戲）
+        function loadGameSelector() {
+            var key = currentSortConfig.type + '-' + currentSortConfig.subtype;
+            var mode = currentSortConfig.mode;
+            // 先同步最新 DOM 順序
+            sortData[mode][key] = getSortIdsFromDOM();
+            var sortedGames = sortData[mode][key];
+
+            var selectorList = document.getElementById('gameSelectorList');
+            selectorList.innerHTML = '';
+
+            // 只列出符合當前選擇類型+子類型的遊戲
+            var allGames = getGamesFromTable().filter(function(g) {
+                return g.typeKey === currentSortConfig.type && g.subtypeText === currentSortConfig.subtype;
+            });
+
+            if (allGames.length === 0) {
+                selectorList.innerHTML = '<div style="padding:30px;text-align:center;color:#999;">此分類下沒有遊戲</div>';
+                return;
+            }
+
+            allGames.forEach(function(game) {
+                var isAdded = sortedGames.indexOf(game.id) !== -1;
+                var item = document.createElement('div');
+                item.className = 'selector-item';
+                item.dataset.gameName = (game.name + ' ' + game.provider).toLowerCase();
+
+                item.innerHTML =
+                    '<div class="selector-item-info">' +
+                    '<span class="selector-item-name">' + game.name + '</span>' +
+                    '<span class="selector-item-code">' + game.provider + ' · #' + game.code + '</span>' +
+                    '</div>' +
+                    '<button class="selector-item-add" onclick="addGameToSort(\'' + game.id + '\')" ' +
+                    (isAdded ? 'disabled' : '') + '>' +
+                    (isAdded ? '已加入' : '+ 加入') + '</button>';
+
+                selectorList.appendChild(item);
+            });
+        }
+
+        // 篩選遊戲選擇器
+        function filterGameSelector() {
+            var searchText = document.getElementById('gameSelectorSearch').value.toLowerCase();
+            document.querySelectorAll('.selector-item').forEach(function(item) {
+                item.style.display = item.dataset.gameName.includes(searchText) ? 'flex' : 'none';
+            });
+        }
+
+        // 新增遊戲到排序
+        function addGameToSort(gameId) {
+            var key = currentSortConfig.type + '-' + currentSortConfig.subtype;
+            var mode = currentSortConfig.mode;
+            // 先同步最新 DOM 順序
+            sortData[mode][key] = getSortIdsFromDOM();
+            if (sortData[mode][key].indexOf(gameId) === -1) {
+                sortData[mode][key].push(gameId);
+                showNotification('遊戲已加入排序');
+                loadGameSelector();
+            }
+        }
+
+        // 儲存排序
+        function saveSortOrder() {
+            if (!currentSortConfig.type || !currentSortConfig.subtype) {
+                showNotification('請先選擇類型與子類型', 'error');
+                return;
+            }
+            var key = currentSortConfig.type + '-' + currentSortConfig.subtype;
+            var mode = currentSortConfig.mode;
+            sortData[mode][key] = getSortIdsFromDOM();
+            console.log('排序已儲存:', JSON.stringify(sortData));
+            showNotification('✅ 排序已儲存');
+        }
+        // ==================== 排序管理功能結束 ====================
+
+        // ==================== 批量匯入功能 ====================
+        var importedData = [];
+
+        // 下載範本
+        function downloadTemplate() {
+            var template = [
+                ['遊戲商名稱', '遊戲名稱', '遊戲編碼', '遊戲類型', '遊戲子類型', '遊戲變體', '備註'],
+                ['Pragmatic Play', 'Sweet Bonanza', '12345', '電子', '老虎機', 'Megaways', '熱門遊戲'],
+                ['Evolution Gaming', 'Lightning Roulette', '23456', '真人', '輪盤', '閃電版', '高倍數獎金'],
+                ['Evolution Gaming', 'Speed Baccarat', '23457', '真人', '百家樂', '快速版', '加速版本'],
+                ['NetEnt', 'Starburst', '34567', '電子', '老虎機', '', '經典遊戲']
+            ];
+
+            var wb = XLSX.utils.book_new();
+            var ws = XLSX.utils.aoa_to_sheet(template);
+            
+            // 設定欄寬
+            ws['!cols'] = [
+                { wch: 20 },  // 遊戲商名稱
+                { wch: 25 },  // 遊戲名稱
+                { wch: 15 },  // 遊戲編碼
+                { wch: 12 },  // 遊戲類型
+                { wch: 15 },  // 遊戲子類型
+                { wch: 15 },  // 遊戲變體
+                { wch: 20 }   // 備註
+            ];
+            
+            XLSX.utils.book_append_sheet(wb, ws, "遊戲清單");
+            XLSX.writeFile(wb, "遊戲匯入範本.xlsx");
+            showNotification('範本下載成功');
+        }
+
+        // 開啟匯入 Modal
+        function openImportModal() {
+            document.getElementById('importModal').classList.add('show');
+            resetImportModal();
+        }
+
+        // 關閉匯入 Modal
+        function closeImportModal() {
+            document.getElementById('importModal').classList.remove('show');
+            resetImportModal();
+        }
+
+        // 重置匯入 Modal
+        function resetImportModal() {
+            document.getElementById('importFileInput').value = '';
+            document.getElementById('previewSection').style.display = 'none';
+            document.getElementById('confirmImportBtn').style.display = 'none';
+            importedData = [];
+        }
+
+        // 觸發檔案選擇
+        function triggerImportFileUpload() {
+            document.getElementById('importFileInput').click();
+        }
+
+        // 檔案選擇處理
+        function handleImportFileSelect(event) {
+            var file = event.target.files[0];
+            if (file) {
+                processImportFile(file);
+            }
+        }
+
+        // 拖放處理
+        function handleImportDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('drag-over');
+        }
+
+        function handleImportDrop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('drag-over');
+            
+            var files = event.dataTransfer.files;
+            if (files.length > 0) {
+                processImportFile(files[0]);
+            }
+        }
+
+        // 處理匯入檔案
+        function processImportFile(file) {
+            var fileName = file.name.toLowerCase();
+            
+            if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls') && !fileName.endsWith('.csv')) {
+                showNotification('僅支援 Excel (.xlsx, .xls) 和 CSV (.csv) 格式', 'error');
+                return;
+            }
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    var data = new Uint8Array(e.target.result);
+                    var workbook = XLSX.read(data, { type: 'array' });
+                    
+                    var firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    var jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                    
+                    if (jsonData.length < 2) {
+                        showNotification('檔案內容為空或格式不正確', 'error');
+                        return;
+                    }
+                    
+                    parseImportData(jsonData);
+                    showNotification('檔案讀取成功，共 ' + (jsonData.length - 1) + ' 筆資料');
+                } catch (error) {
+                    console.error('檔案解析錯誤:', error);
+                    showNotification('檔案解析失敗，請檢查檔案格式', 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // 解析匯入資料
+        function parseImportData(jsonData) {
+            var headers = jsonData[0];
+            var rows = jsonData.slice(1);
+            
+            // 找到必填欄位的索引
+            var providerIndex = findColumnIndex(headers, ['遊戲商名稱', '遊戲商', 'Provider']);
+            var nameIndex = findColumnIndex(headers, ['遊戲名稱', '名稱', 'Game Name', 'Name']);
+            var codeIndex = findColumnIndex(headers, ['遊戲編碼', '編碼', 'Game Code', 'Code']);
+            var typeIndex = findColumnIndex(headers, ['遊戲類型', '類型', 'Type']);
+            var subtypeIndex = findColumnIndex(headers, ['遊戲子類型', '子類型', 'Subtype']);
+            var variantIndex = findColumnIndex(headers, ['遊戲變體', '變體', 'Variant', 'Version']);
+            var noteIndex = findColumnIndex(headers, ['備註', '備注', 'Note', 'Remark']);
+            
+            if (providerIndex === -1 || nameIndex === -1 || codeIndex === -1) {
+                showNotification('缺少必填欄位：遊戲商名稱、遊戲名稱、遊戲編碼', 'error');
+                return;
+            }
+            
+            importedData = [];
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                
+                // 跳過空行
+                if (!row[providerIndex] && !row[nameIndex] && !row[codeIndex]) {
+                    continue;
+                }
+                
+                // 驗證必填欄位
+                if (!row[providerIndex] || !row[nameIndex] || !row[codeIndex]) {
+                    showNotification('第 ' + (i + 2) + ' 行資料不完整，已跳過', 'error');
+                    continue;
+                }
+                
+                importedData.push({
+                    provider: row[providerIndex],
+                    name: row[nameIndex],
+                    code: row[codeIndex],
+                    type: typeIndex !== -1 ? row[typeIndex] : '電子',
+                    subtype: subtypeIndex !== -1 ? row[subtypeIndex] : '',
+                    variant: variantIndex !== -1 ? row[variantIndex] : '',
+                    note: noteIndex !== -1 ? row[noteIndex] : ''
+                });
+            }
+            
+            if (importedData.length === 0) {
+                showNotification('沒有有效的資料可匯入', 'error');
+                return;
+            }
+            
+            displayImportPreview();
+        }
+
+        // 找到欄位索引
+        function findColumnIndex(headers, possibleNames) {
+            for (var i = 0; i < headers.length; i++) {
+                var header = String(headers[i]).trim();
+                for (var j = 0; j < possibleNames.length; j++) {
+                    if (header === possibleNames[j]) {
+                        return i;
+                    }
+                }
+            }
+            return -1;
+        }
+
+        // 顯示匯入預覽
+        function displayImportPreview() {
+            var previewSection = document.getElementById('previewSection');
+            var previewCount = document.getElementById('previewCount');
+            var previewTableHead = document.getElementById('previewTableHead');
+            var previewTableBody = document.getElementById('previewTableBody');
+            var confirmBtn = document.getElementById('confirmImportBtn');
+            
+            previewCount.textContent = '共 ' + importedData.length + ' 筆';
+            
+            // 建立表頭
+            previewTableHead.innerHTML = 
+                '<tr>' +
+                '<th>遊戲商名稱</th>' +
+                '<th>遊戲名稱</th>' +
+                '<th>遊戲編碼</th>' +
+                '<th>遊戲類型</th>' +
+                '<th>遊戲子類型</th>' +
+                '<th>遊戲變體</th>' +
+                '<th>備註</th>' +
+                '</tr>';
+            
+            // 建立表格內容
+            var bodyHtml = '';
+            for (var i = 0; i < Math.min(importedData.length, 50); i++) {
+                var item = importedData[i];
+                bodyHtml += 
+                    '<tr>' +
+                    '<td>' + item.provider + '</td>' +
+                    '<td>' + item.name + '</td>' +
+                    '<td>' + item.code + '</td>' +
+                    '<td>' + item.type + '</td>' +
+                    '<td>' + (item.subtype || '-') + '</td>' +
+                    '<td>' + (item.variant || '-') + '</td>' +
+                    '<td>' + (item.note || '-') + '</td>' +
+                    '</tr>';
+            }
+            
+            if (importedData.length > 50) {
+                bodyHtml += '<tr><td colspan="7" style="text-align: center; color: #999; padding: 16px;">... 還有 ' + (importedData.length - 50) + ' 筆資料未顯示 ...</td></tr>';
+            }
+            
+            previewTableBody.innerHTML = bodyHtml;
+            previewSection.style.display = 'block';
+            confirmBtn.style.display = 'inline-block';
+        }
+
+        // 確認匯入
+        function confirmImport() {
+            if (importedData.length === 0) {
+                showNotification('沒有資料可匯入', 'error');
+                return;
+            }
+            
+            var tbody = document.querySelector('tbody');
+            var successCount = 0;
+            
+            for (var i = 0; i < importedData.length; i++) {
+                var item = importedData[i];
+                
+                try {
+                    addImportedGameToTable(item, tbody);
+                    successCount++;
+                } catch (error) {
+                    console.error('新增遊戲失敗:', error);
+                }
+            }
+            
+            showNotification('成功匯入 ' + successCount + ' 個遊戲');
+            closeImportModal();
+        }
+
+        // 新增匯入的遊戲到表格
+        function addImportedGameToTable(item, tbody) {
+            var newRow = document.createElement('tr');
+            var gameId = 'import_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            var currentTime = new Date().toLocaleString('zh-TW').replace(/\//g, '-');
+            
+            // 遊戲類型標籤
+            var typeClass = 'type-electronic';
+            var typeText = item.type || '電子';
+            if (typeText.includes('真人')) typeClass = 'type-live';
+            else if (typeText.includes('捕魚')) typeClass = 'type-fishing';
+            else if (typeText.includes('棋牌')) typeClass = 'type-card';
+            else if (typeText.includes('彩票')) typeClass = 'type-lottery';
+            else if (typeText.includes('體育')) typeClass = 'type-sports';
+            
+            // 變體標籤（第三層）
+            var variantHtml = '';
+            if (item.variant) {
+                var variantClass = '';
+                if (item.variant.includes('閃電') || item.variant.includes('Lightning')) variantClass = 'variant-lightning';
+                else if (item.variant.includes('快速') || item.variant.includes('Speed')) variantClass = 'variant-speed';
+                else if (item.variant.includes('VIP')) variantClass = 'variant-vip';
+                else if (item.variant.includes('Mini') || item.variant.includes('迷你')) variantClass = 'variant-mini';
+                else if (item.variant.includes('Mega') || item.variant.includes('超級')) variantClass = 'variant-mega';
+                else if (item.variant.includes('無佣') || item.variant.includes('Commission Free')) variantClass = 'variant-commission-free';
+                
+                variantHtml = '<span class="variant-tag ' + variantClass + '">' + item.variant + '</span>';
+            }
+            
+            newRow.innerHTML = 
+                '<td class="game-id">' + gameId + '</td>' +
+                '<td class="provider-name">' + item.provider + '</td>' +
+                '<td class="game-name">' + item.name + '</td>' +
+                '<td><div class="available-integrators"><span class="integrator-tag integrator-zf">ZF</span></div></td>' +
+                '<td><select class="integrator-switch"><option value="zf" selected>ZF</option></select></td>' +
+                '<td><div class="game-tags-container">' +
+                '<span class="game-type-tag ' + typeClass + '">' + typeText + '</span>' +
+                '<span class="subtype-tag">' + (item.subtype || '-') + '</span>' +
+                variantHtml +
+                '</div></td>' +
+                '<td><span class="status-tag status-active">啟用</span></td>' +
+                '<td><label class="maintenance-switch"><input type="checkbox" checked><span class="switch-slider game-status-slider"></span></label></td>' +
+                '<td><label class="maintenance-switch"><input type="checkbox"><span class="switch-slider"></span></label></td>' +
+                '<td class="game-note">' + (item.note || '-') + '</td>' +
+                '<td>' + currentTime + '</td>' +
+                '<td>' + currentTime + '</td>' +
+                '<td><button class="action-btn-small edit" onclick="editGame(\'' + gameId + '\')">編輯</button></td>';
+            
+            tbody.insertBefore(newRow, tbody.firstChild);
+            
+            window.dynamicGameData[gameId] = {
+                name: item.name,
+                id: gameId,
+                code: item.code,
+                note: item.note,
+                icon: null
+            };
+        }
+        // ==================== 批量匯入功能結束 ====================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('遊戲清單系統載入完成');
+            showNotification('系統載入完成');
+        });
+    </script>
+</body>
+</html>

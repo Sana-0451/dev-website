@@ -1,0 +1,2372 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個人帳戶</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            margin-left: 0;
+            margin-top: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .search-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .search-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-label {
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .search-input, .search-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 150px;
+        }
+
+        .search-input:focus, .search-select:focus {
+            outline: none;
+            border-color: #409eff;
+        }
+
+        .search-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+            min-width: 80px;
+        }
+
+        .btn-primary {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .btn-primary:hover {
+            background: #66b1ff;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .btn-secondary:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .btn-warning {
+            background: #e6a23c;
+            color: white;
+            border-color: #e6a23c;
+        }
+
+        .btn-warning:hover {
+            background: #ebb563;
+        }
+
+        .table-header {
+            background: #fafafa;
+            border-radius: 8px 8px 0 0;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 0 0 8px 8px;
+            overflow-x: auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 1300px;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #e8e8e8;
+            border-right: 1px solid #e8e8e8;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #606266;
+        }
+
+        tbody tr:nth-child(odd) {
+            background: #fafafa;
+        }
+
+        tbody tr:hover {
+            background: #f0f9ff;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-inactive {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .status-suspended {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .tag-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin: 2px;
+            border: 1px solid;
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            font-size: 12px;
+            margin-right: 4px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            background: white;
+            color: #606266;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: #f5f5f5;
+        }
+
+        .page-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .page-btn.active {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 3% auto;
+            border-radius: 8px;
+            width: 600px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e8e8e8;
+            border-radius: 8px 8px 0 0;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .close {
+            font-size: 28px;
+            color: #999;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .required {
+            color: #f56c6c;
+            margin-left: 2px;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+
+        .form-input:disabled {
+            background: #f5f5f5;
+            color: #999;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: #fafafa;
+            border-radius: 0 0 8px 8px;
+            position: sticky;
+            bottom: 0;
+        }
+
+        .error-message {
+            color: #f56c6c;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: #909399;
+            margin-top: 5px;
+        }
+
+        .password-toggle {
+            position: relative;
+        }
+
+        .password-toggle input {
+            padding-right: 40px;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #909399;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0;
+        }
+
+        .toggle-btn:hover {
+            color: #409eff;
+        }
+
+        .system-info-section {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .info-card h3 {
+            background: #f8f9fa;
+            margin: 0;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .info-table th {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            text-align: center;
+            font-weight: 600;
+            color: #606266;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #666;
+            line-height: 1.6;
+            vertical-align: top;
+        }
+
+        .info-table td:first-child {
+            font-weight: 500;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .info-table td:nth-child(2),
+        .info-table td:nth-child(3) {
+            text-align: left;
+        }
+
+        .info-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .info-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .id-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .copy-btn {
+            padding: 4px;
+            background: white;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+        }
+
+        .copy-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: #606266;
+        }
+
+        .copy-btn:hover svg {
+            fill: #409eff;
+        }
+
+        .otp-section {
+            background: #fff8e1;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .otp-section h4 {
+            margin-bottom: 12px;
+            color: #f57c00;
+            font-size: 14px;
+        }
+
+        .otp-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .otp-input {
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .sensitive-field {
+            background: #fff9e6;
+            border-color: #ffc107;
+        }
+
+        .default-info-box {
+            background: #e8f4fd;
+            border: 1px solid #409eff;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .drag-handle {
+            cursor: move;
+            color: #909399;
+            padding: 0 8px;
+        }
+
+        .drag-handle:hover {
+            color: #409eff;
+        }
+
+        .column-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .column-item:hover {
+            border-color: #409eff;
+            background: #f0f9ff;
+        }
+
+        .column-item.dragging {
+            opacity: 0.5;
+        }
+
+        .column-checkbox {
+            margin: 0 12px 0 0;
+            cursor: pointer;
+        }
+
+        .column-name {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .column-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .column-btn {
+            padding: 4px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            background: white;
+            color: #606266;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .column-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .column-btn.active {
+            background: #409eff;
+            border-color: #409eff;
+            color: white;
+        }
+
+        .select-all-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .select-all-row label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .select-all-row input {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .info-notice {
+            background: #f0f9ff;
+            border: 1px solid #b3d8ff;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #1565c0;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .info-card h3 {
+            background: #f8f9fa;
+            margin: 0;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>個人帳戶</h1>
+        </div>
+
+        <div class="search-section">
+            <div class="search-row">
+                <div class="search-item">
+                    <label class="search-label">玩家帳號:</label>
+                    <input type="text" id="searchAccount" class="search-input">
+                </div>
+                <div class="search-item">
+                    <label class="search-label">所屬代理：</label>
+                    <select id="agent" class="search-select">
+                        <option value=""> </option>
+                        <option value="ivLv4UAT">ivLv4UAT</option>
+                         <option value="System">System</option>
+                          <option value="Agent001">Agent001</option>
+                    </select>
+                </div>
+                <!-- 含下線 
+                <div class="search-item">
+                    <label class="search-label" style="display: flex; align-items: center; gap: 5px;">
+                        <input type="checkbox" id="includeSubAgents" style="margin: 0;">
+                        <span>包含下線代理</span>
+                    </label>
+                </div> -->
+                <div class="search-">
+                    <label class="search-label">狀態：</label>
+                    <select id="agent" class="search-select">
+                        <option value=""> </option>
+                        <option value="status-active">啟用</option>
+                        <option value="status-inactive">停用</option>
+                    </select>
+                </div>
+                <div class="search-">
+                    <label class="search-label">國碼:</label>
+                    <select id="agent" class="search-select">
+                        <option value=""> </option>
+                        <option value="status-active">+81</option>
+                    </select>
+                </div>
+                <div class="search-item">
+                    <label class="search-label">電話號碼:</label>
+                    <input type="text" id="searchAccount" class="search-input">
+                </div>
+                <div class="search-item">
+                    <label class="search-label">信箱:</label>
+                    <input type="text" id="searchAccount" class="search-input">
+                </div>
+            </div>
+            <div class="search-buttons">
+                <button class="btn btn-primary" onclick="searchPlayers()">🔍 搜索</button>
+                <button class="btn btn-secondary" onclick="resetSearch()">重置</button>
+            </div>
+        </div>
+
+        <div class="table-header">
+            <button class="btn btn-secondary" onclick="addPlayer()">+ 新增玩家</button>
+            <button class="btn btn-secondary" onclick="openColumnSettings()">列設置</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>玩家編號</th>
+                        <th>玩家帳號</th>
+                        <th>玩家暱稱</th>
+                        <th>所屬代理</th>
+                        <th>標籤</th>
+                        <th>餘額</th>
+                        <th>狀態</th>
+                        <th>國碼</th>
+                        <th>電話號碼</th>
+                        <th>信箱</th>
+                        <th>註冊時間</th>
+                        <th>最後登入時間</th>
+                        <th>最後登入IP</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr data-player-id="a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6" data-create-method="backend">
+                        <td>
+                            <div class="id-cell">
+                                <button class="copy-btn" onclick="copyToClipboard('PL100001')" title="複製編號">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                </button>
+                                <span>10001432</span>
+                            </div>
+                        </td>
+                        <td>player001</td>
+                        <td>幸運玩家</td>
+                        <td>agent001</td>
+                        <td><span class="tag-badge" style="background:#e8f5e9;color:#2e7d32;border-color:#4caf50;">VIP用戶</span></td>
+                        <td>$12,580.00</td>
+                        <td><span class="status-badge status-active">啟用</span></td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>2024-01-15 10:30</td>
+                        <td>2025-10-20 14:22</td>
+                        <td>203.145.67.89</td>
+                        <td>
+                            <button class="action-btn" onclick="viewPlayer(this)">查看</button>
+                            <button class="action-btn" onclick="editPlayer(this)">編輯</button>
+                        </td>
+                    </tr>
+                    <tr data-player-id="b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7" data-create-method="register">
+                        <td>
+                            <div class="id-cell">
+                                <button class="copy-btn" onclick="copyToClipboard('PL100002')" title="複製編號">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                </button>
+                                <span>10001429</span>
+                            </div>
+                        </td>
+                        <td>player002</td>
+                        <td>贏家888</td>
+                        <td>agent002</td>
+                        <td><span class="tag-badge" style="background:#e3f2fd;color:#1976d2;border-color:#2196f3;">新用戶</span></td>
+                        <td>$5,230.50</td>
+                        <td><span class="status-badge status-active">啟用</span></td>
+                        <td>+81</td>
+                        <td>123456789</td>
+                        <td>-</td>
+                        <td>2025-10-15 09:15</td>
+                        <td>2025-10-20 16:45</td>
+                        <td>118.160.23.45</td>
+                        <td>
+                            <button class="action-btn" onclick="viewPlayer(this)">查看</button>
+                            <button class="action-btn" onclick="editPlayer(this)">編輯</button>
+                        </td>
+                    </tr>
+                    <tr data-player-id="c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8" data-create-method="register">
+                        <td>
+                            <div class="id-cell">
+                                <button class="copy-btn" onclick="copyToClipboard('PL100003')" title="複製編號">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                </button>
+                                <span>10001329</span>
+                            </div>
+                        </td>
+                        <td>player003</td>
+                        <td>金幣王</td>
+                        <td>agent001</td>
+                        <td><span class="tag-badge" style="background:#fff3e0;color:#e65100;border-color:#ff9800;">一般用戶</span></td>
+                        <td>$8,450.25</td>
+                        <td><span class="status-badge status-inactive">停用</span></td>
+                        <td>+81</td>
+                        <td>123000789</td>
+                        <td>abc@gamil.com</td>
+                        <td>2024-06-20 11:22</td>
+                        <td>2025-10-19 09:18</td>
+                        <td>61.220.145.78</td>
+                        <td>
+                            <button class="action-btn" onclick="viewPlayer(this)">查看</button>
+                            <button class="action-btn" onclick="editPlayer(this)">編輯</button>
+                        </td>
+                    </tr>
+                    <tr data-player-id="d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9" data-create-method="backend">
+                        <td>
+                            <div class="id-cell">
+                                <button class="copy-btn" onclick="copyToClipboard('PL100004')" title="複製編號">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                </button>
+                                <span>10001679</span>
+                            </div>
+                        </td>
+                        <td>player004</td>
+                        <td>小試身手</td>
+                        <td>agent003</td>
+                        <td><span class="tag-badge" style="background:#ffebee;color:#c62828;border-color:#f44336;">高風險</span></td>
+                        <td>$950.00</td>
+                        <td><span class="status-badge status-inactive">停用</span></td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>2025-08-03 14:35</td>
+                        <td>2025-10-18 13:27</td>
+                        <td>203.145.67.89</td>
+                        <td>
+                            <button class="action-btn" onclick="viewPlayer(this)">查看</button>
+                            <button class="action-btn" onclick="editPlayer(this)">編輯</button>
+                        </td>
+                    </tr>
+                    <tr data-player-id="e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0" data-create-method="register">
+                        <td>
+                            <div class="id-cell">
+                                <button class="copy-btn" onclick="copyToClipboard('PL100005')" title="複製編號">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                </button>
+                                <span>10001439</span>
+                            </div>
+                        </td>
+                        <td>player005</td>
+                        <td>大富翁</td>
+                        <td>agent001</td>
+                        <td><span class="tag-badge" style="background:#e8f5e9;color:#2e7d32;border-color:#4caf50;">大額用戶</span></td>
+                        <td>$25,680.75</td>
+                        <td><span class="status-badge status-active">啟用</span></td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>weqwr@hotmail.com</td>
+                        <td>2023-12-10 16:44</td>
+                        <td>2025-10-20 10:32</td>
+                        <td>118.160.23.45</td>
+                        <td>
+                            <button class="action-btn" onclick="viewPlayer(this)">查看</button>
+                            <button class="action-btn" onclick="editPlayer(this)">編輯</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="pagination">
+                <div class="pagination-info">共 1 頁 5 條,共計 157 條</div>
+                <div class="pagination-controls">
+                    <button class="page-btn" disabled>‹</button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
+                    <button class="page-btn">3</button>
+                    <button class="page-btn">›</button>
+                    <select class="search-select" style="width:80px;margin-left:20px;">
+                        <option>10</option>
+                        <option>20</option>
+                        <option>50</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 系統說明 -->
+        <div class="system-info-section">
+            <div class="info-card">
+                <h3>系統規則</h3>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th width="20%">規則類型</th>
+                            <th width="80%">規則內容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>頁面功能</td>
+                            <td>該功能可以讓使用者管理「玩家」，並標籤各式玩家類型。<br>
+                                可創建和停用玩家，或是其他管理功能。</td>
+                        </tr>
+                        <tr>
+                            <td>新增玩家</td>
+                            <td>新增玩家分為後台建立和外放註冊。<br>
+                                後台建立由代理執行，可略過驗證，快速註冊。</td>
+                        </tr>
+                        <tr>
+                            <td>預設標籤</td>
+                            <td>每個用戶創立時，預設為「新用戶」。(創立時不可編輯)<br>
+                                新用戶創立達到7天後，會自動變成「一般用戶」。<br>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>修改玩家資料</td>
+                            <td>管理員可透過後台修改玩家資料。<br>
+                                驗證性資料包含電話、信箱等，管理員需自行驗證其為玩家本人。<br>
+                            </td>
+
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>搜尋功能列</h3>
+                <div class="info-notice">
+                    <strong>重要提醒:</strong><br>
+                        一進畫面就帶入預設值,並顯示搜索出來的資料。<br>
+                        點擊「重置」按鈕回到預設值,如果按下搜尋時是空值,則自動帶入預設值。<br>
+                        <strong class="highlight-text">部分條件預設顯示為空值,空值≠預設值。可參考下方說明。</strong>
+                </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th width="15%">欄位</th>
+                            <th width="60%">內容說明</th>
+                            <th width="25%">模式</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>玩家帳號</td>
+                            <td>輸入玩家帳號進行搜尋<br>
+                                預設空值,代表查詢全部<br>
+                                <strong style="color: #ba6cf5;">該代理底下直屬的全部玩家</strong>
+                            </td>
+                            <td>輸入框，非必填<br><strong style="color: #ba6cf5;">精準搜尋</strong></td>
+                        </tr>
+                        <tr>
+                            <td>所屬代理</td>
+                            <td>
+                               點擊選擇所屬代理<br>
+                               預設<strong style="color: #ba6cf5;">自己(當前登入的代理帳號)</strong>，不選代表全部<br>
+                                <strong style="color: #ba6cf5;">選單僅顯示當前用戶有權限查看的代理列表(他的下線代理)</strong>
+                             </td>
+                            <td>下拉選單,非必填</td>
+                        </tr>
+                        <tr>
+                            <td>狀態</td>
+                            <td>點擊選擇玩家狀態查詢<br>
+                                預設空值,代表查詢全部<br>
+                            </td>
+                            <td>下拉選單，非必填</td>
+                        </tr>
+                        <tr>
+                            <td>國碼</td>
+                            <td>點擊選擇電話號碼對應的國碼<br>
+                                預設空值,代表查詢全部<br>
+                            </td>
+                            <td>下拉選單，非必填<br><strong style="color: #ba6cf5;">目前只有日本+81</strong></td>
+                        </tr>
+                        <tr>
+                            <td>電話號碼</td>
+                            <td>輸入玩家電話號碼進行搜尋<br>
+                                預設空值,代表查詢全部<br>
+                                <strong style="color: #ba6cf5;">僅輸入電話號碼，不含國碼</strong>
+                            </td>
+                            <td>輸入框，非必填<br><strong style="color: #ba6cf5;">精準搜尋</strong></td>
+                        </tr>
+                        <tr>
+                            <td>信箱</td>
+                            <td>輸入玩家進項進行搜尋<br>
+                                預設空值,代表查詢全部<br>
+                            </td>
+                            <td>輸入框，非必填<br><strong style="color: #ba6cf5;">精準搜尋</strong></td>
+                        </tr>
+                        <tr>
+                            <td>搜索</td>
+                            <td>點擊觸發搜尋</td>
+                            <td>按鈕</td>
+                        </tr>
+                        <tr>
+                            <td>重置</td>
+                            <td>點擊將搜尋條件回到預設值</td>
+                            <td>按鈕</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>新增/編輯 玩家功能</h3>
+                <div class="info-notice">
+                    <strong>功能說明：</strong><br>
+                    點擊表格右上方的「+ 新增玩家」按鈕，彈出新增玩家視窗。<br>
+                    新增的玩家會立即顯示在表格中，並可進行編輯和刪除操作。<br>
+                    <strong style="color: #f56c6c;">警告：玩家ID和編號為系統產生之唯一碼。</strong>              
+                </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th width="15%">欄位名稱</th>
+                            <th width="60%">欄位說明</th>
+                            <th width="25%">驗證規則</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>玩家帳號 <span style="color:#f56c6c;">*</span></td>
+                            <td>• 長度: 6-20個字符<br>
+                                • 格式: 僅支援英文(a-z, A-Z)和數字(0-9)<br>
+                                • 唯一性: 系統會檢查帳號是否重複<br>
+                                • 限制: 創建後不可修改</td>
+                            <td>文字格式，必填</td>
+                        </tr>
+                        <tr>
+                            <td>密碼 <span style="color:#f56c6c;">*</span></td>
+                            <td>• 長度: 至少8個字符<br>
+                                • 格式: 僅支援英文(a-z, A-Z)和數字(0-9)<br>
+                                • 功能: 可點擊「顯示/隱藏」眼睛按鈕切換密碼可見性</td>
+                            <td>文字格式，必填</td>
+                        </tr>
+                        <tr>
+                            <td>確認密碼 <span style="color:#f56c6c;">*</span></td>
+                            <td>• 長度: 至少8個字符<br>
+                                • 功能: 可點擊「顯示/隱藏」眼睛按鈕切換密碼可見性<br>
+                                • 限制: 必須和「密碼」欄位相同</td>
+                            <td>文字格式，必填</td>
+                        </tr>
+                        <tr>
+                            <td>玩家暱稱 <span style="color:#f56c6c;">*</span></td>
+                            <td>• 用途: 用於顯示玩家的識別名稱<br>
+                                • 限制: 創建後可透過編輯功能修改</td>
+                            <td>文字格式，必填</td>
+                        </tr>
+                        <tr>
+                            <td>所屬代理 <span style="color:#f56c6c;">*</span></td>
+                            <td>• 用途: 指定玩家所屬的代理商<br>
+                                • 限制: 創建後不可修改<br>
+                            </td>
+                            <td>下拉選單，必填</td>
+                        </tr>
+                        <tr>
+                            <td>國碼+電話號碼</td>
+                            <td>• 用途: 用於身份驗證和找回密碼<br>
+                                • 安全: 可透過編輯功能修改 (安全驗證方式由操作員另外處理)</td>
+                            <td>電話格式，非必填<br>目前國碼只有日本+81</td>
+                        </tr>
+                        <tr>
+                            <td>信箱</td>
+                            <td><strong>選填欄位</strong><br>
+                                • 用途: 用於身份驗證和找回密碼<br>
+                                • 安全: 可透過編輯功能修改 (安全驗證方式由操作員另外處理)</td>
+                            <td>文字格式，非必填</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                    <h3>列設置功能</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>功能說明：</strong><br>
+                        點擊表格右上方的「列設置」按鈕，可調整表格顯示的欄位、順序和釘選位置。<br>
+                        設定會即時生效，並在當前頁面中保持。<br>
+                        導出則是原始欄位及順序不受列設置影響。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">功能項目</th>
+                                <th width="60%">功能說明</th>
+                                <th width="25%">操作方式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>全選控制</td>
+                                <td>
+                                    一鍵選擇或取消選擇所有欄位<br>
+                                    當部分欄位被選中時，顯示半選狀態<br>
+                                </td>
+                                <td>點擊「全選」勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>欄位顯示控制</td>
+                                <td>
+                                    控制每個欄位是否在表格中顯示<br>
+                                    未勾選的欄位將在表格中隱藏<br>
+                                    表格中的第一欄為鎖定，不可隱藏
+                                </td>
+                                <td>點擊欄位名稱前的勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>拖拽排序</td>
+                                <td>
+                                    點擊左側的上下箭頭調整欄位在表格中的顯示順序<br>
+                                    調整後的順序會即時反映在表格中
+                                </td>
+                                <td>點擊左側的「↑↓」箭頭圖示</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到左側</td>
+                                <td>
+                                    將選中的欄位固定在表格最左側<br>
+                                    釘選的欄位在橫向捲動時保持可見
+                                </td>
+                                <td>點擊「釘選到左側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到右側</td>
+                                <td>
+                                    將選中的欄位固定在表格最右側<br>
+                                    釘選的欄位在橫向捲動時保持可見<br>
+                                </td>
+                                <td>點擊「釘選到右側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消釘選</td>
+                                <td>
+                                    移除欄位的左側或右側釘選狀態<br>
+                                    欄位將回到正常的捲動區域<br>
+                                </td>
+                                <td>點擊「取消釘選」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>重置設定</td>
+                                <td>
+                                    清除所有自定義的排序和釘選設定<br>
+                                    回到系統初始的欄位配置
+                                </td>
+                                <td>點擊「重置」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>保存設定</td>
+                                <td>
+                                    應用當前的欄位配置到表格顯示<br>
+                                    設定在當前瀏覽器頁面中保持有效<br>
+                                </td>
+                                <td>點擊「保存」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消操作</td>
+                                <td>
+                                    放棄當前的所有配置更改<br>
+                                    回到進入設定前的狀態
+                                </td>
+                                <td>點擊「取消」按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            <div class="info-card">
+                <h3>資料表說明</h3>
+                <div class="info-notice">
+                    <strong>重要提醒：</strong><br>
+                    預設依照註冊時間降序排列(最新的在最上方)，新增的玩家會自動出現在表格最上方。<br>
+                    玩家ID規則：格式為32字符的唯一識別碼，僅用於系統內部識別，不對外顯示。創建後永久不可修改。<br>
+                    <strong>創建方式：</strong><br>
+                    • 「後台建立」: 由管理員透過後台新增功能創建。<br>
+                    • 「帳號註冊」: 由玩家透過前台註冊頁面自行註冊。
+                </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th width="8%">排序</th>
+                            <th width="15%">欄位</th>
+                            <th width="57%">內容說明</th>
+                            <th width="20%">顯示模式</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>-</td>
+                            <td>玩家編號</td>
+                            <td>用於查詢的唯一識別碼<br>
+                                點擊複製圖示可快速複製編號到剪貼簿
+                            </td>
+                            <td>文字顯示＋複製icon</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>玩家帳號</td>
+                            <td>玩家登入系統使用的帳號</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>玩家暱稱</td>
+                            <td>用於識別玩家的名稱</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>所屬代理</td>
+                            <td>標示玩家所屬的代理商帳號</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>用戶標籤</td>
+                            <td>用於玩家分類管理和風險控制<br>
+                                新建玩家自動標記為「新用戶」
+                            </td>
+                            <td>tag顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>餘額</td>
+                            <td>顯示玩家當前帳戶餘額</td>
+                            <td>數字顯示<br>最多小數點2位，需補0</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>狀態</td>
+                            <td>顯示玩家帳號當前狀態<br>
+                                 • 启用: 可正常使用<br>
+                                 • 停用: 封鎖玩家，不可登入
+                            </td>
+                            <td>tag顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>國碼</td>
+                            <td>顯示玩家電話號碼對應的國碼</td>
+                            <td>數字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>電話號碼</td>
+                            <td>顯示玩家綁定的電話號碼</td>
+                            <td>數字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>信箱</td>
+                            <td>顯示玩家綁定的信箱地址</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>✓</td>
+                            <td>註冊時間</td>
+                            <td>顯示玩家帳號的創建時間<br>
+                                例：2024-05-31 00:00</td>
+                            <td>時間格式</td>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>✓</td>
+                            <td>最後登入時間</td>
+                            <td>顯示玩家最近一次登入系統的時間<br>
+                                例：2024-05-31 00:00</td>
+                            <td>時間格式</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>最後登入IP</td>
+                            <td>記錄玩家最近一次使用的IP地址<br>
+                                配合最後一次登入時間更新
+                            </td>
+                            <td>IP格式</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>操作</td>
+                            <td>可執行的操作按鈕<br>
+                                • <strong>查看</strong>: 開啟詳細資料彈窗,顯示玩家資訊<br>
+                                • <strong>編輯</strong>: 開啟編輯彈窗,可修改玩家的部分資料
+                            </td>
+                            <td>按鈕</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+
+    <!-- 新增玩家彈窗 -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">新增玩家</div>
+                <span class="close" onclick="closeAddModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">玩家帳號<span class="required">*</span></label>
+                    <input type="text" id="addAccount" class="form-input" placeholder="請輸入帳號 (6-20字符)">
+                    <div class="error-message" id="addAccountError">請輸入有效的帳號</div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">密碼<span class="required">*</span></label>
+                        <div class="password-toggle">
+                            <input type="password" id="addPassword" class="form-input" placeholder="至少8字符">
+                            <button type="button" class="toggle-btn" onclick="togglePassword('addPassword')">👁️顯示</button>
+                        </div>
+                        <div class="error-message" id="addPasswordError">請輸入有效的密碼</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">確認密碼<span class="required">*</span></label>
+                        <div class="password-toggle">
+                            <input type="password" id="addConfirmPassword" class="form-input" placeholder="再次輸入密碼">
+                            <button type="button" class="toggle-btn" onclick="togglePassword('addConfirmPassword')">👁️顯示</button>
+                        </div>
+                        <div class="error-message" id="addConfirmPasswordError">兩次密碼輸入不一致</div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">玩家暱稱<span class="required">*</span></label>
+                        <input type="text" id="addNickname" class="form-input" placeholder="請輸入玩家暱稱">
+                        <div class="error-message" id="addNicknameError">請輸入玩家暱稱</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">所屬代理<span class="required">*</span></label>
+                        <select id="addAgent" class="form-select">
+                            <option value="">請選擇代理</option>
+                            <option value="agent001">agent001 - 王代理</option>
+                            <option value="agent002">agent002 - 李代理</option>
+                            <option value="agent003">agent003 - 陳代理</option>
+                            <option value="agent004">agent004 - 張代理</option>
+                        </select>
+                        <div class="error-message" id="addAgentError">請選擇所屬代理</div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">電話 (選填)</label>
+                        <input type="tel" id="addPhone" class="form-input" placeholder="請輸入電話">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">信箱 (選填)</label>
+                        <input type="email" id="addEmail" class="form-input" placeholder="請輸入信箱">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddModal()">取消</button>
+                <button class="btn btn-primary" onclick="submitAdd()">確認新增</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 查看玩家彈窗 -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">玩家詳細資料</div>
+                <span class="close" onclick="closeViewModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">玩家ID (32碼)</label>
+                    <input type="text" id="viewPlayerId" class="form-input" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">玩家編號 (8碼)</label>
+                    <input type="text" id="viewPlayerCode" class="form-input" disabled>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">玩家帳號</label>
+                        <input type="text" id="viewAccount" class="form-input" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">玩家暱稱</label>
+                        <input type="text" id="viewNickname" class="form-input" disabled>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">創建方式</label>
+                        <input type="text" id="viewCreateMethod" class="form-input" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">IP位置</label>
+                        <input type="text" id="viewIp" class="form-input" disabled>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">電話</label>
+                        <input type="text" id="viewPhone" class="form-input" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">信箱</label>
+                        <input type="text" id="viewEmail" class="form-input" disabled>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">餘額</label>
+                        <input type="text" id="viewBalance" class="form-input" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">狀態</label>
+                        <input type="text" id="viewStatus" class="form-input" disabled>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeViewModal()">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 編輯玩家彈窗 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">編輯玩家資料</div>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">玩家編號</label>
+                    <input type="text" id="editPlayerCode" class="form-input" disabled>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">玩家帳號</label>
+                        <input type="text" id="editAccount" class="form-input" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">所屬代理</label>
+                        <input type="text" id="editAgent" class="form-input" disabled>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">玩家暱稱<span class="required">*</span></label>
+                        <input type="text" id="editNickname" class="form-input">
+                        <div class="error-message" id="editNicknameError">請輸入玩家暱稱</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">狀態</label>
+                        <select id="editStatus" class="form-select">
+                            <option value="active">啟用</option>
+                            <option value="inactive">停用</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">用戶標籤</label>
+                        <select id="editTag" class="form-select">
+                            <option value="">無標籤</option>
+                            <option value="vip">VIP用戶</option>
+                            <option value="new">新用戶</option>
+                            <option value="active">活躍用戶</option>
+                            <option value="risk">高風險</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">新密碼</label>
+                        <div class="password-toggle">
+                            <input type="password" id="editNewPassword" class="form-input sensitive-field" placeholder="">
+                            <button type="button" class="toggle-btn" onclick="togglePassword('editNewPassword')">👁️顯示</button>
+                        </div>
+                        <div class="error-message" id="editNewPasswordError">密碼至少需要8個字符</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">確認新密碼</label>
+                        <div class="password-toggle">
+                            <input type="password" id="editConfirmPassword" class="form-input sensitive-field" placeholder="">
+                            <button type="button" class="toggle-btn" onclick="togglePassword('editConfirmPassword')">👁️顯示</button>
+                        </div>
+                        <div class="error-message" id="editConfirmPasswordError">兩次密碼輸入不一致</div>
+                    </div>
+                </div>
+                
+                <div id="sensitiveFieldsSection" style="display:none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">電話</label>
+                            <input type="tel" id="editPhone" class="form-input sensitive-field">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">信箱</label>
+                            <input type="email" id="editEmail" class="form-input sensitive-field">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditModal()">重置</button>
+                <button class="btn btn-primary" onclick="checkSensitiveChanges()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- OTP驗證彈窗 -->
+    <div id="otpModal" class="modal">
+        <div class="modal-content" style="width: 450px;">
+            <div class="modal-header">
+                <div class="modal-title">OTP 驗證</div>
+                <span class="close" onclick="closeOtpModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="otp-section">
+                    <h4>🔐 安全驗證</h4>
+                    <p style="margin-bottom: 15px; color: #666; font-size: 13px;">
+                        您正在修改敏感資料,驗證碼已發送至管理員手機:<br>
+                        <strong>+886-9**-***-234</strong>
+                    </p>
+                    <div class="otp-input-group">
+                        <input type="text" id="otpCode" class="form-input otp-input" placeholder="請輸入6位數驗證碼" maxlength="6">
+                        <button class="btn btn-secondary" onclick="resendOtp()">重新發送</button>
+                    </div>
+                    <div class="error-message" id="otpError">驗證碼錯誤</div>
+                    <div class="info-text" style="margin-top: 10px;">驗證碼有效期5分鐘</div>
+                </div>
+                <div id="changesPreview" style="background: #f5f5f5; padding: 15px; border-radius: 4px; margin-top: 15px;">
+                    <h4 style="margin-bottom: 10px; font-size: 14px; color: #333;">將要修改的內容:</h4>
+                    <div id="changesList" style="font-size: 13px; color: #666;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeOtpModal()">取消</button>
+                <button class="btn btn-warning" onclick="verifyOtpAndSubmit()">驗證並提交</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 列設置彈窗 -->
+    <div id="columnModal" class="modal">
+        <div class="modal-content" style="width: 600px;">
+            <div class="modal-header">
+                <div class="modal-title">列設置</div>
+                <span class="close" onclick="closeColumnModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="select-all-row">
+                    <label>
+                        <input type="checkbox" id="selectAll" onchange="toggleAllColumns()">
+                        <span>全選</span>
+                    </label>
+                    <button class="btn btn-secondary" style="min-width: auto; padding: 6px 12px;" onclick="resetColumnSettings()">重置</button>
+                </div>
+                
+                <div id="columnList" style="max-height: 400px; overflow-y: auto;">
+                    <!-- 動態生成列表項目 -->
+                </div>
+                
+                <div class="error-message" id="columnError" style="margin-top: 10px;">至少需要選擇3個欄位</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeColumnModal()">取消</button>
+                <button class="btn btn-primary" onclick="applyColumnSettings()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var currentViewRow = null;
+        var currentEditRow = null;
+        var playerCodeCounter = 100006;
+        var originalPhone = '';
+        var originalEmail = '';
+        var pendingChanges = {};
+        
+        var columns = [
+            { id: 0, name: '玩家編號', visible: true, fixed: false, locked: true },
+            { id: 1, name: '玩家帳號', visible: true, fixed: false, locked: false },
+            { id: 2, name: '玩家暱稱', visible: true, fixed: false, locked: false },
+            { id: 3, name: '所屬代理', visible: true, fixed: false, locked: false },
+            { id: 4, name: '用戶標籤', visible: true, fixed: false, locked: false },
+            { id: 5, name: '餘額', visible: true, fixed: false, locked: false },
+            { id: 6, name: '狀態', visible: true, fixed: false, locked: false },
+            { id: 7, name: '註冊時間', visible: true, fixed: false, locked: false },
+            { id: 8, name: '最後登入', visible: true, fixed: false, locked: false },
+            { id: 9, name: 'IP位置', visible: true, fixed: false, locked: false },
+            { id: 10, name: '操作', visible: true, fixed: false, locked: true }
+        ];
+
+        var playerData = {
+            'PL100001': { phone: '0912-345-678', email: 'player001@example.com', ip: '203.145.67.89', createMethod: 'backend' },
+            'PL100002': { phone: '0923-456-789', email: 'player002@example.com', ip: '118.160.23.45', createMethod: 'register' },
+            'PL100003': { phone: '0934-567-890', email: 'player003@example.com', ip: '61.220.145.78', createMethod: 'register' },
+            'PL100004': { phone: '0945-678-901', email: 'player004@example.com', ip: '203.145.67.89', createMethod: 'backend' },
+            'PL100005': { phone: '0956-789-012', email: 'player005@example.com', ip: '118.160.23.45', createMethod: 'register' }
+        };
+
+        function generatePlayerId() {
+            return 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'.replace(/x/g, function() {
+                return Math.floor(Math.random() * 16).toString(16);
+            });
+        }
+
+        function generateRandomIP() {
+            return Math.floor(Math.random() * 256) + '.' + 
+                   Math.floor(Math.random() * 256) + '.' + 
+                   Math.floor(Math.random() * 256) + '.' + 
+                   Math.floor(Math.random() * 256);
+        }
+
+        function addPlayer() {
+            document.getElementById('addModal').style.display = 'block';
+            clearAddForm();
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').style.display = 'none';
+        }
+
+        function clearAddForm() {
+            document.getElementById('addAccount').value = '';
+            document.getElementById('addPassword').value = '';
+            document.getElementById('addConfirmPassword').value = '';
+            document.getElementById('addNickname').value = '';
+            document.getElementById('addAgent').value = '';
+            document.getElementById('addPhone').value = '';
+            document.getElementById('addEmail').value = '';
+            hideAddErrors();
+        }
+
+        function hideAddErrors() {
+            document.getElementById('addAccountError').style.display = 'none';
+            document.getElementById('addPasswordError').style.display = 'none';
+            document.getElementById('addConfirmPasswordError').style.display = 'none';
+            document.getElementById('addNicknameError').style.display = 'none';
+            document.getElementById('addAgentError').style.display = 'none';
+        }
+
+        function togglePassword(inputId) {
+            var input = document.getElementById(inputId);
+            var btn = event.target;
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '👁️隱藏';
+            } else {
+                input.type = 'password';
+                btn.textContent = '👁️顯示';
+            }
+        }
+
+        function validateAddForm() {
+            hideAddErrors();
+            var isValid = true;
+
+            var account = document.getElementById('addAccount').value.trim();
+            if (!account || account.length < 6 || account.length > 20) {
+                document.getElementById('addAccountError').style.display = 'block';
+                isValid = false;
+            }
+
+            var password = document.getElementById('addPassword').value;
+            if (!password || password.length < 8) {
+                document.getElementById('addPasswordError').style.display = 'block';
+                isValid = false;
+            }
+
+            var confirmPassword = document.getElementById('addConfirmPassword').value;
+            if (!confirmPassword || password !== confirmPassword) {
+                document.getElementById('addConfirmPasswordError').style.display = 'block';
+                isValid = false;
+            }
+
+            var nickname = document.getElementById('addNickname').value.trim();
+            if (!nickname) {
+                document.getElementById('addNicknameError').style.display = 'block';
+                isValid = false;
+            }
+
+            var agent = document.getElementById('addAgent').value;
+            if (!agent) {
+                document.getElementById('addAgentError').style.display = 'block';
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function submitAdd() {
+            if (!validateAddForm()) {
+                return;
+            }
+
+            var playerId = generatePlayerId();
+            var playerCode = 'PL' + String(playerCodeCounter++).padStart(6, '0');
+            var account = document.getElementById('addAccount').value.trim();
+            var nickname = document.getElementById('addNickname').value.trim();
+            var agent = document.getElementById('addAgent').value;
+            var phone = document.getElementById('addPhone').value.trim();
+            var email = document.getElementById('addEmail').value.trim();
+            var balance = 0;
+            var status = 'active';
+            var tag = 'new';
+            var ip = generateRandomIP();
+
+            playerData[playerCode] = { 
+                phone: phone, 
+                email: email, 
+                ip: ip,
+                createMethod: 'backend'
+            };
+
+            var statusTextMap = {'active': '正常', 'inactive': '停用', 'suspended': '暫停'};
+            var statusClassMap = {'active': 'status-active', 'inactive': 'status-inactive', 'suspended': 'status-suspended'};
+            
+            var tagTextMap = {'vip': 'VIP用戶', 'new': '新用戶', 'active': '活躍用戶', 'risk': '高風險'};
+            var tagStyleMap = {
+                'vip': 'background:#e8f5e9;color:#2e7d32;border-color:#4caf50;',
+                'new': 'background:#e3f2fd;color:#1976d2;border-color:#2196f3;',
+                'active': 'background:#fff3e0;color:#e65100;border-color:#ff9800;',
+                'risk': 'background:#ffebee;color:#c62828;border-color:#f44336;'
+            };
+
+            var tbody = document.getElementById('tableBody');
+            var row = document.createElement('tr');
+            row.setAttribute('data-player-id', playerId);
+            row.setAttribute('data-create-method', 'backend');
+            
+            var now = new Date();
+            var timeStr = now.getFullYear() + '-' + 
+                          String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                          String(now.getDate()).padStart(2, '0') + ' ' + 
+                          String(now.getHours()).padStart(2, '0') + ':' + 
+                          String(now.getMinutes()).padStart(2, '0');
+
+            row.innerHTML = '<td><div class="id-cell"><button class="copy-btn" onclick="copyToClipboard(\'' + playerCode + '\')" title="複製編號"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button><span>' + playerCode + '</span></div></td>' +
+                '<td>' + account + '</td>' +
+                '<td>' + nickname + '</td>' +
+                '<td>' + agent + '</td>' +
+                '<td><span class="tag-badge" style="' + tagStyleMap[tag] + '">' + tagTextMap[tag] + '</span></td>' +
+                '<td>$' + balance.toFixed(2) + '</td>' +
+                '<td><span class="status-badge ' + statusClassMap[status] + '">' + statusTextMap[status] + '</span></td>' +
+                '<td>' + timeStr + '</td>' +
+                '<td>' + timeStr + '</td>' +
+                '<td>' + ip + '</td>' +
+                '<td><button class="action-btn" onclick="viewPlayer(this)">查看</button><button class="action-btn" onclick="editPlayer(this)">編輯</button></td>';
+            
+            tbody.insertBefore(row, tbody.firstChild);
+            closeAddModal();
+            showNotification('玩家新增成功 (標籤: 新用戶)', 'success');
+        }
+
+        function viewPlayer(button) {
+            var row = button.closest('tr');
+            currentViewRow = row;
+            var cells = row.cells;
+            
+            var playerId = row.getAttribute('data-player-id');
+            var createMethod = row.getAttribute('data-create-method');
+            var playerCode = cells[0].querySelector('span').textContent;
+            var data = playerData[playerCode] || { phone: '', email: '', ip: '', createMethod: 'backend' };
+            
+            var createMethodText = createMethod === 'backend' ? '後台建立' : '帳號註冊';
+            
+            document.getElementById('viewPlayerId').value = playerId;
+            document.getElementById('viewPlayerCode').value = playerCode;
+            document.getElementById('viewAccount').value = cells[1].textContent;
+            document.getElementById('viewNickname').value = cells[2].textContent;
+            document.getElementById('viewCreateMethod').value = createMethodText;
+            document.getElementById('viewIp').value = cells[9].textContent;
+            document.getElementById('viewPhone').value = data.phone;
+            document.getElementById('viewEmail').value = data.email;
+            document.getElementById('viewBalance').value = cells[5].textContent;
+            document.getElementById('viewStatus').value = cells[6].textContent.trim();
+            
+            document.getElementById('viewModal').style.display = 'block';
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').style.display = 'none';
+            currentViewRow = null;
+        }
+
+        function editPlayer(button) {
+            var row = button.closest('tr');
+            currentEditRow = row;
+            var cells = row.cells;
+            
+            var playerCode = cells[0].querySelector('span').textContent;
+            var data = playerData[playerCode] || { phone: '', email: '', ip: '', createMethod: 'backend' };
+            
+            document.getElementById('editPlayerCode').value = playerCode;
+            document.getElementById('editAccount').value = cells[1].textContent;
+            document.getElementById('editAgent').value = cells[3].textContent;
+            document.getElementById('editNickname').value = cells[2].textContent;
+            
+            var statusText = cells[6].textContent.trim();
+            var statusMap = {'正常': 'active', '停用': 'inactive', '暫停': 'suspended'};
+            document.getElementById('editStatus').value = statusMap[statusText] || 'active';
+            
+            var tagText = cells[4].textContent.trim();
+            var tagMap = {'VIP用戶': 'vip', '新用戶': 'new', '活躍用戶': 'active', '高風險': 'risk'};
+            document.getElementById('editTag').value = tagMap[tagText] || '';
+            
+            document.getElementById('editNewPassword').value = '';
+            document.getElementById('editConfirmPassword').value = '';
+            document.getElementById('editNewPasswordError').style.display = 'none';
+            document.getElementById('editConfirmPasswordError').style.display = 'none';
+            
+            originalPhone = data.phone;
+            originalEmail = data.email;
+            document.getElementById('editPhone').value = originalPhone;
+            document.getElementById('editEmail').value = originalEmail;
+            
+            document.getElementById('sensitiveFieldsSection').style.display = 'block';
+            
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            document.getElementById('sensitiveFieldsSection').style.display = 'none';
+            currentEditRow = null;
+            originalPhone = '';
+            originalEmail = '';
+        }
+
+        function checkSensitiveChanges() {
+            var nickname = document.getElementById('editNickname').value;
+            if (!nickname.trim()) {
+                document.getElementById('editNicknameError').style.display = 'block';
+                return;
+            }
+            
+            var newPassword = document.getElementById('editNewPassword').value;
+            var confirmPassword = document.getElementById('editConfirmPassword').value;
+            
+            document.getElementById('editNewPasswordError').style.display = 'none';
+            document.getElementById('editConfirmPasswordError').style.display = 'none';
+            
+            if (newPassword || confirmPassword) {
+                if (newPassword.length < 8) {
+                    document.getElementById('editNewPasswordError').style.display = 'block';
+                    return;
+                }
+                if (newPassword !== confirmPassword) {
+                    document.getElementById('editConfirmPasswordError').style.display = 'block';
+                    return;
+                }
+            }
+            
+            var newPhone = document.getElementById('editPhone').value.trim();
+            var newEmail = document.getElementById('editEmail').value.trim();
+            
+            var phoneChanged = newPhone !== originalPhone;
+            var emailChanged = newEmail !== originalEmail;
+            var passwordChanged = newPassword.length > 0;
+            
+            if (phoneChanged || emailChanged) {
+                pendingChanges = {
+                    nickname: nickname,
+                    status: document.getElementById('editStatus').value,
+                    tag: document.getElementById('editTag').value,
+                    phone: newPhone,
+                    email: newEmail,
+                    password: newPassword,
+                    phoneChanged: phoneChanged,
+                    emailChanged: emailChanged,
+                    passwordChanged: passwordChanged
+                };
+                
+                showOtpModal();
+            } else {
+                submitEditWithoutOtp();
+            }
+        }
+
+        function showOtpModal() {
+            var changesList = [];
+            if (pendingChanges.phoneChanged) {
+                changesList.push('<p>📱 電話: <span style="color:#f56c6c;">' + originalPhone + '</span> → <span style="color:#67c23a;">' + pendingChanges.phone + '</span></p>');
+            }
+            if (pendingChanges.emailChanged) {
+                changesList.push('<p>📧 信箱: <span style="color:#f56c6c;">' + originalEmail + '</span> → <span style="color:#67c23a;">' + pendingChanges.email + '</span></p>');
+            }
+            if (pendingChanges.passwordChanged) {
+                changesList.push('<p>🔑 密碼: <span style="color:#67c23a;">將更新為新密碼</span></p>');
+            }
+            
+            document.getElementById('changesList').innerHTML = changesList.join('');
+            document.getElementById('otpCode').value = '';
+            document.getElementById('otpError').style.display = 'none';
+            document.getElementById('otpModal').style.display = 'block';
+            
+            showNotification('驗證碼已發送', 'info');
+        }
+
+        function closeOtpModal() {
+            document.getElementById('otpModal').style.display = 'none';
+            pendingChanges = {};
+        }
+
+        function resendOtp() {
+            showNotification('驗證碼已重新發送', 'info');
+        }
+
+        function verifyOtpAndSubmit() {
+            var otp = document.getElementById('otpCode').value.trim();
+            
+            if (!otp || otp.length !== 6) {
+                document.getElementById('otpError').textContent = '請輸入6位數驗證碼';
+                document.getElementById('otpError').style.display = 'block';
+                return;
+            }
+            
+            if (otp === '123456') {
+                submitEditWithOtp();
+                closeOtpModal();
+            } else {
+                document.getElementById('otpError').textContent = '驗證碼錯誤,請重新輸入';
+                document.getElementById('otpError').style.display = 'block';
+            }
+        }
+
+        function submitEditWithOtp() {
+            if (!currentEditRow) return;
+            
+            var cells = currentEditRow.cells;
+            var playerCode = document.getElementById('editPlayerCode').value;
+            
+            cells[2].textContent = pendingChanges.nickname;
+            
+            var statusTextMap = {'active': '正常', 'inactive': '停用', 'suspended': '暫停'};
+            var statusClassMap = {'active': 'status-active', 'inactive': 'status-inactive', 'suspended': 'status-suspended'};
+            cells[6].innerHTML = '<span class="status-badge ' + statusClassMap[pendingChanges.status] + '">' + statusTextMap[pendingChanges.status] + '</span>';
+            
+            var tag = pendingChanges.tag;
+            var tagTextMap = {'vip': 'VIP用戶', 'new': '新用戶', 'active': '活躍用戶', 'risk': '高風險'};
+            var tagStyleMap = {
+                'vip': 'background:#e8f5e9;color:#2e7d32;border-color:#4caf50;',
+                'new': 'background:#e3f2fd;color:#1976d2;border-color:#2196f3;',
+                'active': 'background:#fff3e0;color:#e65100;border-color:#ff9800;',
+                'risk': 'background:#ffebee;color:#c62828;border-color:#f44336;'
+            };
+            if (tag) {
+                cells[4].innerHTML = '<span class="tag-badge" style="' + tagStyleMap[tag] + '">' + tagTextMap[tag] + '</span>';
+            } else {
+                cells[4].textContent = '-';
+            }
+            
+            playerData[playerCode].phone = pendingChanges.phone;
+            playerData[playerCode].email = pendingChanges.email;
+            
+            closeEditModal();
+            
+            var message = '玩家資料修改成功 (含敏感資料';
+            if (pendingChanges.passwordChanged) {
+                message += ' + 密碼';
+            }
+            message += ')';
+            showNotification(message, 'success');
+        }
+
+        function submitEditWithoutOtp() {
+            if (!currentEditRow) return;
+            
+            var nickname = document.getElementById('editNickname').value;
+            var newPassword = document.getElementById('editNewPassword').value;
+            var confirmPassword = document.getElementById('editConfirmPassword').value;
+            
+            if (newPassword || confirmPassword) {
+                if (newPassword.length < 8) {
+                    document.getElementById('editNewPasswordError').style.display = 'block';
+                    return;
+                }
+                if (newPassword !== confirmPassword) {
+                    document.getElementById('editConfirmPasswordError').style.display = 'block';
+                    return;
+                }
+            }
+            
+            var cells = currentEditRow.cells;
+            
+            cells[2].textContent = nickname;
+            
+            var status = document.getElementById('editStatus').value;
+            var statusTextMap = {'active': '正常', 'inactive': '停用', 'suspended': '暫停'};
+            var statusClassMap = {'active': 'status-active', 'inactive': 'status-inactive', 'suspended': 'status-suspended'};
+            cells[6].innerHTML = '<span class="status-badge ' + statusClassMap[status] + '">' + statusTextMap[status] + '</span>';
+            
+            var tag = document.getElementById('editTag').value;
+            var tagTextMap = {'vip': 'VIP用戶', 'new': '新用戶', 'active': '活躍用戶', 'risk': '高風險'};
+            var tagStyleMap = {
+                'vip': 'background:#e8f5e9;color:#2e7d32;border-color:#4caf50;',
+                'new': 'background:#e3f2fd;color:#1976d2;border-color:#2196f3;',
+                'active': 'background:#fff3e0;color:#e65100;border-color:#ff9800;',
+                'risk': 'background:#ffebee;color:#c62828;border-color:#f44336;'
+            };
+            if (tag) {
+                cells[4].innerHTML = '<span class="tag-badge" style="' + tagStyleMap[tag] + '">' + tagTextMap[tag] + '</span>';
+            } else {
+                cells[4].textContent = '-';
+            }
+            
+            closeEditModal();
+            
+            if (newPassword) {
+                showNotification('玩家資料修改成功 (含密碼)', 'success');
+            } else {
+                showNotification('玩家資料修改成功', 'success');
+            }
+        }
+
+        function searchPlayers() {
+            var account = document.getElementById('searchAccount').value.toLowerCase();
+            var status = document.getElementById('searchStatus').value;
+            var tag = document.getElementById('searchTag').value;
+            var agent = document.getElementById('searchAgent').value.toLowerCase();
+            
+            var rows = document.querySelectorAll('#tableBody tr');
+            var visibleCount = 0;
+            
+            var statusMap = {'active': '正常', 'inactive': '停用', 'suspended': '暫停'};
+            var tagMap = {'vip': 'VIP用戶', 'new': '新用戶', 'active': '活躍用戶', 'risk': '高風險'};
+            
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                var cells = row.cells;
+                var rowAccount = cells[1].textContent.toLowerCase();
+                var rowAgent = cells[3].textContent.toLowerCase();
+                var rowStatus = cells[6].textContent.trim();
+                var rowTag = cells[4].textContent.trim();
+                
+                var matchAccount = !account || rowAccount.indexOf(account) > -1;
+                var matchAgent = !agent || rowAgent.indexOf(agent) > -1;
+                var matchStatus = !status || rowStatus === statusMap[status];
+                var matchTag = !tag || rowTag === tagMap[tag];
+                
+                if (matchAccount && matchAgent && matchStatus && matchTag) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+            
+            showNotification(visibleCount > 0 ? '找到 ' + visibleCount + ' 個符合條件的玩家' : '未找到符合條件的玩家', visibleCount > 0 ? 'success' : 'info');
+        }
+
+        function resetSearch() {
+            document.getElementById('searchAccount').value = '';
+            document.getElementById('searchStatus').value = '';
+            document.getElementById('searchTag').value = '';
+            document.getElementById('searchAgent').value = '';
+            
+            var rows = document.querySelectorAll('#tableBody tr');
+            for (var i = 0; i < rows.length; i++) {
+                rows[i].style.display = '';
+            }
+            
+            showNotification('搜索已重置', 'success');
+        }
+
+        function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() {
+                    showNotification('已複製: ' + text, 'success');
+                }).catch(function() {
+                    fallbackCopy(text);
+                });
+            } else {
+                fallbackCopy(text);
+            }
+        }
+
+        function fallbackCopy(text) {
+            var textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showNotification('已複製: ' + text, 'success');
+            } catch (err) {
+                showNotification('複製失敗', 'error');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function showNotification(message, type) {
+            var notification = document.createElement('div');
+            notification.style.cssText = 'position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:6px;color:white;font-size:14px;z-index:10001;transition:all 0.3s ease;' + 
+                (type === 'success' ? 'background:#67c23a;' : type === 'info' ? 'background:#409eff;' : 'background:#f56c6c;');
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(function() {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(function() {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        window.onclick = function(event) {
+            var modals = ['addModal', 'viewModal', 'editModal', 'otpModal', 'columnModal'];
+            modals.forEach(function(modalId) {
+                var modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                    if (modalId === 'viewModal') currentViewRow = null;
+                    if (modalId === 'editModal') {
+                        currentEditRow = null;
+                        document.getElementById('sensitiveFieldsSection').style.display = 'none';
+                    }
+                    if (modalId === 'otpModal') pendingChanges = {};
+                }
+            });
+        };
+
+        function openColumnSettings() {
+            renderColumnList();
+            updateSelectAllCheckbox();
+            document.getElementById('columnError').style.display = 'none';
+            document.getElementById('columnModal').style.display = 'block';
+        }
+
+        function renderColumnList() {
+            var list = document.getElementById('columnList');
+            list.innerHTML = '';
+            
+            columns.forEach(function(col, index) {
+                var item = document.createElement('div');
+                item.className = 'column-item';
+                item.setAttribute('data-index', index);
+                
+                var dragHandle = col.locked ? '' : '<span class="drag-handle" draggable="true">☰</span>';
+                var checkbox = '<input type="checkbox" class="column-checkbox" ' + 
+                              (col.visible ? 'checked' : '') + 
+                              (col.locked ? ' disabled' : '') + 
+                              ' onchange="toggleColumn(' + index + ')">';
+                
+                var fixedBtn = col.locked ? '' : 
+                    '<button class="column-btn ' + (col.fixed ? 'active' : '') + '" onclick="toggleFixed(' + index + ')">釘選到左側</button>';
+                
+                var leftBtn = col.locked || index <= 1 ? '' :
+                    '<button class="column-btn" onclick="moveColumn(' + index + ', -1)">向左移動</button>';
+                    
+                var rightBtn = col.locked || index >= columns.length - 2 ? '' :
+                    '<button class="column-btn" onclick="moveColumn(' + index + ', 1)">向右移動</button>';
+                
+                item.innerHTML = dragHandle + checkbox + 
+                    '<span class="column-name">' + col.name + '</span>' +
+                    '<div class="column-actions">' + fixedBtn + leftBtn + rightBtn + '</div>';
+                
+                list.appendChild(item);
+            });
+            
+            setupDragAndDrop();
+        }
+
+        function setupDragAndDrop() {
+            var items = document.querySelectorAll('.column-item');
+            var draggedItem = null;
+            
+            items.forEach(function(item) {
+                var handle = item.querySelector('.drag-handle');
+                if (!handle) return;
+                
+                handle.addEventListener('dragstart', function(e) {
+                    draggedItem = item;
+                    item.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                
+                handle.addEventListener('dragend', function() {
+                    item.classList.remove('dragging');
+                    draggedItem = null;
+                });
+            });
+            
+            items.forEach(function(item) {
+                item.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    if (!draggedItem || draggedItem === item) return;
+                    
+                    var fromIndex = parseInt(draggedItem.getAttribute('data-index'));
+                    var toIndex = parseInt(item.getAttribute('data-index'));
+                    
+                    if (columns[fromIndex].locked || columns[toIndex].locked) return;
+                    
+                    var rect = item.getBoundingClientRect();
+                    var middle = rect.top + rect.height / 2;
+                    
+                    if (e.clientY < middle) {
+                        item.parentNode.insertBefore(draggedItem, item);
+                    } else {
+                        item.parentNode.insertBefore(draggedItem, item.nextSibling);
+                    }
+                });
+                
+                item.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    reorderColumns();
+                });
+            });
+        }
+
+        function reorderColumns() {
+            var items = document.querySelectorAll('.column-item');
+            var newOrder = [];
+            
+            items.forEach(function(item) {
+                var index = parseInt(item.getAttribute('data-index'));
+                newOrder.push(columns[index]);
+            });
+            
+            columns = newOrder;
+            renderColumnList();
+        }
+
+        function toggleColumn(index) {
+            if (columns[index].locked) return;
+            columns[index].visible = !columns[index].visible;
+            updateSelectAllCheckbox();
+        }
+
+        function toggleFixed(index) {
+            columns[index].fixed = !columns[index].fixed;
+            renderColumnList();
+        }
+
+        function moveColumn(index, direction) {
+            if (columns[index].locked) return;
+            
+            var newIndex;
+            if (direction === -1) {
+                newIndex = index - 1;
+                if (newIndex < 1) return;
+            } else if (direction === 1) {
+                newIndex = index + 1;
+                if (newIndex >= columns.length - 1) return;
+            } else {
+                return;
+            }
+            
+            if (columns[newIndex].locked) return;
+            
+            var temp = columns[index];
+            columns[index] = columns[newIndex];
+            columns[newIndex] = temp;
+            
+            renderColumnList();
+        }
+
+        function toggleAllColumns() {
+            var checked = document.getElementById('selectAll').checked;
+            columns.forEach(function(col) {
+                if (!col.locked) {
+                    col.visible = checked;
+                }
+            });
+            renderColumnList();
+        }
+
+        function updateSelectAllCheckbox() {
+            var allChecked = columns.every(function(col) {
+                return col.locked || col.visible;
+            });
+            document.getElementById('selectAll').checked = allChecked;
+        }
+
+        function closeColumnModal() {
+            document.getElementById('columnModal').style.display = 'none';
+        }
+
+        function resetColumnSettings() {
+            columns = [
+                { id: 0, name: '玩家編號', visible: true, fixed: false, locked: true },
+                { id: 1, name: '玩家帳號', visible: true, fixed: false, locked: false },
+                { id: 2, name: '玩家暱稱', visible: true, fixed: false, locked: false },
+                { id: 3, name: '所屬代理', visible: true, fixed: false, locked: false },
+                { id: 4, name: '用戶標籤', visible: true, fixed: false, locked: false },
+                { id: 5, name: '餘額', visible: true, fixed: false, locked: false },
+                { id: 6, name: '狀態', visible: true, fixed: false, locked: false },
+                { id: 7, name: '註冊時間', visible: true, fixed: false, locked: false },
+                { id: 8, name: '最後登入', visible: true, fixed: false, locked: false },
+                { id: 9, name: 'IP位置', visible: true, fixed: false, locked: false },
+                { id: 10, name: '操作', visible: true, fixed: false, locked: true }
+            ];
+            renderColumnList();
+            updateSelectAllCheckbox();
+            document.getElementById('columnError').style.display = 'none';
+        }
+
+        function applyColumnSettings() {
+            var visibleCount = columns.filter(function(col) { return col.visible; }).length;
+            
+            if (visibleCount < 3) {
+                document.getElementById('columnError').style.display = 'block';
+                return;
+            }
+            
+            updateTableColumns();
+            closeColumnModal();
+            showNotification('列設置已更新', 'success');
+        }
+
+        function updateTableColumns() {
+            var table = document.querySelector('table');
+            var headerRow = table.querySelector('thead tr');
+            var bodyRows = table.querySelectorAll('tbody tr');
+            
+            var headers = headerRow.querySelectorAll('th');
+            for (var i = 0; i < headers.length && i < columns.length; i++) {
+                if (columns[i].visible) {
+                    headers[i].style.display = '';
+                } else {
+                    headers[i].style.display = 'none';
+                }
+            }
+            
+            bodyRows.forEach(function(row) {
+                var cells = row.querySelectorAll('td');
+                for (var i = 0; i < cells.length && i < columns.length; i++) {
+                    if (columns[i].visible) {
+                        cells[i].style.display = '';
+                    } else {
+                        cells[i].style.display = 'none';
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

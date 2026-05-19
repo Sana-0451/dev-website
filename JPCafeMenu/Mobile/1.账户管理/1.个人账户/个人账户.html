@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>個人帳戶</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a2e5e;
+            --primary-mid: #2a4494;
+            --accent: #4f7cff;
+            --accent-light: #eef2ff;
+            --success: #0ea875;
+            --success-light: #d0fce8;
+            --danger: #f04040;
+            --danger-light: #fde8e8;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --bg: #f0f2f8;
+            --surface: #ffffff;
+            --border: #e2e6f0;
+            --text-main: #1a2240;
+            --text-sub: #5a6585;
+            --text-hint: #9ba6c0;
+            --radius-sm: 10px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --shadow-card: 0 2px 12px rgba(26,46,94,0.07);
+            --shadow-elevated: 0 8px 32px rgba(26,46,94,0.14);
+            --nav-h: 56px;
+            --bottom-h: 68px;
+            --drawer-w: 280px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        html, body { height: 100%; overflow: hidden; }
+
+        body {
+            font-family: 'Noto Sans TC', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            max-width: 430px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ═══════════════════════════
+           DRAWER — full-screen overlay
+        ═══════════════════════════ */
+        .drawer {
+            position: fixed;
+            inset: 0;
+            max-width: 430px;
+            margin: 0 auto;
+            background: #fff;
+            z-index: 400;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        .drawer.open { transform: translateX(0); }
+
+        /* drawer top bar */
+        .drawer-topbar {
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .drawer-close-btn {
+            width: 36px; height: 36px;
+            background: none; border: none;
+            font-size: 22px; color: var(--text-sub);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .drawer-balance {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 15px; font-weight: 700; color: var(--text-main);
+        }
+        .drawer-balance .coin { font-size: 16px; }
+        .drawer-refresh-btn {
+            width: 28px; height: 28px;
+            background: none; border: none;
+            font-size: 16px; color: var(--text-hint);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* drawer scroll body */
+        .drawer-body {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 24px;
+        }
+        .drawer-body::-webkit-scrollbar { display: none; }
+
+        /* section group */
+        .dnav-group { border-bottom: 1px solid var(--border); }
+
+        .dnav-group-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            height: 44px;
+            cursor: pointer;
+            background: #f5f6f8;
+            user-select: none;
+            border: none;
+            width: 100%;
+        }
+        .dnav-group-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #666;
+            display: block;
+        }
+        .dnav-chevron {
+            font-size: 13px;
+            color: #999;
+            transition: transform 0.22s ease;
+            display: block;
+        }
+        .dnav-group.collapsed .dnav-chevron { transform: rotate(-90deg); }
+
+        /* group items */
+        .dnav-items { overflow: hidden; }
+        .dnav-group.collapsed .dnav-items { display: none; }
+
+        .dnav-item {
+            display: flex;
+            align-items: center;
+            padding: 0 20px 0 28px;
+            height: 48px;
+            cursor: pointer;
+            border: none;
+            background: #fff;
+            width: 100%;
+            text-align: left;
+            font-family: 'Noto Sans TC', -apple-system, sans-serif;
+            position: relative;
+            transition: background 0.12s;
+            -webkit-appearance: none;
+        }
+        .dnav-item:active { background: var(--accent-light); }
+        .dnav-item.active { background: var(--accent-light); }
+        .dnav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 8px; bottom: 8px;
+            width: 3px;
+            background: var(--accent);
+            border-radius: 0 3px 3px 0;
+        }
+        .dnav-item-label {
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+            display: block;
+            line-height: 1;
+        }
+        .dnav-item.active .dnav-item-label {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* ═══════════════════════════
+           MAIN CONTENT
+        ═══════════════════════════ */
+        .main {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; max-width: 430px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        .main.pushed { /* no push — drawer is full overlay */ }
+
+        /* TOP BAR */
+        .top-bar {
+            height: var(--nav-h);
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-card);
+            position: relative;
+            z-index: 10;
+        }
+        .menu-btn {
+            width: 36px; height: 36px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4.5px;
+            flex-shrink: 0;
+            padding: 0;
+        }
+        .menu-btn span {
+            display: block;
+            width: 20px; height: 2px;
+            background: var(--text-main);
+            border-radius: 2px;
+            transition: all 0.25s ease;
+        }
+        .menu-btn.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+        .menu-btn.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+        .menu-btn.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+        .top-bar-title { font-size: 16px; font-weight: 800; color: var(--text-main); flex: 1; }
+
+        .search-inline {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            padding: 0 10px;
+            height: 36px;
+            gap: 6px;
+        }
+        .search-inline input {
+            flex: 1; background: none; border: none; outline: none;
+            font-size: 13px; color: var(--text-main); font-family: inherit;
+        }
+        .search-inline input::placeholder { color: var(--text-hint); }
+
+        .add-btn {
+            width: 36px; height: 36px;
+            background: var(--accent);
+            border: none; border-radius: var(--radius-sm);
+            color: #fff; font-size: 20px;
+            cursor: pointer; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 300;
+            box-shadow: 0 2px 8px rgba(79,124,255,0.3);
+        }
+        .add-btn:active { transform: scale(0.93); }
+
+        /* QUICK CHIPS */
+        .chips-row {
+            background: var(--surface);
+            padding: 10px 16px;
+            display: flex;
+            gap: 7px;
+            overflow-x: auto;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .chips-row::-webkit-scrollbar { display: none; }
+        .chip {
+            flex-shrink: 0;
+            padding: 5px 13px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text-sub);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .chip.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+        /* STATS ROW */
+        .stats-row {
+            display: flex;
+            gap: 10px;
+            padding: 12px 16px 0;
+            flex-shrink: 0;
+        }
+        .stat-card {
+            flex: 1;
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            padding: 10px 12px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border);
+        }
+        .stat-val { font-size: 18px; font-weight: 900; color: var(--text-main); }
+        .stat-val.green { color: var(--success); }
+        .stat-val.red { color: var(--danger); }
+        .stat-label { font-size: 11px; color: var(--text-hint); font-weight: 500; margin-top: 1px; }
+
+        /* SCROLL AREA */
+        .scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px;
+            padding-bottom: calc(var(--bottom-h) + 16px);
+        }
+        .scroll-area::-webkit-scrollbar { display: none; }
+
+        /* PLAYER CARDS */
+        .cards { display: flex; flex-direction: column; gap: 10px; }
+
+        .pcard {
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            animation: fadeUp 0.3s ease both;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .pcard-head {
+            display: flex;
+            align-items: center;
+            padding: 13px 14px 11px;
+            gap: 11px;
+        }
+        .pavatar {
+            width: 42px; height: 42px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 17px; font-weight: 900;
+            flex-shrink: 0;
+        }
+        .pinfo { flex: 1; min-width: 0; }
+        .pname {
+            font-size: 15px; font-weight: 800;
+            color: var(--text-main);
+            display: flex; align-items: center; gap: 6px;
+            flex-wrap: wrap;
+        }
+        .paccount { font-size: 12px; color: var(--text-hint); margin-top: 2px; }
+        .pid-row {
+            font-size: 11px; color: var(--text-hint);
+            display: flex; align-items: center; gap: 4px;
+            margin-top: 2px;
+        }
+
+        .status-pill {
+            padding: 3px 9px; border-radius: 20px;
+            font-size: 11px; font-weight: 700;
+        }
+        .s-on  { background: var(--success-light); color: var(--success); }
+        .s-off { background: var(--danger-light);  color: var(--danger); }
+
+        .tag-badge {
+            padding: 2px 7px; border-radius: 5px;
+            font-size: 10px; font-weight: 700;
+            border: 1.5px solid; flex-shrink: 0;
+        }
+
+        .pcard-divider { height: 1px; background: var(--border); margin: 0 14px; }
+
+        .pcard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            padding: 10px 14px;
+            gap: 8px 0;
+        }
+        .pg-item { display: flex; flex-direction: column; gap: 2px; }
+        .pg-label { font-size: 10px; color: var(--text-hint); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+        .pg-val { font-size: 13px; color: var(--text-sub); font-weight: 600; }
+        .pg-val.money { color: var(--accent); font-weight: 800; font-size: 14px; }
+
+        .pcard-actions {
+            display: flex;
+            border-top: 1px solid var(--border);
+        }
+        .paction {
+            flex: 1; padding: 10px;
+            background: none; border: none;
+            font-size: 13px; font-weight: 700;
+            cursor: pointer; font-family: inherit;
+            color: var(--accent);
+            transition: background 0.15s;
+        }
+        .paction:active { background: var(--accent-light); }
+        .paction + .paction {
+            border-left: 1px solid var(--border);
+            color: var(--text-sub);
+        }
+
+        /* EMPTY */
+        .empty {
+            text-align: center; padding: 48px 24px;
+            color: var(--text-hint);
+        }
+        .empty-icon { font-size: 44px; margin-bottom: 12px; }
+        .empty-text { font-size: 14px; font-weight: 600; }
+
+        /* PAGINATION */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 16px 0 4px;
+        }
+        .pg-btn {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            font-size: 13px; font-weight: 700;
+            color: var(--text-sub);
+            cursor: pointer; font-family: inherit;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .pg-btn.on  { background: var(--primary); border-color: var(--primary); color: #fff; }
+        .pg-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+        /* ═══════════════════════════
+           BOTTOM ACTION BAR
+        ═══════════════════════════ */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0; left: 0;
+            width: 100%; max-width: 430px;
+            height: var(--bottom-h);
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 10px;
+            z-index: 50;
+            box-shadow: 0 -4px 20px rgba(26,46,94,0.07);
+        }
+        .bar-btn {
+            flex: 1;
+            height: 44px;
+            border-radius: var(--radius-sm);
+            border: none;
+            font-size: 14px; font-weight: 700;
+            cursor: pointer; font-family: inherit;
+            display: flex; align-items: center; justify-content: center;
+            gap: 7px;
+            transition: all 0.15s;
+        }
+        .bar-btn:active { transform: scale(0.97); }
+        .bar-filter {
+            background: var(--accent-light);
+            color: var(--accent);
+            border: 1.5px solid rgba(79,124,255,0.2);
+        }
+        .bar-filter.has-filter {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .bar-refresh {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(26,46,94,0.2);
+        }
+        .filter-dot {
+            width: 7px; height: 7px;
+            background: var(--danger);
+            border-radius: 50%;
+            display: none;
+        }
+        .bar-filter.has-filter .filter-dot { display: block; }
+        .spinning { animation: spin 0.8s linear; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ═══════════════════════════
+           BOTTOM SHEETS (MODALS)
+        ═══════════════════════════ */
+        .sheet-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(10,18,45,0.45);
+            z-index: 200;
+            max-width: 430px; margin: 0 auto;
+            align-items: flex-end;
+        }
+        .sheet-overlay.open { display: flex; }
+
+        .sheet {
+            width: 100%;
+            background: var(--surface);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            max-height: 92vh;
+            overflow-y: auto;
+            animation: sheetUp 0.3s cubic-bezier(0.32,0.72,0,1);
+        }
+        @keyframes sheetUp {
+            from { transform: translateY(100%); }
+            to   { transform: translateY(0); }
+        }
+        .sheet-handle {
+            width: 38px; height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin: 10px auto 0;
+        }
+        .sheet-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 20px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sheet-title { font-size: 17px; font-weight: 800; color: var(--text-main); }
+        .sheet-close {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: var(--bg); border: none;
+            font-size: 16px; cursor: pointer; color: var(--text-sub);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .sheet-body { padding: 16px 20px; }
+        .sheet-footer {
+            display: flex; gap: 10px;
+            padding: 12px 20px 28px;
+            border-top: 1px solid var(--border);
+            background: var(--bg);
+        }
+
+        /* FORMS */
+        .fgroup { margin-bottom: 15px; }
+        .flabel {
+            display: block; font-size: 12px; font-weight: 700;
+            color: var(--text-sub); margin-bottom: 6px;
+            text-transform: uppercase; letter-spacing: 0.04em;
+        }
+        .flabel .req { color: var(--danger); margin-left: 2px; }
+        .finput, .fselect {
+            width: 100%; height: 44px; padding: 0 12px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px; font-family: inherit;
+            color: var(--text-main); background: var(--surface);
+            outline: none; transition: border-color 0.15s;
+        }
+        .finput:focus, .fselect:focus { border-color: var(--accent); }
+        .finput:disabled { background: var(--bg); color: var(--text-hint); }
+        .fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .ferr { font-size: 12px; color: var(--danger); margin-top: 4px; display: none; }
+        .pw-wrap { position: relative; }
+        .pw-wrap .finput { padding-right: 60px; }
+        .pw-toggle {
+            position: absolute; right: 10px; top: 50%;
+            transform: translateY(-50%); background: none;
+            border: none; font-size: 11px; color: var(--text-hint);
+            cursor: pointer; font-family: inherit; font-weight: 700;
+        }
+
+        /* SHEET BUTTONS */
+        .sbtn {
+            flex: 1; height: 46px;
+            border-radius: var(--radius-sm);
+            font-size: 15px; font-weight: 700;
+            cursor: pointer; border: none; font-family: inherit;
+        }
+        .sbtn-primary { background: var(--accent); color: #fff; }
+        .sbtn-secondary { background: var(--bg); color: var(--text-sub); }
+        .sbtn-warning { background: var(--warning); color: #fff; }
+
+        /* DETAIL ROWS */
+        .detail-section { margin-bottom: 18px; }
+        .dsection-title {
+            font-size: 10px; font-weight: 800;
+            color: var(--text-hint); letter-spacing: 0.1em;
+            text-transform: uppercase; margin-bottom: 8px;
+        }
+        .drow {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 0; border-bottom: 1px solid var(--border);
+        }
+        .drow:last-child { border-bottom: none; }
+        .dkey { font-size: 13px; color: var(--text-sub); }
+        .dval { font-size: 13px; font-weight: 700; color: var(--text-main); text-align: right; }
+        .dval.money { color: var(--accent); font-size: 15px; }
+
+        /* FILTER SHEET */
+        .filt-group { margin-bottom: 18px; }
+        .filt-group-title { font-size: 12px; font-weight: 800; color: var(--text-sub); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .filt-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+        .fopt {
+            padding: 6px 14px; border-radius: 20px; font-size: 13px;
+            border: 1.5px solid var(--border); background: var(--surface);
+            color: var(--text-sub); cursor: pointer; font-family: inherit;
+            font-weight: 600; transition: all 0.15s;
+        }
+        .fopt.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+        /* OTP */
+        .otp-box {
+            background: var(--warning-light);
+            border: 1.5px solid var(--warning);
+            border-radius: var(--radius-sm);
+            padding: 14px; margin-bottom: 16px;
+        }
+        .otp-title { font-size: 14px; font-weight: 800; color: #92400e; margin-bottom: 6px; }
+        .otp-desc { font-size: 13px; color: #78350f; margin-bottom: 12px; line-height: 1.5; }
+        .otp-row { display: flex; gap: 8px; }
+        .otp-resend {
+            height: 44px; padding: 0 14px;
+            border: 1.5px solid var(--border);
+            background: var(--surface); border-radius: var(--radius-sm);
+            font-size: 13px; font-weight: 700; color: var(--text-sub);
+            cursor: pointer; white-space: nowrap; font-family: inherit;
+        }
+
+        /* TOAST */
+        .toast {
+            position: fixed; top: 68px; left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary); color: #fff;
+            padding: 10px 20px; border-radius: 20px;
+            font-size: 13px; font-weight: 600; z-index: 999;
+            white-space: nowrap; opacity: 0;
+            transition: opacity 0.2s; pointer-events: none;
+        }
+        .toast.show { opacity: 1; }
+        .toast.ok  { background: var(--success); }
+        .toast.err { background: var(--danger); }
+    </style>
+</head>
+<body>
+
+<!-- LEFT DRAWER (full-screen overlay) -->
+<div class="drawer" id="drawer">
+    <!-- top bar -->
+    <div class="drawer-topbar">
+        <button class="drawer-close-btn" onclick="closeDrawer()">✕</button>
+        <div class="drawer-balance">
+            <span class="coin">🟡</span>
+            <span>978,400.00</span>
+        </div>
+        <button class="drawer-refresh-btn" onclick="showToast('餘額已刷新','ok')">↻</button>
+    </div>
+
+    <!-- nav body -->
+    <div class="drawer-body">
+
+        <!-- 會員管理 -->
+        <div class="dnav-group" id="grp1">
+            <div class="dnav-group-header" onclick="toggleGroup('grp1')">
+                <span class="dnav-group-title">會員管理</span>
+                <span class="dnav-chevron">▾</span>
+            </div>
+            <div class="dnav-items">
+                <button class="dnav-item active" onclick="navTo(this,'會員帳戶')">
+                    <span class="dnav-item-label">會員帳戶</span>
+                </button>
+                <button class="dnav-item" onclick="navTo(this,'會員錢包')">
+                    <span class="dnav-item-label">會員錢包</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 代理管理 -->
+        <div class="dnav-group" id="grp2">
+            <div class="dnav-group-header" onclick="toggleGroup('grp2')">
+                <span class="dnav-group-title">代理管理</span>
+                <span class="dnav-chevron">▾</span>
+            </div>
+            <div class="dnav-items">
+                <button class="dnav-item" onclick="navTo(this,'代理商戶')">
+                    <span class="dnav-item-label">代理商戶</span>
+                </button>
+                <button class="dnav-item" onclick="navTo(this,'代理錢包')">
+                    <span class="dnav-item-label">代理錢包</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 運營系統 -->
+        <div class="dnav-group" id="grp3">
+            <div class="dnav-group-header" onclick="toggleGroup('grp3')">
+                <span class="dnav-group-title">運營系統</span>
+                <span class="dnav-chevron">▾</span>
+            </div>
+            <div class="dnav-items">
+                <button class="dnav-item" onclick="navTo(this,'會員錢包明細')">
+                    <span class="dnav-item-label">會員錢包明細</span>
+                </button>
+                <button class="dnav-item" onclick="navTo(this,'代理錢包明細')">
+                    <span class="dnav-item-label">代理錢包明細</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 網咖系統 -->
+        <div class="dnav-group" id="grp4">
+            <div class="dnav-group-header" onclick="toggleGroup('grp4')">
+                <span class="dnav-group-title">網咖系統</span>
+                <span class="dnav-chevron">▾</span>
+            </div>
+            <div class="dnav-items">
+                <button class="dnav-item" onclick="navTo(this,'會員實時餘額管理')">
+                    <span class="dnav-item-label">會員實時餘額管理</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="main">
+
+    <!-- TOP BAR -->
+    <div class="top-bar">
+        <button class="menu-btn" id="menuBtn" onclick="toggleDrawer()">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="search-inline">
+            <span style="color:var(--text-hint);font-size:15px;">🔍</span>
+            <input type="text" id="searchInput" placeholder="搜尋帳號或暱稱…" oninput="refresh()">
+        </div>
+        <button class="add-btn" onclick="openSheet('addSheet')" title="新增玩家">＋</button>
+    </div>
+
+    <!-- CHIP FILTERS -->
+    <div class="chips-row" id="chipsRow">
+        <div class="chip on" onclick="setChip('all', this)">全部</div>
+        <div class="chip" onclick="setChip('active', this)">啟用</div>
+        <div class="chip" onclick="setChip('inactive', this)">停用</div>
+        <div class="chip" onclick="setChip('vip', this)">VIP</div>
+        <div class="chip" onclick="setChip('big', this)">大額</div>
+        <div class="chip" onclick="setChip('risk', this)">高風險</div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-val" id="statTotal">5</div>
+            <div class="stat-label">顯示筆數</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-val green" id="statActive">3</div>
+            <div class="stat-label">啟用中</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-val red" id="statInactive">2</div>
+            <div class="stat-label">已停用</div>
+        </div>
+    </div>
+
+    <!-- SCROLL AREA -->
+    <div class="scroll-area">
+        <div class="cards" id="cardsList"></div>
+        <div class="pagination">
+            <button class="pg-btn" disabled>‹</button>
+            <button class="pg-btn on">1</button>
+            <button class="pg-btn">2</button>
+            <button class="pg-btn">3</button>
+            <button class="pg-btn">›</button>
+        </div>
+    </div>
+
+    <!-- BOTTOM BAR -->
+    <div class="bottom-bar">
+        <button class="bar-btn bar-filter" id="filterBarBtn" onclick="openSheet('filterSheet')">
+            <span>⚙️</span>
+            <span>篩選</span>
+            <div class="filter-dot"></div>
+        </button>
+        <button class="bar-btn bar-refresh" id="refreshBtn" onclick="doRefresh()">
+            <span id="refreshIcon">↻</span>
+            <span>刷新</span>
+        </button>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════ SHEETS ═══════ -->
+
+<!-- ADD SHEET -->
+<div class="sheet-overlay" id="addSheet">
+    <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <span class="sheet-title">新增玩家</span>
+            <button class="sheet-close" onclick="closeSheet('addSheet')">✕</button>
+        </div>
+        <div class="sheet-body">
+            <div class="fgroup">
+                <label class="flabel">玩家帳號 <span class="req">*</span></label>
+                <input type="text" id="addAcc" class="finput" placeholder="6-20個字符，英數字">
+                <div class="ferr" id="addAccErr">請輸入有效帳號（6-20字元）</div>
+            </div>
+            <div class="fgrid">
+                <div class="fgroup">
+                    <label class="flabel">密碼 <span class="req">*</span></label>
+                    <div class="pw-wrap">
+                        <input type="password" id="addPw" class="finput" placeholder="至少8字符">
+                        <button type="button" class="pw-toggle" onclick="tpw('addPw',this)">顯示</button>
+                    </div>
+                    <div class="ferr" id="addPwErr">請輸入密碼</div>
+                </div>
+                <div class="fgroup">
+                    <label class="flabel">確認密碼 <span class="req">*</span></label>
+                    <div class="pw-wrap">
+                        <input type="password" id="addCpw" class="finput" placeholder="再次輸入">
+                        <button type="button" class="pw-toggle" onclick="tpw('addCpw',this)">顯示</button>
+                    </div>
+                    <div class="ferr" id="addCpwErr">密碼不一致</div>
+                </div>
+            </div>
+            <div class="fgrid">
+                <div class="fgroup">
+                    <label class="flabel">玩家暱稱 <span class="req">*</span></label>
+                    <input type="text" id="addNick" class="finput" placeholder="顯示名稱">
+                    <div class="ferr" id="addNickErr">請輸入暱稱</div>
+                </div>
+                <div class="fgroup">
+                    <label class="flabel">所屬代理 <span class="req">*</span></label>
+                    <select id="addAgent" class="fselect">
+                        <option value="">請選擇</option>
+                        <option value="agent001">agent001</option>
+                        <option value="agent002">agent002</option>
+                        <option value="agent003">agent003</option>
+                    </select>
+                    <div class="ferr" id="addAgentErr">請選擇代理</div>
+                </div>
+            </div>
+            <div class="fgrid">
+                <div class="fgroup">
+                    <label class="flabel">國碼</label>
+                    <select class="fselect"><option value="">-</option><option value="+81">+81 日本</option></select>
+                </div>
+                <div class="fgroup">
+                    <label class="flabel">電話號碼</label>
+                    <input type="tel" class="finput" placeholder="選填">
+                </div>
+            </div>
+            <div class="fgroup">
+                <label class="flabel">信箱</label>
+                <input type="email" class="finput" placeholder="選填">
+            </div>
+        </div>
+        <div class="sheet-footer">
+            <button class="sbtn sbtn-secondary" onclick="closeSheet('addSheet')">取消</button>
+            <button class="sbtn sbtn-primary" onclick="submitAdd()">確認新增</button>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW SHEET -->
+<div class="sheet-overlay" id="viewSheet">
+    <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <span class="sheet-title">玩家詳情</span>
+            <button class="sheet-close" onclick="closeSheet('viewSheet')">✕</button>
+        </div>
+        <div class="sheet-body" id="viewBody"></div>
+        <div class="sheet-footer">
+            <button class="sbtn sbtn-secondary" onclick="closeSheet('viewSheet')">關閉</button>
+            <button class="sbtn sbtn-primary" onclick="editFromView()">編輯資料</button>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT SHEET -->
+<div class="sheet-overlay" id="editSheet">
+    <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <span class="sheet-title">編輯玩家</span>
+            <button class="sheet-close" onclick="closeSheet('editSheet')">✕</button>
+        </div>
+        <div class="sheet-body">
+            <div class="fgroup">
+                <label class="flabel">玩家編號</label>
+                <input type="text" id="editCode" class="finput" disabled>
+            </div>
+            <div class="fgrid">
+                <div class="fgroup">
+                    <label class="flabel">玩家帳號</label>
+                    <input type="text" id="editAcc" class="finput" disabled>
+                </div>
+                <div class="fgroup">
+                    <label class="flabel">所屬代理</label>
+                    <input type="text" id="editAgent" class="finput" disabled>
+                </div>
+            </div>
+            <div class="fgrid">
+                <div class="fgroup">
+                    <label class="flabel">玩家暱稱 <span class="req">*</span></label>
+                    <input type="text" id="editNick" class="finput">
+                    <div class="ferr" id="editNickErr">請輸入暱稱</div>
+                </div>
+                <div class="fgroup">
+                    <label class="flabel">狀態</label>
+                    <select id="editStatus" class="fselect">
+                        <option value="active">啟用</option>
+                        <option value="inactive">停用</option>
+                    </select>
+                </div>
+            </div>
+            <div class="fgroup">
+                <label class="flabel">用戶標籤</label>
+                <select id="editTag" class="fselect">
+                    <option value="vip">VIP用戶</option>
+                    <option value="new">新用戶</option>
+                    <option value="general">一般用戶</option>
+                    <option value="risk">高風險</option>
+                    <option value="big">大額用戶</option>
+                </select>
+            </div>
+            <div class="fgrid">
+                <div class="fgroup">
+                    <label class="flabel">新密碼</label>
+                    <div class="pw-wrap">
+                        <input type="password" id="editPw" class="finput" placeholder="留空則不修改">
+                        <button type="button" class="pw-toggle" onclick="tpw('editPw',this)">顯示</button>
+                    </div>
+                </div>
+                <div class="fgroup">
+                    <label class="flabel">確認新密碼</label>
+                    <div class="pw-wrap">
+                        <input type="password" id="editCpw" class="finput" placeholder="留空則不修改">
+                        <button type="button" class="pw-toggle" onclick="tpw('editCpw',this)">顯示</button>
+                    </div>
+                </div>
+            </div>
+            <div class="fgrid">
+                <div class="fgroup">
+                    <label class="flabel">電話</label>
+                    <input type="tel" id="editPhone" class="finput" placeholder="選填">
+                </div>
+                <div class="fgroup">
+                    <label class="flabel">信箱</label>
+                    <input type="email" id="editEmail" class="finput" placeholder="選填">
+                </div>
+            </div>
+        </div>
+        <div class="sheet-footer">
+            <button class="sbtn sbtn-secondary" onclick="closeSheet('editSheet')">取消</button>
+            <button class="sbtn sbtn-primary" onclick="submitEdit()">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- OTP SHEET -->
+<div class="sheet-overlay" id="otpSheet">
+    <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <span class="sheet-title">🔐 安全驗證</span>
+            <button class="sheet-close" onclick="closeSheet('otpSheet')">✕</button>
+        </div>
+        <div class="sheet-body">
+            <div class="otp-box">
+                <div class="otp-title">🔐 安全驗證</div>
+                <div class="otp-desc">您正在修改敏感資料，驗證碼已發送至管理員手機：<strong>+886-9**-***-234</strong></div>
+                <div class="otp-row">
+                    <input type="number" id="otpCode" class="finput" placeholder="請輸入6位驗證碼" style="flex:1;">
+                    <button class="otp-resend" onclick="showToast('驗證碼已重新發送','ok')">重新發送</button>
+                </div>
+                <div class="ferr" id="otpErr" style="display:none;margin-top:6px;">驗證碼錯誤，請重試</div>
+                <div style="font-size:12px;color:var(--text-hint);margin-top:8px;">驗證碼有效期 5 分鐘</div>
+            </div>
+            <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;">
+                <div style="font-size:12px;font-weight:800;color:var(--text-sub);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">將修改內容</div>
+                <div id="otpChanges" style="font-size:13px;color:var(--text-sub);line-height:1.7;"></div>
+            </div>
+        </div>
+        <div class="sheet-footer">
+            <button class="sbtn sbtn-secondary" onclick="closeSheet('otpSheet')">取消</button>
+            <button class="sbtn sbtn-warning" onclick="verifyOtp()">驗證並提交</button>
+        </div>
+    </div>
+</div>
+
+<!-- FILTER SHEET -->
+<div class="sheet-overlay" id="filterSheet">
+    <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <span class="sheet-title">進階篩選</span>
+            <button class="sheet-close" onclick="closeSheet('filterSheet')">✕</button>
+        </div>
+        <div class="sheet-body">
+            <div class="filt-group">
+                <div class="filt-group-title">所屬代理</div>
+                <div class="filt-opts">
+                    <button class="fopt on" onclick="tog(this)">全部</button>
+                    <button class="fopt" onclick="tog(this)">agent001</button>
+                    <button class="fopt" onclick="tog(this)">agent002</button>
+                    <button class="fopt" onclick="tog(this)">agent003</button>
+                </div>
+            </div>
+            <div class="filt-group">
+                <div class="filt-group-title">帳號狀態</div>
+                <div class="filt-opts">
+                    <button class="fopt on" onclick="tog(this)">全部</button>
+                    <button class="fopt" onclick="tog(this)">啟用</button>
+                    <button class="fopt" onclick="tog(this)">停用</button>
+                </div>
+            </div>
+            <div class="filt-group">
+                <div class="filt-group-title">用戶標籤</div>
+                <div class="filt-opts">
+                    <button class="fopt on" onclick="tog(this)">全部</button>
+                    <button class="fopt" onclick="tog(this)">VIP用戶</button>
+                    <button class="fopt" onclick="tog(this)">新用戶</button>
+                    <button class="fopt" onclick="tog(this)">一般用戶</button>
+                    <button class="fopt" onclick="tog(this)">高風險</button>
+                    <button class="fopt" onclick="tog(this)">大額用戶</button>
+                </div>
+            </div>
+            <div class="filt-group">
+                <div class="filt-group-title">電話國碼</div>
+                <div class="filt-opts">
+                    <button class="fopt on" onclick="tog(this)">全部</button>
+                    <button class="fopt" onclick="tog(this)">+81 日本</button>
+                </div>
+            </div>
+            <div class="filt-group">
+                <div class="filt-group-title">註冊時間</div>
+                <div class="fgrid">
+                    <div class="fgroup" style="margin-bottom:0;">
+                        <label class="flabel">開始日期</label>
+                        <input type="date" class="finput">
+                    </div>
+                    <div class="fgroup" style="margin-bottom:0;">
+                        <label class="flabel">結束日期</label>
+                        <input type="date" class="finput">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="sheet-footer">
+            <button class="sbtn sbtn-secondary" onclick="resetFilter()">重置</button>
+            <button class="sbtn sbtn-primary" onclick="applyFilter()">套用篩選</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ─── DATA ─── */
+var players = [
+    { id:'p1', code:'10001432', account:'player001', nickname:'幸運玩家', agent:'agent001',
+      tag:'vip', tagLabel:'VIP用戶', tagColor:'#2e7d32', tagBg:'#e8f5e9', tagBorder:'#4caf50',
+      balance:'$12,580.00', status:'active', countryCode:'-', phone:'-', email:'-',
+      regTime:'2024-01-15 10:30', lastLogin:'2025-10-20 14:22', lastIp:'203.145.67.89' },
+    { id:'p2', code:'10001429', account:'player002', nickname:'贏家888', agent:'agent002',
+      tag:'new', tagLabel:'新用戶', tagColor:'#1976d2', tagBg:'#e3f2fd', tagBorder:'#2196f3',
+      balance:'$5,230.50', status:'active', countryCode:'+81', phone:'123456789', email:'-',
+      regTime:'2025-10-15 09:15', lastLogin:'2025-10-20 16:45', lastIp:'118.160.23.45' },
+    { id:'p3', code:'10001329', account:'player003', nickname:'金幣王', agent:'agent001',
+      tag:'general', tagLabel:'一般用戶', tagColor:'#e65100', tagBg:'#fff3e0', tagBorder:'#ff9800',
+      balance:'$8,450.25', status:'inactive', countryCode:'+81', phone:'123000789', email:'player003@example.com',
+      regTime:'2024-06-20 11:22', lastLogin:'2025-10-19 09:18', lastIp:'61.220.145.78' },
+    { id:'p4', code:'10001679', account:'player004', nickname:'小試身手', agent:'agent003',
+      tag:'risk', tagLabel:'高風險', tagColor:'#c62828', tagBg:'#ffebee', tagBorder:'#f44336',
+      balance:'$950.00', status:'inactive', countryCode:'-', phone:'-', email:'-',
+      regTime:'2025-08-03 14:35', lastLogin:'2025-10-18 13:27', lastIp:'203.145.67.89' },
+    { id:'p5', code:'10001439', account:'player005', nickname:'大富翁', agent:'agent001',
+      tag:'big', tagLabel:'大額用戶', tagColor:'#2e7d32', tagBg:'#e8f5e9', tagBorder:'#4caf50',
+      balance:'$25,680.75', status:'active', countryCode:'-', phone:'-', email:'player005@example.com',
+      regTime:'2023-12-10 16:44', lastLogin:'2025-10-20 10:32', lastIp:'118.160.23.45' }
+];
+
+var avatarBgs    = ['#e8f0fe','#fce8f3','#fef9e7','#e8faf5','#f0e8fe'];
+var avatarColors = ['#1a56db','#bf125d','#d97706','#059669','#7e22ce'];
+var chipFilter = 'all';
+var currentViewId = null;
+var hasActiveFilter = false;
+
+/* ─── DRAWER ─── */
+var drawerOpen = false;
+function toggleDrawer() { drawerOpen ? closeDrawer() : openDrawer(); }
+function openDrawer() {
+    drawerOpen = true;
+    document.getElementById('drawer').classList.add('open');
+    document.getElementById('menuBtn').classList.add('open');
+}
+function closeDrawer() {
+    drawerOpen = false;
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('menuBtn').classList.remove('open');
+}
+function toggleGroup(id) {
+    document.getElementById(id).classList.toggle('collapsed');
+}
+function navTo(el, name) {
+    document.querySelectorAll('.dnav-item').forEach(function(n){ n.classList.remove('active'); });
+    el.classList.add('active');
+    closeDrawer();
+    if (name !== '個人帳戶' && name !== '會員帳戶') showToast(name + ' 功能開發中', '');
+}
+
+/* ─── SHEETS ─── */
+function openSheet(id) {
+    var el = document.getElementById(id);
+    el.style.display = 'flex';
+    requestAnimationFrame(function(){ el.classList.add('open'); });
+}
+function closeSheet(id) { document.getElementById(id).classList.remove('open'); setTimeout(function(){ document.getElementById(id).style.display='none'; },300); }
+document.querySelectorAll('.sheet-overlay').forEach(function(el){
+    el.addEventListener('click', function(e){ if(e.target === el) closeSheet(el.id); });
+    el.style.display = 'none';
+});
+
+/* ─── RENDER ─── */
+function getList() {
+    var q = document.getElementById('searchInput').value.trim().toLowerCase();
+    return players.filter(function(p){
+        var mChip = chipFilter === 'all' ||
+            (chipFilter === 'active' && p.status === 'active') ||
+            (chipFilter === 'inactive' && p.status === 'inactive') ||
+            p.tag === chipFilter;
+        var mQ = !q || p.account.toLowerCase().includes(q) || p.nickname.toLowerCase().includes(q);
+        return mChip && mQ;
+    });
+}
+
+function renderCards() {
+    var list = getList();
+    var c = document.getElementById('cardsList');
+    if (!list.length) {
+        c.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">找不到符合條件的玩家</div></div>';
+    } else {
+        c.innerHTML = list.map(function(p, i){
+            var bg = avatarBgs[i % avatarBgs.length];
+            var fg = avatarColors[i % avatarColors.length];
+            var init = p.nickname.charAt(0);
+            var sCls = p.status === 'active' ? 's-on' : 's-off';
+            var sLbl = p.status === 'active' ? '啟用' : '停用';
+            return '<div class="pcard" style="animation-delay:'+(i*0.05)+'s">' +
+                '<div class="pcard-head">' +
+                    '<div class="pavatar" style="background:'+bg+';color:'+fg+'">'+init+'</div>' +
+                    '<div class="pinfo">' +
+                        '<div class="pname">'+p.nickname+
+                            ' <span class="tag-badge" style="background:'+p.tagBg+';color:'+p.tagColor+';border-color:'+p.tagBorder+'">'+p.tagLabel+'</span>' +
+                        '</div>' +
+                        '<div class="paccount">@'+p.account+'</div>' +
+                        '<div class="pid-row"># '+p.code+' <button onclick="copyTxt(\''+p.code+'\')" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text-hint);">📋</button></div>' +
+                    '</div>' +
+                    '<span class="status-pill '+sCls+'">'+sLbl+'</span>' +
+                '</div>' +
+                '<div class="pcard-divider"></div>' +
+                '<div class="pcard-grid">' +
+                    '<div class="pg-item"><span class="pg-label">餘額</span><span class="pg-val money">'+p.balance+'</span></div>' +
+                    '<div class="pg-item"><span class="pg-label">所屬代理</span><span class="pg-val">'+p.agent+'</span></div>' +
+                    '<div class="pg-item"><span class="pg-label">最後登入</span><span class="pg-val">'+p.lastLogin.split(' ')[0]+'</span></div>' +
+                    '<div class="pg-item"><span class="pg-label">IP 位置</span><span class="pg-val">'+p.lastIp+'</span></div>' +
+                '</div>' +
+                '<div class="pcard-actions">' +
+                    '<button class="paction" onclick="viewPlayer(\''+p.id+'\')">查看詳情</button>' +
+                    '<button class="paction" onclick="editPlayer(\''+p.id+'\')">編輯</button>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+    }
+    // stats
+    var active = list.filter(function(p){ return p.status==='active'; }).length;
+    document.getElementById('statTotal').textContent = list.length;
+    document.getElementById('statActive').textContent = active;
+    document.getElementById('statInactive').textContent = list.length - active;
+}
+
+function refresh() { renderCards(); }
+
+/* ─── CHIP FILTER ─── */
+function setChip(val, el) {
+    chipFilter = val;
+    document.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('on'); });
+    el.classList.add('on');
+    renderCards();
+}
+
+/* ─── REFRESH BUTTON ─── */
+function doRefresh() {
+    var icon = document.getElementById('refreshIcon');
+    icon.classList.add('spinning');
+    setTimeout(function(){
+        icon.classList.remove('spinning');
+        renderCards();
+        showToast('資料已刷新', 'ok');
+    }, 800);
+}
+
+/* ─── FILTER ─── */
+function tog(el) { el.classList.toggle('on'); }
+function applyFilter() {
+    hasActiveFilter = true;
+    document.getElementById('filterBarBtn').classList.add('has-filter');
+    closeSheet('filterSheet');
+    showToast('篩選條件已套用', 'ok');
+}
+function resetFilter() {
+    hasActiveFilter = false;
+    document.getElementById('filterBarBtn').classList.remove('has-filter');
+    document.querySelectorAll('.fopt').forEach(function(o){ o.classList.remove('on'); });
+    document.querySelectorAll('.filt-group .fopt:first-child').forEach(function(o){ o.classList.add('on'); });
+    showToast('篩選已重置', '');
+}
+
+/* ─── VIEW ─── */
+function viewPlayer(id) {
+    var p = players.find(function(x){ return x.id===id; });
+    if(!p) return;
+    currentViewId = id;
+    var sColor = p.status==='active' ? 'var(--success)' : 'var(--danger)';
+    var sLabel = p.status==='active' ? '啟用' : '停用';
+    document.getElementById('viewBody').innerHTML =
+        '<div class="detail-section">' +
+            '<div class="dsection-title">基本資料</div>' +
+            drow('玩家編號', p.code+' <button onclick="copyTxt(\''+p.code+'\')" style="background:none;border:none;cursor:pointer;">📋</button>') +
+            drow('玩家帳號', p.account) +
+            drow('玩家暱稱', p.nickname) +
+            drow('所屬代理', p.agent) +
+            drow('用戶標籤', '<span class="tag-badge" style="background:'+p.tagBg+';color:'+p.tagColor+';border-color:'+p.tagBorder+'">'+p.tagLabel+'</span>') +
+        '</div>' +
+        '<div class="detail-section">' +
+            '<div class="dsection-title">帳戶狀態</div>' +
+            drow('餘額', '<span class="dval money">'+p.balance+'</span>') +
+            drow('帳號狀態', '<span style="color:'+sColor+';font-weight:800;">'+sLabel+'</span>') +
+        '</div>' +
+        '<div class="detail-section">' +
+            '<div class="dsection-title">聯絡資訊</div>' +
+            drow('國碼', p.countryCode) +
+            drow('電話號碼', p.phone) +
+            drow('信箱', p.email) +
+        '</div>' +
+        '<div class="detail-section">' +
+            '<div class="dsection-title">登入紀錄</div>' +
+            drow('註冊時間', p.regTime) +
+            drow('最後登入', p.lastLogin) +
+            drow('最後登入IP', p.lastIp) +
+        '</div>';
+    openSheet('viewSheet');
+}
+function drow(k, v) {
+    return '<div class="drow"><span class="dkey">'+k+'</span><span class="dval">'+v+'</span></div>';
+}
+function editFromView() {
+    closeSheet('viewSheet');
+    setTimeout(function(){ if(currentViewId) editPlayer(currentViewId); }, 200);
+}
+
+/* ─── EDIT ─── */
+function editPlayer(id) {
+    var p = players.find(function(x){ return x.id===id; });
+    if(!p) return;
+    currentViewId = id;
+    document.getElementById('editCode').value = p.code;
+    document.getElementById('editAcc').value = p.account;
+    document.getElementById('editAgent').value = p.agent;
+    document.getElementById('editNick').value = p.nickname;
+    document.getElementById('editStatus').value = p.status;
+    document.getElementById('editTag').value = p.tag;
+    document.getElementById('editPhone').value = p.phone==='-'?'':p.phone;
+    document.getElementById('editEmail').value = p.email==='-'?'':p.email;
+    document.getElementById('editPw').value = '';
+    document.getElementById('editCpw').value = '';
+    openSheet('editSheet');
+}
+function submitEdit() {
+    var nick = document.getElementById('editNick').value.trim();
+    if (!nick) { document.getElementById('editNickErr').style.display='block'; return; }
+    document.getElementById('editNickErr').style.display='none';
+    var pw = document.getElementById('editPw').value;
+    var phone = document.getElementById('editPhone').value;
+    var email = document.getElementById('editEmail').value;
+    if (pw || phone || email) {
+        var changes = [];
+        if (pw) changes.push('• 密碼已更新');
+        if (phone) changes.push('• 電話：' + phone);
+        if (email) changes.push('• 信箱：' + email);
+        document.getElementById('otpChanges').innerHTML = changes.join('<br>');
+        closeSheet('editSheet');
+        setTimeout(function(){ openSheet('otpSheet'); }, 200);
+    } else {
+        closeSheet('editSheet');
+        showToast('玩家資料已更新', 'ok');
+    }
+}
+
+/* ─── ADD ─── */
+function submitAdd() {
+    var acc = document.getElementById('addAcc').value.trim();
+    var pw  = document.getElementById('addPw').value;
+    var cpw = document.getElementById('addCpw').value;
+    var nick = document.getElementById('addNick').value.trim();
+    var agent = document.getElementById('addAgent').value;
+    var ok = true;
+    function chk(cond, errId) {
+        document.getElementById(errId).style.display = cond ? 'none' : 'block';
+        if (!cond) ok = false;
+    }
+    chk(acc.length>=6, 'addAccErr');
+    chk(pw.length>=8,  'addPwErr');
+    chk(pw===cpw,      'addCpwErr');
+    chk(!!nick,        'addNickErr');
+    chk(!!agent,       'addAgentErr');
+    if (!ok) return;
+    closeSheet('addSheet');
+    showToast('玩家 '+acc+' 新增成功', 'ok');
+}
+
+/* ─── OTP ─── */
+function verifyOtp() {
+    var code = document.getElementById('otpCode').value;
+    if (code.length === 6) {
+        document.getElementById('otpErr').style.display = 'none';
+        closeSheet('otpSheet');
+        showToast('資料已成功更新', 'ok');
+    } else {
+        document.getElementById('otpErr').style.display = 'block';
+    }
+}
+
+/* ─── UTILS ─── */
+function tpw(id, btn) {
+    var el = document.getElementById(id);
+    el.type = el.type==='password' ? 'text' : 'password';
+    btn.textContent = el.type==='password' ? '顯示' : '隱藏';
+}
+function copyTxt(text) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function(){ showToast('已複製：'+text,'ok'); });
+    } else {
+        var ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta);
+        ta.select(); document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('已複製：'+text,'ok');
+    }
+}
+var _toastT;
+function showToast(msg, type) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (type ? ' '+type : '');
+    clearTimeout(_toastT);
+    _toastT = setTimeout(function(){ t.className='toast'; }, 2500);
+}
+
+/* ─── INIT ─── */
+renderCards();
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: jpcafe-nginx
+    ports:
+      - "3031:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./versions:/usr/share/nginx/html/versions:ro
+      - ./logs:/var/log/nginx
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Tokyo
+    networks:
+      - jpcafe-network
+
+networks:
+  jpcafe-network:
+    driver: bridge

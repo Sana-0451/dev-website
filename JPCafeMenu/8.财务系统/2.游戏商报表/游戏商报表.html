@@ -1,0 +1,1854 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>遊戲商報表管理系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .main-content {
+            margin-left: 0;
+            margin-top: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .search-section {
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .search-first-row {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .search-additional-rows {
+            padding: 0 20px 20px 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            transition: all 0.3s ease;
+        }
+
+        .search-section.collapsed .search-additional-rows {
+            display: none;
+        }
+
+        .collapse-toggle {
+            font-size: 14px;
+            color: #409eff;
+            cursor: pointer;
+            transition: color 0.2s;
+            margin-left: auto;
+        }
+
+        .collapse-toggle:hover {
+            color: #337ecc;
+        }
+
+        .search-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-label {
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .search-input, .search-select {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 120px;
+            transition: all 0.2s ease;
+            background: white;
+            color: #606266;
+            outline: none;
+        }
+
+        .search-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23909399' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 8px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 32px;
+        }
+
+        .search-input:hover, .search-select:hover {
+            border-color: #c0c4cc;
+        }
+
+        .search-input:focus, .search-select:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+
+        .date-range {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .date-input {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 150px;
+        }
+
+        .search-buttons {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+            padding: 0 20px 20px 20px;
+        }
+
+        .search-btn, .reset-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+            min-width: 70px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .search-btn {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .search-btn:hover {
+            background: #66b1ff;
+            border-color: #66b1ff;
+        }
+
+        .reset-btn {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .reset-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .table-header {
+            background: #fafafa;
+            border-radius: 8px 8px 0 0;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8e8e8;
+            margin-bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .view-mode-switch {
+            display: flex;
+            background: white;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .view-mode-btn {
+            padding: 8px 16px;
+            border: none;
+            background: white;
+            color: #606266;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-right: 1px solid #dcdfe6;
+        }
+
+        .view-mode-btn:last-child {
+            border-right: none;
+        }
+
+        .view-mode-btn:hover {
+            background: #ecf5ff;
+            color: #409eff;
+        }
+
+        .view-mode-btn.active {
+            background: #409eff;
+            color: white;
+        }
+
+        .table-header-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+            min-width: 70px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .table-header-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .report-table {
+            background: white;
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #e8e8e8;
+            border-right: 1px solid #e8e8e8;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #606266;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+
+        .sortable:hover {
+            color: #409eff;
+        }
+
+        .sortable::after {
+            content: '⇅';
+            position: absolute;
+            right: 5px;
+            color: #ccc;
+            font-size: 12px;
+        }
+
+        .provider-name {
+            color: #409eff;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .provider-name:hover {
+            text-decoration: underline;
+        }
+
+        .amount {
+            font-weight: 600;
+            text-align: right !important;
+            color: #333;
+        }
+
+        .total-row {
+            background: #666 !important;
+            color: white;
+            font-weight: 600;
+        }
+
+        .total-row td {
+            color: white;
+        }
+
+        .timezone {
+            color: #666;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .date-range-display {
+            color: #666;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: #f5f5f5;
+        }
+
+        .page-btn.active {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* System Info Section */
+        .system-info-section {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .info-card h3 {
+            background: #f8f9fa;
+            margin: 0;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: white;
+        }
+
+        .info-table th {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            text-align: center;
+            font-weight: 600;
+            color: #606266;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #666;
+            line-height: 1.6;
+            vertical-align: top;
+            text-align: center;
+        }
+
+        .info-table td:nth-child(2),
+        .info-table td:nth-child(3) {
+            text-align: left;
+        }
+
+        .info-table td:first-child {
+            font-weight: 500;
+        }
+
+        .info-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .info-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .info-note {
+            background: #f0f9ff;
+            border: 1px solid #b3d8ff;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #1565c0;
+        }
+
+        .info-note strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        /* Column Settings Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 8px;
+            width: 600px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8e8e8;
+            background: #fafafa;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .column-settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .select-all {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .select-all input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .reset-btn-small {
+            padding: 6px 12px;
+            border: 1px solid #dcdfe6;
+            background: white;
+            color: #606266;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .reset-btn-small:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .column-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            gap: 12px;
+        }
+
+        .column-item:last-child {
+            border-bottom: none;
+        }
+
+        .drag-handle {
+            cursor: pointer;
+            color: #ccc;
+            font-size: 14px;
+            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+        }
+
+        .drag-handle:hover {
+            color: #409eff;
+        }
+
+        .arrow-up, .arrow-down {
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+        }
+
+        .arrow-up {
+            border-bottom: 6px solid currentColor;
+        }
+
+        .arrow-down {
+            border-top: 6px solid currentColor;
+        }
+
+        .column-checkbox {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .column-name {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .column-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            border: 1px solid #dcdfe6;
+            background: white;
+            color: #606266;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-start;
+            gap: 12px;
+            padding: 16px 20px;
+            border-top: 1px solid #e8e8e8;
+            background: #fafafa;
+        }
+
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+        }
+
+        .modal-btn-primary {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .modal-btn-primary:hover {
+            background: #66b1ff;
+            border-color: #66b1ff;
+        }
+
+        .modal-btn-secondary {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+    </style>
+</head>
+<body>
+    <main class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>遊戲商報表</h1>
+            </div>
+
+            <div class="search-section" id="searchSection">
+                <div class="search-first-row">
+                    <div class="search-item">
+                        <label class="search-label">資料類型:</label>
+                        <select id="dataType" class="search-select">
+                            <option value="注單明細" selected>注單明細</option>
+                            <option value="交易明細">交易明細</option>
+                        </select>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">遊戲商時區:</label>
+                        <select id="providerTimezone" class="search-select">
+                            <option value="">請選擇</option>
+                            <option value="UTC-4">UTC-4</option>
+                            <option value="UTC+0">UTC+0</option>
+                            <option value="UTC+4">UTC+4</option>
+                            <option value="UTC+7">UTC+7</option>
+                            <option value="UTC+8">UTC+8</option>
+                            <option value="UTC+9">UTC+9</option>
+                        </select>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">注單統計時區:</label>
+                        <select id="timezone" class="search-select">
+                            <option value="">請選擇</option>
+                            <option value="UTC-4">UTC-4</option>
+                            <option value="UTC+0">UTC+0</option>
+                            <option value="UTC+4">UTC+4</option>
+                            <option value="UTC+7">UTC+7</option>
+                            <option value="UTC+8">UTC+8</option>
+                            <option value="UTC+9">UTC+9</option>
+                        </select>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">🕒</label>
+                        <div class="date-range">
+                            <input type="date" id="startDate" class="date-input" value="2025-05-25">
+                            <span>~</span>
+                            <input type="date" id="endDate" class="date-input" value="2025-05-31">
+                        </div>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">所屬代理:</label>
+                        <select id="agent" class="search-select">
+                            <option value="">請選擇</option>
+                            <option value="System">System</option>
+                            <option value="Agent001">Agent001</option>
+                        </select>
+                    </div>
+                    <div class="collapse-toggle" id="collapseToggle" onclick="toggleSearchSection()">收起</div>
+                </div>
+                <div class="search-additional-rows">
+                    <div class="search-item">
+                        <label class="search-label">集成商:</label>
+                        <select id="integrator" class="search-select">
+                            <option value="">請選擇</option>
+                            <option value="ZF">ZF</option>
+                            <option value="OPS">OPS</option>
+                            <option value="Kuma">Kuma</option>
+                        </select>
+                    </div>
+                    <div class="search-item">
+                        <label class="search-label">遊戲商:</label>
+                        <select id="provider" class="search-select">
+                            <option value="">請選擇</option>
+                            <option value="Pragmatic Play">Pragmatic Play</option>
+                            <option value="Play'n GO">Play'n GO</option>
+                            <option value="Nolimit City">Nolimit City</option>
+                            <option value="Mancala Gaming">Mancala Gaming</option>
+                            <option value="PGSoft">PGSoft</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="search-buttons">
+                    <button class="search-btn" onclick="searchReports()">🔍 搜索</button>
+                    <button class="reset-btn" onclick="resetSearch()">重置</button>
+                </div>
+            </div>
+
+            <div class="table-header">
+                <div class="view-mode-switch" id="viewModeSwitch" style="display: none;">
+                    <button class="view-mode-btn active" data-mode="summary" onclick="switchViewMode('summary')">匯總</button>
+                    <button class="view-mode-btn" data-mode="daily" onclick="switchViewMode('daily')">每日</button>
+                    <button class="view-mode-btn" data-mode="monthly" onclick="switchViewMode('monthly')">每月</button>
+                </div>
+                <div style="margin-left: auto; display: flex; gap: 8px;">
+                    <button class="table-header-btn" onclick="exportReport()">導出</button>
+                    <button class="table-header-btn" onclick="columnSettings()">列設置</button>
+                </div>
+            </div>
+
+            <div class="report-table">
+                <table>
+                    <thead id="tableHeader">
+                        <tr>
+                            <th>遊戲商名稱</th>
+                            <th>遊戲商時區</th>
+                            <th>集成商名稱</th>
+                            <th class="sortable">總投注</th>
+                            <th class="sortable">總贏彩</th>
+                            <th class="sortable">總輸贏</th>
+                            <th class="sortable">遊戲商點位</th>
+                            <th class="sortable">遊戲商成本</th>
+                            <th class="sortable">投注筆數</th>
+                            <th>注單統計時區</th>
+                            <th>時間區間</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTableBody">
+                        <tr class="total-row">
+                            <td>總計</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td class="amount">123,122,400.00</td>
+                            <td class="amount">123,122,400.00</td>
+                            <td class="amount">123,122,400.00</td>
+                            <td>-</td>
+                            <td class="amount">91,122,400.00</td>
+                            <td class="amount">123,234</td>
+                            <td>-</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td><a href="#" class="provider-name">Pragmatic Play</a></td>
+                            <td class="timezone">UTC +0</td>
+                            <td>zf</td>
+                            <td class="amount">123,400.00</td>
+                            <td class="amount">150.00</td>
+                            <td class="amount">20.00</td>
+                            <td class="amount">6.00 %</td>
+                            <td class="amount">123,400.00</td>
+                            <td class="amount">3</td>
+                            <td class="timezone">UTC +9</td>
+                            <td class="date-range-display">2025/5/26 00:00 ~ 2025/5/26 23:59</td>
+                        </tr>
+                        <tr>
+                            <td><a href="#" class="provider-name">Play'n GO</a></td>
+                            <td class="timezone">UTC +0</td>
+                            <td>zf</td>
+                            <td class="amount">2,400.00</td>
+                            <td class="amount">150.00</td>
+                            <td class="amount">20.00</td>
+                            <td class="amount">6.00 %</td>
+                            <td class="amount">2,400.00</td>
+                            <td class="amount">7</td>
+                            <td class="timezone">UTC +9</td>
+                            <td class="date-range-display">2025/5/26 00:00 ~ 2025/5/26 23:59</td>
+                        </tr>
+                        <tr>
+                            <td><a href="#" class="provider-name">Nolimit City</a></td>
+                            <td class="timezone">UTC +7</td>
+                            <td>zf</td>
+                            <td class="amount">123,123,400.00</td>
+                            <td class="amount">150.00</td>
+                            <td class="amount">20.00</td>
+                            <td class="amount">6.00 %</td>
+                            <td class="amount">123,123,400.00</td>
+                            <td class="amount">3</td>
+                            <td class="timezone">UTC +9</td>
+                            <td class="date-range-display">2025/5/26 00:00 ~ 2025/5/26 23:59</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="pagination">
+                    <div class="pagination-info">
+                        共 1 頁 10 條,共計 9580 條
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" disabled>‹</button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">›</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 系統說明區塊 -->
+            <div class="system-info-section">
+                <div class="info-card">
+                    <h3>系統規則</h3>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="20%">規則類型</th>
+                                <th width="80%">規則內容</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>資料來源</td>
+                                <td>此為統計報表,可選擇資料來源(交易明細 or 注單明細)以方便交收使用</td>
+                            </tr>
+                            <tr>
+                                <td>成本計算</td>
+                                <td>遊戲商成本:遊戲商輸贏✕遊戲商點位<br>
+                                    當遊戲商輸贏為負數時,成本顯示為0<br>
+                                點位可在 遊戲商管理>遊戲商設置 頁面中編輯</td>
+                            </tr>
+                            <tr>
+                                <td>數據更新</td>
+                                <td>每小時自動更新遊戲統計數據,確保數據即時性</td>
+                            </tr>
+                            <tr>
+                                <td>搜尋限制</td>
+                                <td>最多僅限查詢4個月(含本月),一次最多查詢31天</td>
+                            </tr>
+                            <tr>
+                                <td>日報表呈現</td>
+                                <td><strong style="color: #f56c6c;">當選擇一個集成商＋一個遊戲商時，</strong>會出現「匯總/每日」切換報表功能</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>搜尋功能列</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>重要提醒：</strong><br>
+                        一進畫面就帶入預設值，並顯示搜索出來的資料。<br>
+                        點擊「重置」按鈕回到預設值，如果按下搜尋時是空值，則自動帶入預設值。<br>
+                        <br>
+                        搜索條件如在二行以上，右方會出現「展開/收起」按鈕(一行則不顯示按鈕)。<br>
+                        收起時為一行搜索條件＋一行搜索、重置按鈕。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">欄位</th>
+                                <th width="60%">內容說明</th>
+                                <th width="25%">模式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>資料來源</td>
+                                <td>
+                                    點擊選擇資料的來源<br>
+                                    預設顯示交易明細<br>
+                                    下拉選單：注單明細、交易明細
+                                </td>
+                                <td>下拉選單，必填</td>
+                            </tr>
+                            <tr>
+                                <td>遊戲商時區</td>
+                                <td>
+                                    點擊可篩選該時區的所有遊戲商<br>
+                                    預設為全部遊戲商<br>
+                                    下拉選單：-4、+0、+4、+7、+8、+9<br>
+                                </td>
+                                <td>下拉選單，非必填<br>下拉框提示文字：請選擇</td>
+                            </tr>
+                            <tr>
+                                <td>注單統計時區</td>
+                                <td>
+                                    點擊可選擇不同時區進行數據統計<br>
+                                    預設為各家遊戲商的各自時區<br>
+                                    下拉選單：UTC-4、+0、+4、+7、+8、+9
+                                </td>
+                                <td>下拉選單，非必填<br>下拉框提示文字：請選擇</td>
+                            </tr>
+                            <tr>
+                                <td>時間</td>
+                                <td>
+                                    點擊選擇搜尋的時間範圍<br>                                  
+                                    預設為今天<br>
+                                    例：今天2025/5/26顯示：2025/5/26 00:00 ~ 2025/5/26 23:59
+                                </td>
+                                <td>時間選擇器</td>
+                            </tr>
+                            <tr>
+                                <td>所屬代理</td>
+                                <td>
+                                    點擊選擇所屬代理<br>
+                                    預設顯示全部代理資料<br>
+                                    所選代理的資料一定包含下級代理數據<br>
+                                </td>
+                                <td>下拉選單，非必填<br>下拉框提示文字：請選擇</td>
+                            </tr>
+                            <tr>
+                                <td>集成商名稱</td>
+                                <td>
+                                    點擊選擇集成商，可複選<br>
+                                    預設顯示全部集成商資料<br>
+                                </td>
+                                <td>下拉選單，非必填<br>下拉框提示文字：請選擇</td>
+                            </tr>
+                            <tr>
+                                <td>遊戲商名稱</td>
+                                <td>
+                                    點擊選擇遊戲商，可複選<br>
+                                    預設顯示全部遊戲商資料<br>
+                                </td>
+                                <td>下拉選單，非必填<br>下拉框提示文字：請選擇</td>
+                            </tr>
+                            <tr>
+                                <td>搜索</td>
+                                <td>點擊觸發搜尋</td>
+                                <td>按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>重置</td>
+                                <td>點擊將搜尋條件回到預設值</td>
+                                <td>按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>視圖切換功能</h3>
+                    <div class="info-note">
+                        <strong>功能說明:</strong>
+                        當選擇單一集成商下的單一遊戲商進行搜索時,表格左上方會顯示「匯總/每日」切換按鈕。<br>
+                        可切換不同視圖模式查看該遊戲商在時間範圍內的統計數據。<br>
+                        切換視圖時會自動更新表格標題和數據內容。
+                    </div>
+                    
+                    <div style="margin-bottom: 20px; padding: 16px; background: #f8f9fa; border-radius: 6px;">
+                        <h4 style="font-size: 13px; font-weight: 600; color: #666; margin-bottom: 12px;">切換按鈕預覽</h4>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 12px; color: #666;">位置: 表格左上方</span>
+                            <div style="display: flex; background: white; border: 1px solid #dcdfe6; border-radius: 6px; overflow: hidden;">
+                                <div style="padding: 8px 16px; background: #409eff; color: white; font-size: 13px; font-weight: 500; border-right: 1px solid #dcdfe6;">匯總</div>
+                                <div style="padding: 8px 16px; background: white; color: #606266; font-size: 13px; font-weight: 500; border-right: 1px solid #dcdfe6;">每日</div>
+                                <div style="padding: 8px 16px; background: white; color: #606266; font-size: 13px; font-weight: 500;">每月</div>
+                            </div>
+                            <span style="font-size: 12px; color: #999;">← 藍色為當前選中</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 12px; padding-left: 16px;">視圖預覽示例</h4>
+                        
+                        <!-- 匯總視圖預覽 -->
+                        <div style="margin-bottom: 16px; padding: 0 16px;">
+                            <div style="font-size: 13px; font-weight: 600; color: #409eff; margin-bottom: 8px;">① 匯總視圖(概念範例)</div>
+                            <div style="overflow-x: auto; border: 1px solid #e8e8e8; border-radius: 4px;">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 12px; background: white;">
+                                    <thead>
+                                        <tr style="background: #f8f9fa;">
+                                            <th style="padding: 8px; border-bottom: 1px solid #e8e8e8; text-align: center; font-weight: 600;">遊戲商名稱</th>
+                                            <th style="padding: 8px; border-bottom: 1px solid #e8e8e8; text-align: center; font-weight: 600;">總投注</th>
+                                            <th style="padding: 8px; border-bottom: 1px solid #e8e8e8; text-align: center; font-weight: 600;">總贏彩</th>
+                                            <th style="padding: 8px; border-bottom: 1px solid #e8e8e8; text-align: center; font-weight: 600;">總輸贏</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align: center; color: #409eff;">Pragmatic Play</td>
+                                            <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align: right;">123,400.00</td>
+                                            <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align: right;">120,150.00</td>
+                                            <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align: right;">3,250.00</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style="font-size: 12px; color: #666; margin-top: 4px; padding-left: 4px;"><strong style="color: #f56c6c;">→ 顯示搜索的整個時間範圍的匯總數據</strong></div>
+                        </div>
+                        
+                        <!-- 每日視圖預覽 -->
+                        <div style="margin-bottom: 16px; padding: 0 16px;">
+                            <div style="font-size: 13px; font-weight: 600; color: #409eff; margin-bottom: 8px;">② 每日視圖(概念範例)</div>
+                            <div style="overflow-x: auto; border: 1px solid #e8e8e8; border-radius: 4px;">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 12px; background: white;">
+                                    <thead>
+                                        <tr style="background: #f8f9fa;">
+                                            <th style="padding: 8px; border-bottom: 1px solid #e8e8e8; text-align: center; font-weight: 600;">遊戲商名稱</th>
+                                            <th style="padding: 8px; border-bottom: 1px solid #e8e8e8; text-align: center; font-weight: 600;">總投注</th>
+                                            <th style="padding: 8px; border-bottom: 1px solid #e8e8e8; text-align: center; font-weight: 600;">總贏彩</th>
+                                            <th style="padding: 8px; border-bottom: 1px solid #e8e8e8; text-align: center; font-weight: 600;">總輸贏</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="background: #666; color: white;">
+                                            <td style="padding: 6px 8px; border-bottom: 1px solid #555; text-align: center; font-weight: 600;">總計</td>
+                                            <td style="padding: 6px 8px; border-bottom: 1px solid #555; text-align: right; font-weight: 600;">123,400.00</td>
+                                            <td style="padding: 6px 8px; border-bottom: 1px solid #555; text-align: right; font-weight: 600;">120,150.00</td>
+                                            <td style="padding: 6px 8px; border-bottom: 1px solid #555; text-align: right; font-weight: 600;">3,250.00</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align: center; color: #409eff;">Pragmatic Play - 2025/5/25</td>
+                                            <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align: right;">18,234.00</td>
+                                            <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align: right;">17,890.00</td>
+                                            <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align: right;">344.00</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align: center; color: #409eff;">Pragmatic Play - 2025/5/26</td>
+                                            <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align: right;">19,567.00</td>
+                                            <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align: right;">18,923.00</td>
+                                            <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align: right;">644.00</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px; text-align: center; color: #409eff;">Pragmatic Play - 2025/5/27</td>
+                                            <td style="padding: 8px; text-align: right;">17,899.00</td>
+                                            <td style="padding: 8px; text-align: right;">17,234.00</td>
+                                            <td style="padding: 8px; text-align: right;">665.00</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style="font-size: 12px; color: #666; margin-top: 4px; padding-left: 4px;"><strong style="color: #f56c6c;">→ 呈現每天一筆記錄,顯示每日總計數據</strong></div>
+                        </div>
+                        
+                        <!-- 每月視圖預覽 -->
+                        <div style="margin-bottom: 16px; padding: 0 16px;">
+                            <div style="font-size: 13px; font-weight: 600; color: #409eff; margin-bottom: 8px;">③ 每月視圖(概念範例)</div>
+                            <div style="overflow-x: auto; border: 1px solid #e8e8e8; border-radius: 4px;">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 12px; background: white;">
+                                    <thead>
+                                        <tr style="background: #f8f9fa;">
+                                            <th style="padding: 8px; border-bottom: 1px solid #e8e8e8; text-align: center; font-weight: 600;">月份</th>
+                                            <th style="padding: 8px; border-bottom: 1px solid #e8e8e8; text-align: center; font-weight: 600;">總投注</th>
+                                            <th style="padding: 8px; border-bottom: 1px solid #e8e8e8; text-align: center; font-weight: 600;">總贏彩</th>
+                                            <th style="padding: 8px; border-bottom: 1px solid #e8e8e8; text-align: center; font-weight: 600;">總輸贏</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="background: #666; color: white;">
+                                            <td style="padding: 6px 8px; border-bottom: 1px solid #555; text-align: center; font-weight: 600;">總計</td>
+                                            <td style="padding: 6px 8px; border-bottom: 1px solid #555; text-align: right; font-weight: 600;">1,234,567.00</td>
+                                            <td style="padding: 6px 8px; border-bottom: 1px solid #555; text-align: right; font-weight: 600;">1,198,234.00</td>
+                                            <td style="padding: 6px 8px; border-bottom: 1px solid #555; text-align: right; font-weight: 600;">36,333.00</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align: center; color: #409eff;">Pragmatic Play - 2025/3</td>
+                                            <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align: right;">523,456.00</td>
+                                            <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align: right;">508,234.00</td>
+                                            <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align: right;">15,222.00</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px; text-align: center; color: #409eff;">Pragmatic Play - 2025/4</td>
+                                            <td style="padding: 8px; text-align: right;">711,111.00</td>
+                                            <td style="padding: 8px; text-align: right;">690,000.00</td>
+                                            <td style="padding: 8px; text-align: right;">21,111.00</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style="font-size: 12px; color: #666; margin-top: 4px; padding-left: 4px;"><strong style="color: #f56c6c;">→ 呈現每月一筆記錄,顯示月度統計數據</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3>列設置功能</h3>
+                    <div class="info-note">
+                        <strong>功能說明:</strong>
+                        點擊表格右上方的「列設置」按鈕,可調整表格顯示的欄位、順序和釘選位置。<br>
+                        設定會即時生效,並在當前頁面中保持。<br>
+                        導出則是原始欄位及順序不受列設置影響。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">功能項目</th>
+                                <th width="60%">功能說明</th>
+                                <th width="25%">操作方式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>全選控制</td>
+                                <td>
+                                    一鍵選擇或取消選擇所有欄位<br>
+                                    當部分欄位被選中時,顯示半選狀態<br>
+                                </td>
+                                <td>點擊「全選」勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>欄位顯示控制</td>
+                                <td>
+                                    控制每個欄位是否在表格中顯示<br>
+                                    未勾選的欄位將在表格中隱藏<br>
+                                    表格中的第一欄為鎖定,不可隱藏
+                                </td>
+                                <td>點擊欄位名稱前的勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>拖拽排序</td>
+                                <td>
+                                    點擊左側的上下箭頭調整欄位在表格中的顯示順序<br>
+                                    調整後的順序會即時反映在表格中
+                                </td>
+                                <td>點擊左側的「↑↓」箭頭圖示</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到左側</td>
+                                <td>
+                                    將選中的欄位固定在表格最左側<br>
+                                    釘選的欄位在橫向滾動時保持可見
+                                </td>
+                                <td>點擊「釘選到左側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到右側</td>
+                                <td>
+                                    將選中的欄位固定在表格最右側<br>
+                                    釘選的欄位在橫向滾動時保持可見<br>
+                                </td>
+                                <td>點擊「釘選到右側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消釘選</td>
+                                <td>
+                                    移除欄位的左側或右側釘選狀態<br>
+                                    欄位將回到正常的滾動區域<br>
+                                </td>
+                                <td>點擊「取消釘選」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>重置設定</td>
+                                <td>
+                                    清除所有自定義的排序和釘選設定<br>
+                                    回到系統初始的欄位配置
+                                </td>
+                                <td>點擊「重置」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>保存設定</td>
+                                <td>
+                                    應用當前的欄位配置到表格顯示<br>
+                                    設定在當前瀏覽器頁面中保持有效<br>
+                                </td>
+                                <td>點擊「保存」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消操作</td>
+                                <td>
+                                    放棄當前的所有配置更改<br>
+                                    回到進入設定前的狀態
+                                </td>
+                                <td>點擊「取消」按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>資料表說明</h3>
+                    <div class="info-note">
+                        <strong>重要提醒:</strong>
+                        總計列和標題列為頁頂固定不可上下拖動,可左右拖曳。<br>
+                        總計列為所有頁數的數據加總,部分欄位不顯示。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="8%">排序</th>
+                                <th width="15%">欄位</th>
+                                <th width="57%">內容說明</th>
+                                <th width="20%">顯示模式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>-</td>
+                                <td>導出</td>
+                                <td>將搜索結果導出為xlsx格式<br>
+                                    Ex檔名:2025-05-26-0000-2025-05-26-2359 遊戲商報表.xlsx</td>
+                                <td>按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>遊戲商名稱</td>
+                                <td>
+                                    顯示遊戲商名稱<br>
+                                    點擊可跳轉至遊戲報表,查看該遊戲商的詳細資訊
+                                </td>
+                                <td>藍色文字+點擊功能</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>遊戲商時區</td>
+                                <td>顯示該遊戲商所在的時區</td>
+                                <td>時區格式</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>集成商名稱</td>
+                                <td>顯示該遊戲對應的集成商名稱</td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>✓</td>
+                                <td>總投注</td>
+                                <td>顯示該遊戲商所有注單的投注加總</td>
+                                <td>數字顯示<br>小數點2位,需補0</td>
+                            </tr>
+                            <tr>
+                                <td>✓</td>
+                                <td>總贏彩</td>
+                                <td>顯示該遊戲商所有注單的贏彩加總</td>
+                                <td>數字顯示<br>小數點2位,需補0</td>
+                            </tr>
+                            <tr>
+                                <td>✓</td>
+                                <td>總輸贏</td>
+                                <td>顯示該遊戲商所有注單的輸贏加總</td>
+                                <td>數字顯示<br>小數點2位,需補0</td>
+                            </tr>
+                            <tr>
+                                <td>✓</td>
+                                <td>遊戲商點位</td>
+                                <td>顯示該遊戲商的點位</td>
+                                <td>百分比顯示<br>小數點2位,需補0</td>
+                            </tr>
+                            <tr>
+                                <td>✓</td>
+                                <td>遊戲商成本</td>
+                                <td>顯示該遊戲商的總成本</td>
+                                <td>數字顯示<br>小數點2位,需補0</td>
+                            </tr>
+                            <tr>
+                                <td>✓</td>
+                                <td>投注筆數</td>
+                                <td>顯示該遊戲商所有注單中,投注>0的注單筆數</td>
+                                <td>數字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>注單統計時區</td>
+                                <td>顯示列表中注單的統計時區</td>
+                                <td>時區格式</td>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>時間區間</td>
+                                <td>
+                                    顯示列表中注單的<strong>搜取時間範圍</strong><br>
+                                    例:2024-05-31 00:00 ~ 2024-05-31 23:59
+                                </td>
+                                <td>時間格式</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Column Settings Modal -->
+    <div class="modal-overlay" id="columnSettingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">列設置</div>
+                <button class="modal-close" onclick="closeColumnSettings()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="column-settings-header">
+                    <div class="select-all">
+                        <input type="checkbox" id="selectAllColumns" onchange="toggleAllColumns()" checked>
+                        <label for="selectAllColumns">全選</label>
+                    </div>
+                    <button class="reset-btn-small" onclick="resetColumnSettings()">重置</button>
+                </div>
+                <div class="column-list">
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">遊戲商名稱</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">遊戲商時區</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">集成商名稱</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">總投注</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">總贏彩</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">總輸贏</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">遊戲商點位</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">遊戲商成本</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <div class="drag-handle">
+                            <div class="arrow-up"></div>
+                            <div class="arrow-down"></div>
+                        </div>
+                        <input type="checkbox" class="column-checkbox" checked>
+                        <div class="column-name">投注筆數</div>
+                        <div class="column-actions">
+                            <button class="action-btn">釘選到左側</button>
+                            <button class="action-btn">取消釘選</button>
+                            <button class="action-btn">釘選到右側</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-secondary" onclick="closeColumnSettings()">取消</button>
+                <button class="modal-btn modal-btn-primary" onclick="saveColumnSettings()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let originalTableData = null;
+            let currentViewMode = 'summary';
+            let currentProvider = '';
+            
+            window.toggleSearchSection = function() {
+                const searchSection = document.getElementById('searchSection');
+                const collapseToggle = document.getElementById('collapseToggle');
+                searchSection.classList.toggle('collapsed');
+                collapseToggle.textContent = searchSection.classList.contains('collapsed') ? '展開' : '收起';
+            };
+            
+            window.searchReports = function() {
+                const provider = document.getElementById('provider').value;
+                const tableBody = document.getElementById('reportTableBody');
+                const rows = Array.from(tableBody.querySelectorAll('tr:not(.total-row)'));
+                const viewModeSwitch = document.getElementById('viewModeSwitch');
+                
+                if (originalTableData === null) {
+                    originalTableData = tableBody.innerHTML;
+                }
+                
+                if (provider && provider !== '') {
+                    viewModeSwitch.style.display = 'flex';
+                    currentProvider = provider;
+                } else {
+                    viewModeSwitch.style.display = 'none';
+                    currentProvider = '';
+                    currentViewMode = 'summary';
+                    updateViewModeButtons();
+                }
+                
+                let visibleCount = 0;
+                rows.forEach(row => {
+                    const providerCell = row.cells[0].textContent;
+                    const matchProvider = !provider || providerCell.includes(provider);
+                    
+                    if (matchProvider) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                
+                showNotification(`找到 ${visibleCount} 個匹配的遊戲商記錄`, 'success');
+            };
+            
+            window.resetSearch = function() {
+                document.getElementById('dataType').value = '注單明細';
+                document.getElementById('providerTimezone').value = '';
+                document.getElementById('timezone').value = '';
+                document.getElementById('startDate').value = '2025-05-25';
+                document.getElementById('endDate').value = '2025-05-31';
+                document.getElementById('agent').value = '';
+                document.getElementById('integrator').value = '';
+                document.getElementById('provider').value = '';
+                
+                const tableBody = document.getElementById('reportTableBody');
+                if (originalTableData !== null) {
+                    tableBody.innerHTML = originalTableData;
+                    originalTableData = null;
+                }
+                
+                document.getElementById('viewModeSwitch').style.display = 'none';
+                currentViewMode = 'summary';
+                currentProvider = '';
+                updateViewModeButtons();
+                updateTableHeader('summary');
+                
+                showNotification('搜索已重置', 'success');
+            };
+            
+            window.switchViewMode = function(mode) {
+                currentViewMode = mode;
+                updateViewModeButtons();
+                updateTableHeader(mode);
+                
+                const tableBody = document.getElementById('reportTableBody');
+                
+                if (mode === 'summary') {
+                    if (originalTableData !== null) {
+                        tableBody.innerHTML = originalTableData;
+                        searchReports();
+                    }
+                    showNotification('切換至匯總視圖', 'success');
+                } else if (mode === 'daily') {
+                    generateDailyView(currentProvider, tableBody);
+                } else if (mode === 'monthly') {
+                    generateMonthlyView(currentProvider, tableBody);
+                }
+            };
+            
+            function updateViewModeButtons() {
+                document.querySelectorAll('.view-mode-btn').forEach(btn => {
+                    if (btn.dataset.mode === currentViewMode) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+            
+            function updateTableHeader(mode) {
+                const tableHeader = document.getElementById('tableHeader');
+                
+                if (mode === 'daily' || mode === 'monthly') {
+                    tableHeader.innerHTML = `
+                        <tr>
+                            <th>${mode === 'daily' ? '遊戲商名稱' : '月份'}</th>
+                            <th>遊戲商時區</th>
+                            <th>集成商名稱</th>
+                            <th class="sortable">總投注</th>
+                            <th class="sortable">總贏彩</th>
+                            <th class="sortable">總輸贏</th>
+                            <th class="sortable">遊戲商點位</th>
+                            <th class="sortable">遊戲商成本</th>
+                            <th class="sortable">投注筆數</th>
+                            <th>注單統計時區</th>
+                            <th>時間區間</th>
+                        </tr>
+                    `;
+                } else {
+                    tableHeader.innerHTML = `
+                        <tr>
+                            <th>遊戲商名稱</th>
+                            <th>遊戲商時區</th>
+                            <th>集成商名稱</th>
+                            <th class="sortable">總投注</th>
+                            <th class="sortable">總贏彩</th>
+                            <th class="sortable">總輸贏</th>
+                            <th class="sortable">遊戲商點位</th>
+                            <th class="sortable">遊戲商成本</th>
+                            <th class="sortable">投注筆數</th>
+                            <th>注單統計時區</th>
+                            <th>時間區間</th>
+                        </tr>
+                    `;
+                }
+            }
+            
+            function generateDailyView(provider, tableBody) {
+                const startDate = new Date(document.getElementById('startDate').value);
+                const endDate = new Date(document.getElementById('endDate').value);
+                
+                let totalBet = 0, totalWin = 0, totalProfit = 0, totalCost = 0, totalCount = 0;
+                let html = '';
+                
+                for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                    const displayDate = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+                    
+                    const bet = 15000 + Math.random() * 5000;
+                    const win = bet * (0.95 + Math.random() * 0.1);
+                    const profit = bet - win;
+                    const rate = 6 + Math.random() * 2;
+                    const cost = profit * (rate / 100);
+                    const count = Math.floor(50 + Math.random() * 100);
+                    
+                    totalBet += bet;
+                    totalWin += win;
+                    totalProfit += profit;
+                    totalCost += cost;
+                    totalCount += count;
+                    
+                    html += `
+                        <tr>
+                            <td><span class="provider-name">${provider} - ${displayDate}</span></td>
+                            <td class="timezone">UTC +0</td>
+                            <td>zf</td>
+                            <td class="amount">${bet.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                            <td class="amount">${win.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                            <td class="amount">${profit.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                            <td class="amount">${rate.toFixed(2)} %</td>
+                            <td class="amount">${cost.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                            <td class="amount">${count.toLocaleString()}</td>
+                            <td class="timezone">UTC +9</td>
+                            <td class="date-range-display">${displayDate} 00:00 ~ ${displayDate} 23:59</td>
+                        </tr>
+                    `;
+                }
+                
+                html = `
+                    <tr class="total-row">
+                        <td>總計</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td class="amount">${totalBet.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                        <td class="amount">${totalWin.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                        <td class="amount">${totalProfit.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                        <td>-</td>
+                        <td class="amount">${totalCost.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                        <td class="amount">${totalCount.toLocaleString()}</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                ` + html;
+                
+                tableBody.innerHTML = html;
+                showNotification('切換至每日視圖', 'success');
+            }
+            
+            function generateMonthlyView(provider, tableBody) {
+                const startDate = new Date(document.getElementById('startDate').value);
+                const endDate = new Date(document.getElementById('endDate').value);
+                
+                const months = [];
+                let current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+                const end = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+                
+                while (current <= end) {
+                    months.push(new Date(current));
+                    current.setMonth(current.getMonth() + 1);
+                }
+                
+                let totalBet = 0, totalWin = 0, totalProfit = 0, totalCost = 0, totalCount = 0;
+                let html = '';
+                
+                months.forEach(month => {
+                    const year = month.getFullYear();
+                    const monthNum = month.getMonth() + 1;
+                    const displayMonth = `${year}/${monthNum}`;
+                    
+                    const bet = 450000 + Math.random() * 150000;
+                    const win = bet * (0.95 + Math.random() * 0.1);
+                    const profit = bet - win;
+                    const rate = 6 + Math.random() * 2;
+                    const cost = profit * (rate / 100);
+                    const count = Math.floor(1500 + Math.random() * 3000);
+                    
+                    totalBet += bet;
+                    totalWin += win;
+                    totalProfit += profit;
+                    totalCost += cost;
+                    totalCount += count;
+                    
+                    const lastDay = new Date(year, monthNum, 0).getDate();
+                    
+                    html += `
+                        <tr>
+                            <td><span class="provider-name">${provider} - ${displayMonth}</span></td>
+                            <td class="timezone">UTC +0</td>
+                            <td>zf</td>
+                            <td class="amount">${bet.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                            <td class="amount">${win.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                            <td class="amount">${profit.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                            <td class="amount">${rate.toFixed(2)} %</td>
+                            <td class="amount">${cost.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                            <td class="amount">${count.toLocaleString()}</td>
+                            <td class="timezone">UTC +9</td>
+                            <td class="date-range-display">${year}/${monthNum}/1 00:00 ~ ${year}/${monthNum}/${lastDay} 23:59</td>
+                        </tr>
+                    `;
+                });
+                
+                html = `
+                    <tr class="total-row">
+                        <td>總計</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td class="amount">${totalBet.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                        <td class="amount">${totalWin.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                        <td class="amount">${totalProfit.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                        <td>-</td>
+                        <td class="amount">${totalCost.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                        <td class="amount">${totalCount.toLocaleString()}</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                ` + html;
+                
+                tableBody.innerHTML = html;
+                showNotification('切換至每月視圖', 'success');
+            }
+            
+            window.exportReport = function() {
+                showNotification('報表導出功能開發中...', 'success');
+            };
+            
+            window.columnSettings = function() {
+                document.getElementById('columnSettingsModal').classList.add('show');
+                updateSelectAllState();
+            };
+
+            window.closeColumnSettings = function() {
+                document.getElementById('columnSettingsModal').classList.remove('show');
+            };
+
+            document.getElementById('columnSettingsModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeColumnSettings();
+                }
+            });
+
+            window.toggleAllColumns = function() {
+                const selectAllCheckbox = document.getElementById('selectAllColumns');
+                const columnCheckboxes = document.querySelectorAll('.column-checkbox');
+                columnCheckboxes.forEach(checkbox => {
+                    checkbox.checked = selectAllCheckbox.checked;
+                });
+            };
+
+            function updateSelectAllState() {
+                const selectAllCheckbox = document.getElementById('selectAllColumns');
+                const columnCheckboxes = document.querySelectorAll('.column-checkbox');
+                const checkedCount = Array.from(columnCheckboxes).filter(cb => cb.checked).length;
+                
+                if (checkedCount === columnCheckboxes.length) {
+                    selectAllCheckbox.checked = true;
+                    selectAllCheckbox.indeterminate = false;
+                } else if (checkedCount === 0) {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = false;
+                } else {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = true;
+                }
+            }
+
+            document.addEventListener('change', function(e) {
+                if (e.target.classList.contains('column-checkbox')) {
+                    updateSelectAllState();
+                }
+            });
+
+            window.resetColumnSettings = function() {
+                const columnCheckboxes = document.querySelectorAll('.column-checkbox');
+                columnCheckboxes.forEach(checkbox => {
+                    checkbox.checked = true;
+                });
+                updateSelectAllState();
+                showNotification('列設置已重置', 'success');
+            };
+
+            window.saveColumnSettings = function() {
+                const selectedColumns = [];
+                document.querySelectorAll('.column-checkbox:checked').forEach(checkbox => {
+                    const columnName = checkbox.closest('.column-item').querySelector('.column-name').textContent;
+                    selectedColumns.push(columnName);
+                });
+                
+                showNotification('列設置已保存', 'success');
+                closeColumnSettings();
+            };
+            
+            window.showNotification = function(message, type = 'success') {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 12px 20px;
+                    border-radius: 6px;
+                    color: white;
+                    font-size: 14px;
+                    z-index: 10001;
+                    transition: all 0.3s ease;
+                    ${type === 'success' ? 'background: #67c23a;' : 'background: #f56c6c;'}
+                `;
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => document.body.removeChild(notification), 300);
+                }, 3000);
+            };
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系統操作日誌</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .search-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .search-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-label {
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .search-input, .search-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 150px;
+        }
+
+        .search-input.wide {
+            width: 200px;
+        }
+
+        .date-range {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .date-input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .search-input:focus, .search-select:focus, .date-input:focus {
+            outline: none;
+            border-color: #409eff;
+        }
+
+        .search-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+            min-width: 80px;
+        }
+
+        .btn-primary {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .btn-primary:hover {
+            background: #66b1ff;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .btn-secondary:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .table-header {
+            background: #fafafa;
+            border-radius: 8px 8px 0 0;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 30px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 0 0 8px 8px;
+            overflow: visible;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            table-layout: fixed;
+        }
+
+        th, td {
+            padding: 12px 8px;
+            text-align: center;
+            border-bottom: 1px solid #e8e8e8;
+            border-right: 1px solid #e8e8e8;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #606266;
+        }
+
+        /* 欄位寬度設定 */
+        th:nth-child(1), td:nth-child(1) { width: 8%; } /* 日誌ID */
+        th:nth-child(2), td:nth-child(2) { width: 10%; } /* 操作用戶 */
+        th:nth-child(3), td:nth-child(3) { width: 7%; } /* 方法 */
+        th:nth-child(4), td:nth-child(4) { width: 18%; } /* 功能路徑 */
+        th:nth-child(5), td:nth-child(5) { width: 15%; } /* 操作行為 */
+        th:nth-child(6), td:nth-child(6) { width: 10%; } /* 修改參數 */
+        th:nth-child(7), td:nth-child(7) { width: 13%; } /* IP地址 */
+        th:nth-child(8), td:nth-child(8) { width: 14%; } /* 創建時間 */
+
+        tbody tr:nth-child(odd) {
+            background: #fafafa;
+        }
+
+        tbody tr:hover {
+            background: #f0f9ff;
+        }
+
+        .method-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.5px;
+        }
+
+        .method-get {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .method-post {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .method-put {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            font-size: 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            background: white;
+            color: #606266;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .path-btn {
+            display: inline-block;
+            padding: 3px 8px;
+            margin: 2px 0;
+            font-size: 11px;
+            border: 1px solid #409eff;
+            border-radius: 4px;
+            background: #ecf5ff;
+            color: #409eff;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .path-btn:hover {
+            background: #409eff;
+            color: white;
+        }
+
+        .path-info {
+            font-size: 10px;
+            color: #909399;
+            margin-top: 4px;
+            font-family: 'Courier New', monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: #f5f5f5;
+        }
+
+        .page-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .page-btn.active {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 3% auto;
+            border-radius: 8px;
+            width: 700px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e8e8e8;
+            border-radius: 8px 8px 0 0;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .close {
+            font-size: 28px;
+            color: #999;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .detail-section {
+            margin-bottom: 24px;
+        }
+
+        .detail-section h4 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #409eff;
+        }
+
+        .change-box {
+            background: #f8f9fa;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+            padding: 12px;
+            margin-top: 8px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: #fafafa;
+            border-radius: 0 0 8px 8px;
+            position: sticky;
+            bottom: 0;
+        }
+
+        .system-info-section {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .info-card h3 {
+            background: #f8f9fa;
+            margin: 0;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .info-table th {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            text-align: center;
+            font-weight: 600;
+            color: #606266;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #666;
+            line-height: 1.6;
+            vertical-align: top;
+        }
+
+        .info-table td:first-child {
+            font-weight: 500;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .info-table td:nth-child(2),
+        .info-table td:nth-child(3) {
+            text-align: left;
+        }
+
+        .info-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .info-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .info-notice {
+            background: #f0f9ff;
+            border: 1px solid #b3d8ff;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #1565c0;
+        }
+
+        .highlight-text {
+            color: #ba6cf5;
+            font-weight: 500;
+        }
+
+        .column-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .column-item:hover {
+            border-color: #409eff;
+            background: #f0f9ff;
+        }
+
+        .column-item.dragging {
+            opacity: 0.5;
+            cursor: move;
+        }
+
+        .drag-handle {
+            cursor: move;
+            color: #909399;
+            padding: 0 8px;
+            font-size: 18px;
+        }
+
+        .drag-handle:hover {
+            color: #409eff;
+        }
+
+        .column-checkbox {
+            margin: 0 12px 0 0;
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .column-name {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .column-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .column-btn {
+            padding: 4px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            background: white;
+            color: #606266;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .column-btn:hover:not(:disabled) {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .column-btn.active {
+            background: #409eff;
+            border-color: #409eff;
+            color: white;
+        }
+
+        .column-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .pin-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-left: 8px;
+            background: #e3f2fd;
+            color: #1976d2;
+            font-weight: 500;
+        }
+
+        .select-all-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .select-all-row label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .select-all-row input {
+            margin-right: 8px;
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>系統操作日誌</h1>
+        </div>
+
+        <div class="search-section">
+            <div class="search-row">
+                
+                <div class="search-item">
+                    <label class="search-label">操作用戶:</label>
+                    <input type="text" id="searchOperator" class="search-input" placeholder="">
+                </div>
+                <div class="search-item">
+                    <label class="search-label">🕐</label>
+                    <div class="date-range">
+                        <input type="date" id="startDate" class="date-input" value="2025-05-25">
+                        <span>~</span>
+                        <input type="date" id="endDate" class="date-input" value="2025-05-25">
+                    </div>
+                </div>
+                <div class="search-item">
+                    <label class="search-label">功能路徑:</label>
+                    <input type="text" id="searchPath" class="search-input wide" placeholder="">
+                </div>
+                <div class="search-item">
+                    <label class="search-label">參數內容:</label>
+                    <input type="text" id="searchPath" class="search-input wide" placeholder="">
+                </div>
+            </div>
+            <div class="search-buttons">
+                <button class="btn btn-primary" onclick="searchLogs()">🔍 搜索</button>
+                <button class="btn btn-secondary" onclick="resetSearch()">重置</button>
+            </div>
+        </div>
+
+        <div class="table-header">
+            <div class="stats-row"></div>
+            <button class="btn btn-secondary" onclick="openColumnSettings()">列設置</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>日誌ID</th>
+                        <th>操作用戶</th>
+                        <th>方法</th>
+                        <th>功能路徑</th>
+                        <th>操作行為</th>
+                        <th>修改參數</th>
+                        <th>IP地址</th>
+                        <th>創建時間</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td>100001</td>
+                        <td>admin001</td>
+                        <td><span class="method-badge method-put">PUT</span></td>
+                        <td>
+                            <button class="path-btn" onclick="filterByPath('個人帳戶')">/api/users/:id<br>個人帳戶</button>
+                            <!-- <div class="path-info">/api/users/:id</div> -->
+                        </td>
+                        <td>修改玩家暱稱</td>
+                        <td><button class="action-btn" onclick="viewDetail('LOG202512100001')">查看</button></td>
+                        <td>203.145.67.89</td>
+                        <td>2025-12-10 14:32:15</td>
+                    </tr>
+                    <tr>
+                        <td>100002</td>
+                        <td>agent001</td>
+                        <td><span class="method-badge method-post">POST</span></td>
+                        <td>
+                            <button class="path-btn" onclick="filterByPath('個人帳戶')">/api/users/:id<br>個人帳戶</button>
+                            <!-- <div class="path-info">/api/users/:id</div> -->
+                        </td>
+                        <td>新增玩家帳號</td>
+                        <td><button class="action-btn" onclick="viewDetail('LOG202512100002')">查看</button></td>
+                        <td>118.160.23.45</td>
+                        <td>2025-12-10 14:25:08</td>
+                    </tr>
+                    <tr>
+                        <td>100003</td>
+                        <td>admin002</td>
+                        <td><span class="method-badge method-put">PUT</span></td>
+                        <td>
+                            <button class="path-btn" onclick="filterByPath('財務管理')">/api/financialSystem/gameReport<br>財務管理</button>
+                            <!-- <div class="path-info">/api/financialSystem/gameReport</div> -->
+                        </td>
+                        <td>財務報表導出</td>
+                        <td><button class="action-btn" onclick="viewDetail('LOG202512100003')">查看</button></td>
+                        <td>61.220.145.78</td>
+                        <td>2025-12-10 14:18:42</td>
+                    </tr>
+                    <tr>
+                        <td>100004</td>
+                        <td>agent002</td>
+                        <td><span class="method-badge method-put">PUT</span></td>
+                        <td>
+                            <button class="path-btn" onclick="filterByPath('個人帳戶')">/api/users/:id<br>個人帳戶</button>
+                            <!-- <div class="path-info">/api/users/:id</div> -->
+                        </td>
+                        <td>停用玩家帳號</td>
+                        <td><button class="action-btn" onclick="viewDetail('LOG202512100004')">查看</button></td>
+                        <td>118.160.23.45</td>
+                        <td>2025-12-10 14:10:23</td>
+                    </tr>
+                    <tr>
+                        <td>100005</td>
+                        <td>admin001</td>
+                        <td><span class="method-badge method-put">PUT</span></td>
+                        <td>
+                            <button class="path-btn" onclick="filterByPath('系統設定')">/api/admin/signin<br>系統設定</button>
+                            <!-- <div class="path-info">/api/admin/signin</div> -->
+                        </td>
+                        <td>登入</td>
+                        <td><button class="action-btn" onclick="viewDetail('LOG202512100005')">查看</button></td>
+                        <td>203.145.67.89</td>
+                        <td>2025-12-10 13:55:17</td>
+                    </tr>
+                    <tr>
+                        <td>100006</td>
+                        <td>agent003</td>
+                        <td><span class="method-badge method-put">PUT</span></td>
+                        <td>
+                            <button class="path-btn" onclick="filterByPath('個人帳戶')">/api/users/:id<br>個人帳戶</button>
+                            <!-- <div class="path-info">/api/users/:id</div> -->
+                        </td>
+                        <td>修改玩家密碼</td>
+                        <td><button class="action-btn" onclick="viewDetail('LOG202512100006')">查看</button></td>
+                        <td>61.220.145.78</td>
+                        <td>2025-12-10 13:42:09</td>
+                    </tr>
+                    <tr>
+                        <td>100007</td>
+                        <td>admin001</td>
+                        <td><span class="method-badge method-post">POST</span></td>
+                        <td>
+                            <button class="path-btn" onclick="filterByPath('代理管理')">/api/channels/:id<br>代理管理</button>
+                            <!-- <div class="path-info">/api/channels/:id</div> -->
+                        </td>
+                        <td>新增代理帳號</td>
+                        <td><button class="action-btn" onclick="viewDetail('LOG202512100007')">查看</button></td>
+                        <td>203.145.67.89</td>
+                        <td>2025-12-10 13:30:45</td>
+                    </tr>
+                    <tr>
+                        <td>100008</td>
+                        <td>admin001</td>
+                        <td><span class="method-badge method-get">GET</span></td>
+                        <td>
+                            <button class="path-btn" onclick="filterByPath('系統設定')">/api/admin/signin<br>系統設定</button>
+                            <!-- <div class="path-info">/api/admin/signin</div> -->
+                        </td>
+                        <td>登入</td>
+                        <td><button class="action-btn" onclick="viewDetail('LOG202512100008')">查看</button></td>
+                        <td>203.145.67.89</td>
+                        <td>2025-12-10 10:15:32</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="pagination">
+                <div class="pagination-info">共 1 頁 8 條,共計 8 條</div>
+                <div class="pagination-controls">
+                    <button class="page-btn" disabled>‹</button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn" disabled>›</button>
+                    <select class="search-select" style="width:80px;margin-left:20px;">
+                        <option>10</option>
+                        <option>20</option>
+                        <option>50</option>
+                        <option>100</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="system-info-section">
+            <div class="info-card">
+                <h3>系統規則</h3>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th width="20%">規則類型</th>
+                            <th width="80%">規則內容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>頁面功能</td>
+                            <td>該功能用於記錄和追蹤所有後台管理人員的操作行為。<br>包括登入登出、資料變更、審核操作等所有系統操作記錄。</td>
+                        </tr>
+                        <tr>
+                            <td>日誌保存</td>
+                            <td>系統自動記錄所有操作,無法手動刪除或修改。</td>
+                        </tr>
+                        <tr>
+                            <td>追蹤查詢</td>
+                            <td>為方便查詢與追蹤修改紀錄，使用修改前+修改後的方式顯示參數。<br>
+                                可使用內容關鍵字搜尋，以利查找。</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>搜尋功能列</h3>
+                <div class="info-notice">
+                    <strong>重要提醒:</strong><br>
+                    預設顯示今日所有操作記錄,按時間降序排列(最新的在最上方)。<br>
+                    點擊「重置」按鈕回到預設值。<br>
+                    <strong class="highlight-text">時間範圍搜尋最多支持查詢30天內的記錄。</strong>
+                </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th width="15%">欄位</th>
+                            <th width="60%">內容說明</th>
+                            <th width="25%">模式</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>操作用戶</td>
+                            <td>輸入操作用戶的帳號進行搜尋<br>
+                                預設空值,代表查詢全部</td>
+                            <td>輸入框,非必填<br>精準搜尋</td>
+                        </tr>
+                        <tr>
+                            <td>時間</td>
+                            <td>點擊選擇搜尋的時間範圍<br>預設為今天<br>
+                                例:今天2025/5/26顯示:2025/5/26 00:00 ~ 2025/5/26 23:59</td>
+                            <td>時間選擇器</td>
+                        </tr>
+                        <tr>
+                            <td>功能路徑</td>
+                            <td>輸入功能路徑可篩選該路徑所有執行操作<br>
+                                預設空值,代表查詢全部</td>
+                            <td>輸入框,非必填<br>精準搜尋</td>
+                        </tr>
+                        <tr>
+                            <td>參數內容</td>
+                            <td>輸入關鍵字進行參數內容搜尋，修改前後的參數皆可被查詢<br>
+                                預設空值,代表查詢全部</td>
+                            <td>輸入框,非必填<br>
+                                <strong class="highlight-text">模糊搜尋</strong>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>搜索</td>
+                            <td>點擊觸發搜尋</td>
+                            <td>按鈕</td>
+                        </tr>
+                        <tr>
+                            <td>重置</td>
+                            <td>點擊將搜尋條件回到預設值</td>
+                            <td>按鈕</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                    <h3>列設置功能</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>功能說明：</strong><br>
+                        點擊表格右上方的「列設置」按鈕，可調整表格顯示的欄位、順序和釘選位置。<br>
+                        設定會即時生效，並在當前頁面中保持。<br>
+                        導出則是原始欄位和順序不受列設置影響。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">功能項目</th>
+                                <th width="60%">功能說明</th>
+                                <th width="25%">操作方式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>全選控制</td>
+                                <td>
+                                    一鍵選擇或取消選擇所有欄位<br>
+                                    當部分欄位被選中時，顯示半選狀態<br>
+                                </td>
+                                <td>點擊「全選」勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>欄位顯示控制</td>
+                                <td>
+                                    控制每個欄位是否在表格中顯示<br>
+                                    未勾選的欄位將在表格中隱藏<br>
+                                    表格中的第一欄為鎖定，不可隱藏
+                                </td>
+                                <td>點擊欄位名稱前的勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>拖拽排序</td>
+                                <td>
+                                    點擊左側的上下箭頭調整欄位在表格中的顯示順序<br>
+                                    調整後的順序會即時反映在表格中
+                                </td>
+                                <td>點擊左側的「↑↓」箭頭圖示</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到左側</td>
+                                <td>
+                                    將選中的欄位固定在表格最左側<br>
+                                    釘選的欄位在橫向滾動時保持可見
+                                </td>
+                                <td>點擊「釘選到左側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到右側</td>
+                                <td>
+                                    將選中的欄位固定在表格最右側<br>
+                                    釘選的欄位在橫向滾動時保持可見<br>
+                                </td>
+                                <td>點擊「釘選到右側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消釘選</td>
+                                <td>
+                                    移除欄位的左側或右側釘選狀態<br>
+                                    欄位將回到正常的滾動區域<br>
+                                </td>
+                                <td>點擊「取消釘選」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>重置設定</td>
+                                <td>
+                                    清除所有自定義的排序和釘選設定<br>
+                                    回到系統初始的欄位配置
+                                </td>
+                                <td>點擊「重置」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>保存設定</td>
+                                <td>
+                                    應用當前的欄位配置到表格顯示<br>
+                                    設定在當前瀏覽器頁面中保持有效<br>
+                                </td>
+                                <td>點擊「保存」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消操作</td>
+                                <td>
+                                    放棄當前的所有配置更改<br>
+                                    回到進入設定前的狀態
+                                </td>
+                                <td>點擊「取消」按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            <div class="info-card">
+                <h3>資料表說明</h3>
+                <div class="info-notice">
+                    <strong>重要提醒:</strong><br>
+                    預設依照操作時間降序排列(最新的在最上方)。<br>
+                    日誌ID為流水號,<strong class="highlight-text">所有操作記錄無法修改或刪除,確保審計完整性。</strong>
+                </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th width="15%">欄位</th>
+                            <th width="60%">內容說明</th>
+                            <th width="25%">顯示模式</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>日誌ID</td>
+                            <td>系統自動生成的唯一識別碼<br>流水號,用於紀錄操作項目</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>操作用戶</td>
+                            <td>顯示執行操作的後台帳號</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>方法</td>
+                            <td>API請求方法類型,主要供工程師進行技術分析<br>
+                                • <strong style="color:#1976d2;">GET</strong>: 查詢資料<br>
+                                • <strong style="color:#2e7d32;">POST</strong>: 新增資料<br>
+                                • <strong style="color:#e65100;">PUT</strong>: 完整更新資料
+                            </td>
+                            <td>標籤顯示<br>不同顏色區分</td>
+                        </tr>
+                        <tr>
+                            <td>功能路徑</td>
+                            <td>操作所屬的功能模組和API路徑<br>
+                                <strong style="color:#409eff;">藍色按鈕</strong>顯示功能模組名稱,點擊可快速篩選相同功能<br>
+                                下方顯示對應的API路徑,供工程師進行技術分析
+                            </td>
+                            <td>按鈕+文字<br>可點擊篩選</td>
+                        </tr>
+                        <tr>
+                            <td>操作行為</td>
+                            <td>顯示操作的簡要說明<br>例如: 登入、數據導出等</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>修改參數</td>
+                            <td><strong>查看按鈕</strong>: 開啟詳細資料彈窗<br>顯示修改前和修改後的JSON格式參數<br>方便追蹤資料變更內容和進行技術分析</td>
+                            <td>按鈕<br>開啟彈窗</td>
+                        </tr>
+                        <tr>
+                            <td>IP地址</td>
+                            <td>操作者的IP地址<br>可追蹤異常登入或可疑操作來源</td>
+                            <td>IP格式<br>xxx.xxx.xxx.xxx</td>
+                        </tr>
+                        <tr>
+                            <td>創建時間</td>
+                            <td>記錄操作發生的時間點<br>格式: YYYY-MM-DD HH:mm:ss</td>
+                            <td>時間格式</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="columnModal" class="modal">
+        <div class="modal-content" style="width: 650px;">
+            <div class="modal-header">
+                <div class="modal-title">列設置</div>
+                <span class="close" onclick="closeColumnModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="select-all-row">
+                    <label>
+                        <input type="checkbox" id="selectAll" onchange="toggleAllColumns()">
+                        <span>全選</span>
+                    </label>
+                    <button class="btn btn-secondary" style="min-width: auto; padding: 6px 12px;" onclick="resetColumnSettings()">重置</button>
+                </div>
+                
+                <div id="columnList" style="max-height: 450px; overflow-y: auto;">
+                    <!-- 動態生成 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeColumnModal()">取消</button>
+                <button class="btn btn-primary" onclick="applyColumnSettings()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">操作詳情</div>
+                <span class="close" onclick="closeDetailModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="detail-section">
+                    <h4>📋 修改前</h4>
+                    <div class="change-box">
+                        <pre id="beforeData" style="margin:0;white-space:pre-wrap;word-wrap:break-word;font-size:13px;line-height:1.6;color:#333;"></pre>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>✅ 修改後</h4>
+                    <div class="change-box">
+                        <pre id="afterData" style="margin:0;white-space:pre-wrap;word-wrap:break-word;font-size:13px;line-height:1.6;color:#333;"></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDetailModal()">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let columns = [
+            { id: 'logId', name: '日誌ID', visible: true, locked: true, pinned: null, order: 0 },
+            { id: 'operator', name: '操作用戶', visible: true, locked: false, pinned: null, order: 1 },
+            { id: 'method', name: '方法', visible: true, locked: false, pinned: null, order: 2 },
+            { id: 'path', name: '功能路徑', visible: true, locked: false, pinned: null, order: 3 },
+            { id: 'action', name: '操作行為', visible: true, locked: false, pinned: null, order: 4 },
+            { id: 'params', name: '修改參數', visible: true, locked: true, pinned: null, order: 5 },
+            { id: 'ip', name: 'IP地址', visible: true, locked: false, pinned: null, order: 6 },
+            { id: 'time', name: '創建時間', visible: true, locked: false, pinned: null, order: 7 }
+        ];
+
+        const logData = {
+            'LOG202512100001': {
+                before: {
+                    "player_id": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6",
+                    "account": "player001",
+                    "nickname": "舊暱稱123",
+                    "status": "active",
+                    "balance": 12580.00
+                },
+                after: {
+                    "player_id": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6",
+                    "account": "player001",
+                    "nickname": "幸運玩家",
+                    "status": "active",
+                    "balance": 12580.00
+                }
+            },
+            'LOG202512100002': {
+                before: null,
+                after: {
+                    "player_id": "new123456789",
+                    "account": "player005",
+                    "nickname": "新玩家",
+                    "agent": "agent001",
+                    "status": "active",
+                    "balance": 0.00,
+                    "created_at": "2025-12-10 14:25:08"
+                }
+            },
+            'LOG202512100003': {
+                before: {
+                    "withdrawal_id": "WD20251210001",
+                    "player_id": "player001",
+                    "amount": 5000.00,
+                    "status": "pending",
+                    "reviewer": null
+                },
+                after: {
+                    "withdrawal_id": "WD20251210001",
+                    "player_id": "player001",
+                    "amount": 5000.00,
+                    "status": "approved",
+                    "reviewer": "admin002",
+                    "approved_at": "2025-12-10 14:18:42"
+                }
+            },
+            'LOG202512100004': {
+                before: {
+                    "player_id": "player003",
+                    "account": "player003",
+                    "status": "active"
+                },
+                after: {
+                    "player_id": "player003",
+                    "account": "player003",
+                    "status": "inactive",
+                    "disabled_by": "agent002",
+                    "disabled_at": "2025-12-10 14:10:23"
+                }
+            },
+            'LOG202512100005': {
+                before: {
+                    "setting_key": "min_withdrawal_amount",
+                    "value": 100.00,
+                    "currency": "USD"
+                },
+                after: {
+                    "setting_key": "min_withdrawal_amount",
+                    "value": 200.00,
+                    "currency": "USD",
+                    "updated_by": "admin001",
+                    "updated_at": "2025-12-10 13:55:17"
+                }
+            },
+            'LOG202512100006': {
+                before: {
+                    "player_id": "player002",
+                    "password_hash": "old_hash_value"
+                },
+                after: {
+                    "player_id": "player002",
+                    "password_hash": "new_hash_value",
+                    "password_updated_at": "2025-12-10 13:42:09"
+                }
+            },
+            'LOG202512100007': {
+                before: null,
+                after: {
+                    "agent_id": "agent005",
+                    "account": "agent005",
+                    "name": "新代理",
+                    "level": 1,
+                    "parent_agent": "admin001",
+                    "status": "active",
+                    "created_at": "2025-12-10 13:30:45"
+                }
+            },
+            'LOG202512100008': {
+                before: null,
+                after: {
+                    "user_id": "admin001",
+                    "login_time": "2025-12-10 10:15:32",
+                    "ip_address": "203.145.67.89",
+                    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                    "session_id": "sess_abc123xyz789"
+                }
+            }
+        };
+
+        function renderColumnList() {
+            const list = document.getElementById('columnList');
+            list.innerHTML = '';
+            
+            columns.forEach((col, index) => {
+                const item = document.createElement('div');
+                item.className = 'column-item';
+                item.setAttribute('data-index', index);
+                item.setAttribute('draggable', !col.locked);
+                
+                let html = '';
+                
+                // 拖曳手柄
+                if (!col.locked) {
+                    html += '<span class="drag-handle">☰</span>';
+                }
+                
+                // 核選框
+                html += `<input type="checkbox" class="column-checkbox" ${col.visible ? 'checked' : ''} ${col.locked ? 'disabled' : ''} onchange="toggleColumn(${index})">`;
+                
+                // 欄位名稱和釘選標籤
+                let pinBadge = '';
+                if (col.pinned === 'left') {
+                    pinBadge = '<span class="pin-badge">釘選左側</span>';
+                } else if (col.pinned === 'right') {
+                    pinBadge = '<span class="pin-badge">釘選右側</span>';
+                }
+                html += `<span class="column-name">${col.name}${pinBadge}</span>`;
+                
+                // 操作按鈕
+                if (!col.locked) {
+                    html += '<div class="column-actions">';
+                    html += `<button class="column-btn ${col.pinned === 'left' ? 'active' : ''}" onclick="pinColumn(${index}, 'left')" ${col.pinned === 'right' ? 'disabled' : ''}>釘選到左側</button>`;
+                    
+                    if (col.pinned) {
+                        html += `<button class="column-btn" onclick="unpinColumn(${index})">取消釘選</button>`;
+                    }
+                    
+                    html += `<button class="column-btn ${col.pinned === 'right' ? 'active' : ''}" onclick="pinColumn(${index}, 'right')" ${col.pinned === 'left' ? 'disabled' : ''}>釘選到右側</button>`;
+                    html += '</div>';
+                }
+                
+                item.innerHTML = html;
+                list.appendChild(item);
+            });
+            
+            setupDragAndDrop();
+            updateSelectAllCheckbox();
+        }
+
+        function setupDragAndDrop() {
+            const items = document.querySelectorAll('.column-item[draggable="true"]');
+            let draggedItem = null;
+            let draggedIndex = null;
+            
+            items.forEach(item => {
+                item.addEventListener('dragstart', function(e) {
+                    draggedItem = item;
+                    draggedIndex = parseInt(item.getAttribute('data-index'));
+                    item.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                
+                item.addEventListener('dragend', function() {
+                    item.classList.remove('dragging');
+                });
+                
+                item.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    if (!draggedItem || draggedItem === item) return;
+                    
+                    const targetIndex = parseInt(item.getAttribute('data-index'));
+                    if (columns[targetIndex].locked) return;
+                    
+                    const rect = item.getBoundingClientRect();
+                    const midpoint = rect.top + rect.height / 2;
+                    
+                    if (e.clientY < midpoint) {
+                        item.parentNode.insertBefore(draggedItem, item);
+                    } else {
+                        item.parentNode.insertBefore(draggedItem, item.nextSibling);
+                    }
+                });
+                
+                item.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    reorderColumns();
+                });
+            });
+        }
+
+        function reorderColumns() {
+            const items = Array.from(document.querySelectorAll('.column-item'));
+            const newOrder = [];
+            
+            items.forEach(item => {
+                const index = parseInt(item.getAttribute('data-index'));
+                newOrder.push(columns[index]);
+            });
+            
+            columns = newOrder;
+            columns.forEach((col, idx) => col.order = idx);
+            renderColumnList();
+        }
+
+        function toggleColumn(index) {
+            if (columns[index].locked) return;
+            columns[index].visible = !columns[index].visible;
+            updateSelectAllCheckbox();
+        }
+
+        function pinColumn(index, side) {
+            if (columns[index].locked || columns[index].pinned === side) return;
+            columns[index].pinned = side;
+            renderColumnList();
+        }
+
+        function unpinColumn(index) {
+            if (columns[index].locked) return;
+            columns[index].pinned = null;
+            renderColumnList();
+        }
+
+        function toggleAllColumns() {
+            const checked = document.getElementById('selectAll').checked;
+            columns.forEach(col => {
+                if (!col.locked) {
+                    col.visible = checked;
+                }
+            });
+            renderColumnList();
+        }
+
+        function updateSelectAllCheckbox() {
+            const unlocked = columns.filter(col => !col.locked);
+            const allChecked = unlocked.every(col => col.visible);
+            const someChecked = unlocked.some(col => col.visible);
+            const selectAll = document.getElementById('selectAll');
+            
+            if (selectAll) {
+                selectAll.checked = allChecked;
+                selectAll.indeterminate = someChecked && !allChecked;
+            }
+        }
+
+        function resetColumnSettings() {
+            columns = [
+                { id: 'logId', name: '日誌ID', visible: true, locked: true, pinned: null, order: 0 },
+                { id: 'operator', name: '操作用戶', visible: true, locked: false, pinned: null, order: 1 },
+                { id: 'method', name: '方法', visible: true, locked: false, pinned: null, order: 2 },
+                { id: 'path', name: '功能路徑', visible: true, locked: false, pinned: null, order: 3 },
+                { id: 'action', name: '操作行為', visible: true, locked: false, pinned: null, order: 4 },
+                { id: 'params', name: '修改參數', visible: true, locked: true, pinned: null, order: 5 },
+                { id: 'ip', name: 'IP地址', visible: true, locked: false, pinned: null, order: 6 },
+                { id: 'time', name: '創建時間', visible: true, locked: false, pinned: null, order: 7 }
+            ];
+            renderColumnList();
+            showNotification('已重置為預設設定', 'success');
+        }
+
+        function applyColumnSettings() {
+            updateTableColumns();
+            closeColumnModal();
+            showNotification('列設置已應用', 'success');
+        }
+
+        function updateTableColumns() {
+            const table = document.querySelector('table');
+            const thead = table.querySelector('thead');
+            const tbody = table.querySelector('tbody');
+            
+            // 重建表頭
+            const headerRow = thead.querySelector('tr');
+            headerRow.innerHTML = '';
+            
+            columns.forEach((col, index) => {
+                if (!col.visible) return;
+                
+                const th = document.createElement('th');
+                th.textContent = col.name;
+                th.setAttribute('data-column-id', col.id);
+                
+                // 設置釘選樣式
+                if (col.pinned === 'left') {
+                    th.style.position = 'sticky';
+                    th.style.left = calculatePinPosition(index, 'left') + 'px';
+                    th.style.zIndex = '10';
+                    th.style.background = '#f8f9fa';
+                    th.style.boxShadow = '2px 0 4px rgba(0,0,0,0.1)';
+                } else if (col.pinned === 'right') {
+                    th.style.position = 'sticky';
+                    th.style.right = calculatePinPosition(index, 'right') + 'px';
+                    th.style.zIndex = '10';
+                    th.style.background = '#f8f9fa';
+                    th.style.boxShadow = '-2px 0 4px rgba(0,0,0,0.1)';
+                }
+                
+                headerRow.appendChild(th);
+            });
+            
+            // 更新表格內容
+            const rows = tbody.querySelectorAll('tr');
+            rows.forEach(row => {
+                const oldCells = Array.from(row.querySelectorAll('td'));
+                const cellData = {
+                    'logId': oldCells[0]?.innerHTML || '',
+                    'operator': oldCells[1]?.innerHTML || '',
+                    'method': oldCells[2]?.innerHTML || '',
+                    'path': oldCells[3]?.innerHTML || '',
+                    'action': oldCells[4]?.innerHTML || '',
+                    'params': oldCells[5]?.innerHTML || '',
+                    'ip': oldCells[6]?.innerHTML || '',
+                    'time': oldCells[7]?.innerHTML || ''
+                };
+                
+                row.innerHTML = '';
+                
+                columns.forEach((col, index) => {
+                    if (!col.visible) return;
+                    
+                    const td = document.createElement('td');
+                    td.innerHTML = cellData[col.id];
+                    td.setAttribute('data-column-id', col.id);
+                    
+                    // 設置釘選樣式
+                    if (col.pinned === 'left') {
+                        td.style.position = 'sticky';
+                        td.style.left = calculatePinPosition(index, 'left') + 'px';
+                        td.style.zIndex = '9';
+                        td.style.background = 'inherit';
+                        td.style.boxShadow = '2px 0 4px rgba(0,0,0,0.1)';
+                    } else if (col.pinned === 'right') {
+                        td.style.position = 'sticky';
+                        td.style.right = calculatePinPosition(index, 'right') + 'px';
+                        td.style.zIndex = '9';
+                        td.style.background = 'inherit';
+                        td.style.boxShadow = '-2px 0 4px rgba(0,0,0,0.1)';
+                    }
+                    
+                    row.appendChild(td);
+                });
+            });
+        }
+
+        function calculatePinPosition(currentIndex, side) {
+            let position = 0;
+            const visibleColumns = columns.filter(c => c.visible);
+            
+            if (side === 'left') {
+                for (let i = 0; i < currentIndex; i++) {
+                    if (columns[i].visible && columns[i].pinned === 'left') {
+                        position += 120; // 預估欄位寬度
+                    }
+                }
+            } else if (side === 'right') {
+                for (let i = columns.length - 1; i > currentIndex; i--) {
+                    if (columns[i].visible && columns[i].pinned === 'right') {
+                        position += 120;
+                    }
+                }
+            }
+            
+            return position;
+        }
+
+        function filterByPath(path) {
+            // 將路徑填入搜索框
+            document.getElementById('searchPath').value = path;
+            
+            // 執行搜索
+            const rows = document.querySelectorAll('#tableBody tr');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const cells = row.cells;
+                const rowPath = cells[3].textContent.toLowerCase();
+                
+                if (rowPath.includes(path.toLowerCase())) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // 顯示通知
+            const message = visibleCount > 0 
+                ? `已篩選功能路徑「${path}」，找到 ${visibleCount} 筆記錄` 
+                : `未找到功能路徑「${path}」的記錄`;
+            showNotification(message, visibleCount > 0 ? 'success' : 'info');
+            
+            // 滾動到頁面頂部
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showPathInfo(path) {
+            showNotification(`路徑: ${path}`, 'info');
+        }
+
+        function viewDetail(logId) {
+            const data = logData[logId];
+            
+            const beforeData = document.getElementById('beforeData');
+            const afterData = document.getElementById('afterData');
+            
+            if (data.before === null) {
+                beforeData.textContent = '無 (新增操作)';
+            } else {
+                beforeData.textContent = JSON.stringify(data.before, null, 2);
+            }
+            
+            if (data.after === null) {
+                afterData.textContent = '無';
+            } else {
+                afterData.textContent = JSON.stringify(data.after, null, 2);
+            }
+            
+            document.getElementById('detailModal').style.display = 'block';
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+
+        function openColumnSettings() {
+            renderColumnList();
+            document.getElementById('columnModal').style.display = 'block';
+        }
+
+        function closeColumnModal() {
+            document.getElementById('columnModal').style.display = 'none';
+        }
+
+        function searchLogs() {
+            const operator = document.getElementById('searchOperator').value.trim().toLowerCase();
+            const path = document.getElementById('searchPath').value.trim().toLowerCase();
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            const rows = document.querySelectorAll('#tableBody tr');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const cells = row.cells;
+                const rowOperator = cells[1].textContent.toLowerCase();
+                const rowPath = cells[3].textContent.toLowerCase();
+                const rowDate = cells[7].textContent.split(' ')[0]; // 取得日期部分
+                
+                const matchOperator = !operator || rowOperator.includes(operator);
+                const matchPath = !path || rowPath.includes(path);
+                const matchDate = (!startDate && !endDate) || 
+                                 (rowDate >= startDate && rowDate <= endDate);
+                
+                if (matchOperator && matchPath && matchDate) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            const message = visibleCount > 0 
+                ? `找到 ${visibleCount} 筆符合條件的記錄` 
+                : '未找到符合條件的記錄';
+            showNotification(message, visibleCount > 0 ? 'success' : 'info');
+        }
+
+        function resetSearch() {
+            document.getElementById('searchOperator').value = '';
+            document.getElementById('searchPath').value = '';
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = today;
+            document.getElementById('endDate').value = today;
+            
+            const rows = document.querySelectorAll('#tableBody tr');
+            rows.forEach(row => row.style.display = '');
+            
+            showNotification('搜索已重置', 'success');
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            const bgColor = type === 'success' ? '#67c23a' : type === 'info' ? '#409eff' : '#f56c6c';
+            notification.style.cssText = `position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:6px;color:white;font-size:14px;z-index:10001;background:${bgColor};box-shadow:0 4px 12px rgba(0,0,0,0.15);`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.3s';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        window.onclick = function(event) {
+            const detailModal = document.getElementById('detailModal');
+            const columnModal = document.getElementById('columnModal');
+            
+            if (event.target === detailModal) {
+                detailModal.style.display = 'none';
+            }
+            if (event.target === columnModal) {
+                columnModal.style.display = 'none';
+            }
+        };
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = today;
+            document.getElementById('endDate').value = today;
+        });
+    </script>
+</body>
+</html>

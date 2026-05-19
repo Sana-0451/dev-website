@@ -1,0 +1,2191 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>後台帳號管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .search-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .search-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-label {
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .search-input, .search-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 150px;
+        }
+
+        .search-input:focus, .search-select:focus {
+            outline: none;
+            border-color: #409eff;
+        }
+
+        .search-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+            min-width: 80px;
+        }
+
+        .btn-primary {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .btn-primary:hover {
+            background: #66b1ff;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .btn-secondary:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .btn-warning {
+            background: white;
+            color: #66b1ff;
+            border-color: #dcdfe6;
+        }
+
+        .btn-warning:hover {
+            background: #ff8c00;
+        }
+
+        .btn-warning:disabled {
+            background: #d3d3d3;
+            border-color: #d3d3d3;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn-toggle {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+            position: relative;
+        }
+
+        .btn-toggle.active {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .btn-toggle:hover:not(.active) {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .agent-view-toggle {
+            display: inline-flex;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #dcdfe6;
+        }
+
+        .agent-view-toggle .btn {
+            border-radius: 0;
+            border: none;
+            border-right: 1px solid #dcdfe6;
+            min-width: 100px;
+        }
+
+        .agent-view-toggle .btn:last-child {
+            border-right: none;
+        }
+
+        .agent-view-toggle .btn.active {
+            background: #409eff;
+            color: white;
+            z-index: 1;
+        }
+
+        .agent-view-toggle .btn:not(.active) {
+            background: white;
+            color: #606266;
+        }
+
+        .agent-view-toggle .btn:not(.active):hover {
+            background: #ecf5ff;
+            color: #409eff;
+        }
+
+        .table-header {
+            background: #fafafa;
+            border-radius: 8px 8px 0 0;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .table-header-left {
+            display: flex;
+            gap: 8px;
+        }
+
+        .table-header-right {
+            display: flex;
+            gap: 8px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #e8e8e8;
+            border-right: 1px solid #e8e8e8;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #606266;
+        }
+
+        tbody tr:nth-child(odd) {
+            background: #fafafa;
+        }
+
+        tbody tr:hover {
+            background: #f0f9ff;
+        }
+
+        .role-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            margin: 1px;
+            background: #f0f8ff;
+            border: 1px solid #b3d8ff;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #1565c0;
+        }
+
+        .identity-tag {
+            display: inline-block;
+            padding: 2px 10px;
+            margin: 1px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .identity-admin {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            color: #15803d;
+        }
+
+        .identity-agent {
+            background: #fff3e0;
+            border: 1px solid #ffb74d;
+            color: #e65100;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #409eff;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            font-size: 12px;
+            margin-right: 4px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            background: white;
+            color: #606266;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            border-radius: 8px;
+            width: 600px;
+            max-width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e8e8e8;
+            border-radius: 8px 8px 0 0;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .close {
+            font-size: 28px;
+            color: #999;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .required {
+            color: #f56c6c;
+            margin-left: 2px;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+
+        .form-input:disabled, .form-select:disabled {
+            background: #f5f5f5;
+            color: #999;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: #fafafa;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .error-message {
+            color: #f56c6c;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .info-card h3 {
+            background: #f8f9fa;
+            margin: 0;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-notice {
+            background: #f0f9ff;
+            border: 1px solid #b3d8ff;
+            border-radius: 4px;
+            padding: 12px;
+            margin: 16px;
+            font-size: 13px;
+            color: #1565c0;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .info-table th {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            text-align: center;
+            font-weight: 600;
+            color: #606266;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #666;
+            line-height: 1.4;
+            vertical-align: top;
+        }
+
+        .info-table td:first-child {
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .info-table td:nth-child(2) {
+            text-align: left;
+        }
+
+        .info-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .info-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .column-settings-modal .modal-content {
+            width: 650px;
+        }
+
+        .column-settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background: #fafafa;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .column-settings-header label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .column-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: move;
+            transition: background 0.2s;
+        }
+
+        .column-item:hover {
+            background: #fafafa;
+        }
+
+        .column-item.dragging {
+            opacity: 0.5;
+            background: #f0f9ff;
+        }
+
+        .column-drag-handle {
+            margin-right: 12px;
+            color: #999;
+            cursor: move;
+            font-size: 18px;
+        }
+
+        .column-checkbox {
+            margin-right: 12px;
+        }
+
+        .column-name {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .column-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .column-action-btn {
+            padding: 4px 12px;
+            font-size: 13px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            background: white;
+            color: #606266;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .column-action-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .column-action-btn.active {
+            background: #409eff;
+            border-color: #409eff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>後台帳號管理</h1>
+        </div>
+
+        <div class="search-section">
+            <div class="search-row">
+                <div class="search-item">
+                    <label class="search-label">帳號:</label>
+                    <input type="text" id="searchAccount" class="search-input" placeholder="">
+                </div>
+                <div class="search-item">
+                    <label class="search-label">名稱:</label>
+                    <input type="text" id="searchAccount" class="search-input" placeholder="">
+                </div>
+                <div class="search-item">
+                    <label class="search-label">權限標識:</label>
+                    <select id="searchRole" class="search-select">
+                        <option value=""></option>
+                        <option value="超級管理員">超級管理員</option>
+                        <option value="系統管理員">系統管理員</option>
+                        <option value="財務人員">財務人員</option>
+                    </select>
+                </div>
+                <div class="search-item">
+                    <label class="search-label">所屬代理:</label>
+                    <select id="searchRole" class="search-select">
+                        <option value=""></option>
+                        <option value="system">system</option>
+                        <option value="nabe">nabe</option>
+                        <option value="bubutest_cafe_na">bubutest_cafe_na</option>
+                    </select>
+                </div>
+            </div>
+            <div class="search-buttons">
+                <button class="btn btn-primary" onclick="searchAdmins()">搜索</button>
+                <button class="btn btn-secondary" onclick="resetSearch()">重置</button>
+            </div>
+        </div>
+
+        <div class="table-header">
+            <div class="table-header-left">
+                <div class="agent-view-toggle">
+                    <button class="btn btn-warning" id="updateTranslationBtn" onclick="updateTranslation()">更新翻譯檔</button>
+                    <!-- <button class="btn active" id="agentOverviewBtn" onclick="switchAgentView('overview')">代理總覽</button> -->
+                    <!-- <button class="btn" id="currentAgentBtn" onclick="switchAgentView('current')">當前代理</button> -->
+                </div>
+            </div>
+            <div class="table-header-right">
+                <button class="btn btn-secondary" onclick="openAddModal()">+ 新增帳號</button>
+                <button class="btn btn-secondary" onclick="openColumnSettings()">列設置</button> 
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>帳號</th>
+                        <th>名稱</th>
+                        <th>權限標識</th>
+                        <th>所屬代理</th>
+                        <th>身份</th>
+                        <th>狀態</th>
+                        <th>創建時間</th>
+                        <th>更新時間</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td data-field="id">A001</td>
+                        <td data-field="account">Administrator</td>
+                        <td data-field="name">超級管理員</td>
+                        <td data-field="role"><span class="role-tag">超級管理員</span></td>
+                        <td data-field="agent">system</td>
+                        <td data-field="identity"><span class="identity-tag identity-admin">管理員</span></td>
+                        <td data-field="status"> - </td>
+                        <td data-field="createTime">2024-12-15 10:30:25</td>
+                        <td data-field="updateTime">2025-01-20 14:22:18</td>
+                        <td data-field="actions">
+                            <button class="action-btn" onclick="openViewModal(this)">查看</button>
+                            <button class="action-btn" onclick="openEditModal(this)">編輯</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td data-field="id">A002</td>
+                        <td data-field="account">manager01</td>
+                        <td data-field="name">運營人員</td>
+                        <td data-field="role"><span class="role-tag">系統管理員</span></td>
+                        <td data-field="agent">system</td>
+                        <td data-field="identity"><span class="identity-tag identity-admin">管理員</span></td>
+                        <td data-field="status">
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                        <td data-field="createTime">2024-12-15 10:30:25</td>
+                        <td data-field="updateTime">2025-01-18 09:15:33</td>
+                        <td data-field="actions">
+                            <button class="action-btn" onclick="openViewModal(this)">查看</button>
+                            <button class="action-btn" onclick="openEditModal(this)">編輯</button>
+                            <button class="action-btn" onclick="resetPassword(this)">重置密碼</button>
+                            <button class="action-btn" onclick="deleteAdmin(this)">刪除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td data-field="id">A003</td>
+                        <td data-field="account">agent_wang</td>
+                        <td data-field="name">王代理</td>
+                        <td data-field="role"><span class="role-tag">店舖</span></td>
+                        <td data-field="agent">nabe</td>
+                        <td data-field="identity"><span class="identity-tag identity-agent">子帳號</span></td>
+                        <td data-field="status">
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                        <td data-field="createTime">2025-01-10 14:20:18</td>
+                        <td data-field="updateTime">2025-01-15 16:45:22</td>
+                        <td data-field="actions">
+                            <button class="action-btn" onclick="openViewModal(this)">查看</button>
+                            <button class="action-btn" onclick="openEditModal(this)">編輯</button>
+                            <button class="action-btn" onclick="resetPassword(this)">重置密碼</button>
+                            <button class="action-btn" onclick="deleteAdmin(this)">刪除</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="pagination">
+                <div class="pagination-info">共 1 頁 3 條,共計 3 條</div>
+            </div>
+        </div>
+
+        <!-- 系統說明 -->
+        <div style="margin-top: 30px;">
+            <div class="info-card">
+                <h3>系統規則</h3>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">規則類型</th>
+                            <th style="width: 80%;">規則內容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>後台帳號功能</td>
+                            <td>該功能可以管理後台使用者帳號,包含管理員和代理人員的後台帳號。<br>
+                                每個後台帳號都必須被賦予權限角色才能登入系統。</td>
+                        </tr>
+                        <tr>
+                            <td>身份區分</td>
+                            <td>身份分為「管理員」和「子帳號」兩種。<br>
+                                管理員的所屬代理固定為「system」。<br>
+                                子帳號需要指定所使用的代理帳號。</td>
+                        </tr>
+                        <tr>
+                            <td>權限關係</td>
+                            <td>後台帳號的權限標識來自「權限管理」頁面所列。<br>
+                                修改權限設定後,使用該權限的帳號會立即更新功能權限。<br>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>重置密碼</td>
+                            <td>
+                                <strong style="color: #f56c6c;">重置密碼功能可由權限管理頁面做設定開啟與否。</strong><br>
+                                重置後的密碼統一為12345678。<br>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>搜尋功能列</h3>
+                <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>重要提醒:</strong><br>
+                        一進畫面就帶入預設值,並顯示搜索出來的資料。<br>
+                        點擊「重置」按鈕回到預設值,如果按下搜尋時是空值,則自動帶入預設值。<br>
+                        <strong class="highlight-text">部分條件預設顯示為空值,空值=預設值。可參考下方說明。</strong><br>
+                        <br>
+                        搜索條件如在二行以上,右方會出現「展開/收起」按鈕(一行則不顯示按鈕)。<br>
+                        收起時為一行搜索條件+一行搜索、重置按鈕。
+                    </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">欄位</th>
+                            <th style="width: 60%;">內容說明</th>
+                            <th style="width: 25%;">模式</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>帳號</td>
+                            <td>輸入後台帳號進行搜尋<br>
+                                預設空值,代表全部</td>
+                            <td>輸入框,非必填<br>模糊匹配</td>
+                        </tr>
+                        <tr>
+                            <td>名稱</td>
+                            <td>輸入權限名稱進行篩選<br>
+                                預設空值,代表全部</td>
+                            <td>輸入框,非必填<br>模糊匹配</td>
+                        </tr>
+                        <tr>
+                            <td>權限標識</td>
+                            <td>選擇權識tag進行篩選<br>
+                                預設空值,代表全部</td>
+                            <td>下拉選單,非必填</td>
+                        </tr>
+                        <tr>
+                            <td>所屬代理</td>
+                            <td>輸入所屬代理進行搜尋<br>
+                                預設空值,代表全部</td>
+                            <td>下拉選單,非必填</td>
+                        </tr>
+                        <tr>
+                            <td>搜索</td>
+                            <td>點擊觸發搜尋</td>
+                            <td>按鈕</td>
+                        </tr>
+                        <tr>
+                            <td>重置</td>
+                            <td>點擊將搜尋條件回到預設值</td>
+                            <td>按鈕</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>新增後台帳號功能</h3>
+                <div class="info-notice">
+                    <strong>功能說明:</strong><br>
+                    點擊表格右上方的「+ 新增帳號」按鈕,彈出新增後台帳號視窗。<br>
+                    確認新增的後台帳號會立即顯示在頁面中,並可進行編輯和刪除操作。<br>
+                    <strong style="color: #f56c6c;">PS：新增帳號一率狀態預設為"開啟“。</strong><br>
+                    <strong style="color: #f56c6c;">PS：帳號ID由系統自動產生。</strong>
+                </div>
+                
+                <!-- 彈窗示意圖 -->
+                <div style="text-align: center; margin: 20px; padding: 20px; background: #fafafa; border-radius: 8px;">
+                    <div style="display: inline-block; width: 500px; max-width: 100%; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: left;">
+                        <div style="padding: 16px 20px; background: #f8f9fa; border-bottom: 1px solid #e8e8e8; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                            <div style="font-size: 16px; font-weight: 600;">新增後台帳號</div>
+                            <span style="font-size: 24px; color: #999;">×</span>
+                        </div>
+                        <div style="padding: 20px; font-size: 13px;">
+                            <div style="margin-bottom: 15px;">
+                                <div style="margin-bottom: 5px; font-weight: 500;">身份 <span style="color: #f56c6c;">*</span></div>
+                                <div style="padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; background: white;">請選擇身份</div>
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <div style="margin-bottom: 5px; font-weight: 500;">所屬代理 <span style="color: #f56c6c;">*</span></div>
+                                <div style="padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; background: white; color: #999;">請輸入所屬代理</div>
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <div style="margin-bottom: 5px; font-weight: 500;">帳號 <span style="color: #f56c6c;">*</span></div>
+                                <div style="padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; background: white; color: #999;">請輸入帳號(6-20個英數字)</div>
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <div style="margin-bottom: 5px; font-weight: 500;">名稱 <span style="color: #f56c6c;">*</span></div>
+                                <div style="padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; background: white; color: #999;">請輸入名稱</div>
+                            </div>
+                            <div style="color: #999; text-align: center; padding: 10px;">... 更多欄位 ...</div>
+                        </div>
+                        <div style="padding: 12px 20px; background: #fafafa; border-top: 1px solid #e8e8e8; border-radius: 0 0 8px 8px; display: flex; justify-content: flex-end; gap: 10px;">
+                            <button style="padding: 6px 16px; border: 1px solid #dcdfe6; border-radius: 4px; background: white; font-size: 13px;">取消</button>
+                            <button style="padding: 6px 16px; border: 1px solid #409eff; border-radius: 4px; background: #409eff; color: white; font-size: 13px;">確認新增</button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px; color: #666; font-size: 12px;">新增後台帳號彈窗示意圖,此為介面示意,功能達成即可,最終以uat操作畫面為準。</div>
+                </div>
+                
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">欄位名稱</th>
+                            <th style="width: 60%;">欄位說明</th>
+                            <th style="width: 25%;">驗證規則</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>身份</td>
+                            <td>選擇「管理員」或「子帳號」<br>
+                                影響所屬代理欄位的狀態和資料數據呈現</td>
+                            <td>下拉選單,必填</td>
+                        </tr>
+                        <tr>
+                            <td>所屬代理</td>
+                            <td>當身份為「管理員」時自動填入system並禁用編輯<br>
+                                當身份為「子帳號」時可選擇所屬代理</td>
+                            <td>下拉選單,必填</td>
+                        </tr>
+                        <tr>
+                            <td>帳號</td>
+                            <td>後台的登入帳號<br>
+                                必須唯一,不可重複</td>
+                            <td>文字格式,必填<br>
+                                8-19個字符,僅限英數字</td>
+                        </tr>
+                        <tr>
+                            <td>名稱</td>
+                            <td>該帳號所註記的暱稱</td>
+                            <td>文字格式,必填<br>
+                                最多8-19個字符</td>
+                        </tr>
+                        <tr>
+                            <td>密碼</td>
+                            <td>該帳號的登入密碼</td>
+                            <td>文字格式,必填<br>僅限英數字</td>
+                        </tr>
+                        <tr>
+                            <td>確認密碼</td>
+                            <td>再次輸入密碼進行確認</td>
+                            <td>文字格式,必填<br>需與密碼一致</td>
+                        </tr>
+                        <tr>
+                            <td>權限角色</td>
+                            <td>從權限管理中選擇權限角色</td>
+                            <td>下拉選單,必填</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>編輯帳號功能</h3>
+                <div class="info-notice">
+                    <strong>功能說明:</strong><br>
+                    點擊表格中「編輯」按鈕,彈出編輯帳號視窗。<br>
+                    可修改該帳號的密碼、權限。<br>
+                    <strong style="color: #f56c6c;">警告:修改權限後,該帳號登入時會使用新的權限設定。</strong>
+                </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">欄位名稱</th>
+                            <th style="width: 60%;">欄位說明</th>
+                            <th style="width: 25%;">編輯規則</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>身份</td>
+                            <td>不可修改<br>以灰色禁用狀態顯示</td>
+                            <td>不可編輯</td>
+                        </tr>
+                        <tr>
+                            <td>所屬代理</td>
+                            <td>不可修改<br>以灰色禁用狀態顯示</td>
+                            <td>不可編輯</td>
+                        </tr>
+                        <tr>
+                            <td>ID</td>
+                            <td>不可修改<br>以灰色禁用狀態顯示</td>
+                            <td>不可編輯</td>
+                        </tr>
+                        <tr>
+                            <td>帳號</td>
+                            <td>不可修改<br>以灰色禁用狀態顯示</td>
+                            <td>不可編輯</td>
+                        </tr>
+                        <tr>
+                            <td>名稱</td>
+                            <td>可修改該帳號的註記名稱</td>
+                            <td>必填,文字格式</td>
+                        </tr>
+                        <tr>
+                            <td>密碼</td>
+                            <td>可修改登入密碼<br>留空表示不修改密碼</td>
+                            <td>非必填</td>
+                        </tr>
+                        <tr>
+                            <td>權限角色</td>
+                            <td>可修改該帳號的後台權限</td>
+                            <td>必填,下拉選單</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>刪除帳號功能</h3>
+                <div class="info-notice">
+                    <strong>功能說明:</strong><br>
+                    點擊表格中「刪除」按鈕,彈出二次確認對話框。<br>
+                    系統預設的超級管理員帳號不可刪除。<br>
+                    <strong style="color: #f56c6c;">警告:刪除後無法復原,請謹慎操作。</strong>
+                </div>
+                
+                <!-- 彈窗示意圖 -->
+                <div style="text-align: center; margin: 20px; padding: 20px; background: #fafafa; border-radius: 8px;">
+                    <div style="display: inline-block; width: 380px; max-width: 100%; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: left;">
+                        <div style="padding: 16px 20px; background: #fff2e8; border-bottom: 1px solid #e8e8e8; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 20px;">⚠️</span>
+                            <div style="font-size: 15px; font-weight: 600;">提示</div>
+                        </div>
+                        <div style="padding: 20px; font-size: 13px; color: #666; line-height: 1.6;">
+                            確定要刪除帳號 "<span style="font-weight: 600; color: #333;">張經理</span>" 嗎?
+                        </div>
+                        <div style="padding: 12px 20px; background: #fafafa; border-top: 1px solid #e8e8e8; border-radius: 0 0 8px 8px; display: flex; justify-content: flex-end; gap: 10px;">
+                            <button style="padding: 6px 16px; border: 1px solid #dcdfe6; border-radius: 4px; background: white; font-size: 13px;">取消</button>
+                            <button style="padding: 6px 16px; border: 1px solid #f56c6c; border-radius: 4px; background: #f56c6c; color: white; font-size: 13px;">確認</button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px; color: #666; font-size: 12px;">刪除確認對話框示意圖,此為介面示意,功能達成即可,最終以uat操作畫面為準。</div>
+                </div>
+                
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">操作步驟</th>
+                            <th style="width: 60%;">操作說明</th>
+                            <th style="width: 25%;">注意事項</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>標題</td>
+                            <td>提示</td>
+                            <td>共用元件應該都是提示</td>
+                        </tr>
+                        <tr>
+                            <td>內容</td>
+                            <td>顯示「確定要刪除該帳號嗎?」</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>按鈕</td>
+                            <td>選擇「確認」或「取消」<br>
+                                確認:立即執行刪除操作<br>
+                                取消:關閉對話框,不執行任何操作</td>
+                            <td>刪除操作不可復原</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>重置密碼功能</h3>
+                <div class="info-notice">
+                    <strong>功能說明:</strong><br>
+                    點擊表格中「重置密碼」按鈕,彈出確認對話框。<br>
+                    重置後密碼統一為12345678。<br>
+                    <strong style="color: #f56c6c;">警告:重置後該帳號需使用新密碼登入。</strong><br>
+                    <strong style="color: #f56c6c;">重置密碼功能由權限管理頁面做設定開啟與否。</strong>
+                </div>
+                
+                <!-- 彈窗示意圖 -->
+                <div style="text-align: center; margin: 20px; padding: 20px; background: #fafafa; border-radius: 8px;">
+                    <div style="display: inline-block; width: 380px; max-width: 100%; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: left;">
+                        <div style="padding: 16px 20px; background: #f0f9ff; border-bottom: 1px solid #e8e8e8; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 20px;">🔑</span>
+                            <div style="font-size: 15px; font-weight: 600;">提示</div>
+                        </div>
+                        <div style="padding: 20px; font-size: 13px; color: #666; line-height: 1.6;">
+                            確定要重置帳號 "<span style="font-weight: 600; color: #333;">張經理</span>" 的密碼嗎?<br>
+                        </div>
+                        <div style="padding: 12px 20px; background: #fafafa; border-top: 1px solid #e8e8e8; border-radius: 0 0 8px 8px; display: flex; justify-content: flex-end; gap: 10px;">
+                            <button style="padding: 6px 16px; border: 1px solid #dcdfe6; border-radius: 4px; background: white; font-size: 13px;">取消</button>
+                            <button style="padding: 6px 16px; border: 1px solid #409eff; border-radius: 4px; background: #409eff; color: white; font-size: 13px;">確認</button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px; color: #666; font-size: 12px;">重置密碼確認對話框示意圖,此為介面示意,功能達成即可,最終以uat操作畫面為準。</div>
+                </div>
+                
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">操作步驟</th>
+                            <th style="width: 60%;">操作說明</th>
+                            <th style="width: 25%;">注意事項</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>標題</td>
+                            <td>提示</td>
+                            <td>共用元件應該都是提示</td>
+                        </tr>
+                        <tr>
+                            <td>內容</td>
+                            <td>顯示「確定要重置該帳號密碼嗎?」</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>按鈕</td>
+                            <td>選擇「確認」或「取消」<br>
+                                確認:立即執行刪除操作<br>
+                                取消:關閉對話框,不執行任何操作</td>
+                            <td>重置操作不可復原</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>查看帳號詳情</h3>
+                <div class="info-notice">
+                    <strong>功能說明:</strong><br>
+                    點擊表格中「查看」按鈕,彈出查看帳號的視窗。<br>
+                    以唯讀方式顯示該帳號的所有資訊。
+                </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">顯示內容</th>
+                            <th style="width: 60%;">內容說明</th>
+                            <th style="width: 25%;">顯示方式</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ID</td>
+                            <td>顯示該帳號的ID</td>
+                            <td>文字顯示,禁用狀態</td>
+                        </tr>
+                        <tr>
+                            <td>帳號</td>
+                            <td>顯示該帳號的登入帳號</td>
+                            <td>文字顯示,禁用狀態</td>
+                        </tr>
+                        <tr>
+                            <td>名稱</td>
+                            <td>顯示該帳號的註記名稱</td>
+                            <td>文字顯示,禁用狀態</td>
+                        </tr>
+                        <tr>
+                            <td>權限角色</td>
+                            <td>顯示該帳號的權限角色</td>
+                            <td>文字顯示,禁用狀態</td>
+                        </tr>
+                        <tr>
+                            <td>身份</td>
+                            <td>顯示該帳號的身份類型</td>
+                            <td>文字顯示,禁用狀態</td>
+                        </tr>
+                        <tr>
+                            <td>所屬代理</td>
+                            <td>顯示該帳號所屬代理資訊</td>
+                            <td>文字顯示,禁用狀態</td>
+                        </tr>
+                        <tr>
+                            <td>創建時間</td>
+                            <td>顯示該帳號的建立時間<br>
+                                例:2024-05-31 00:00:00</td>
+                            <td>時間格式</td>
+                        </tr>
+                        <tr>
+                            <td>更新時間</td>
+                            <td>顯示該帳號的最後修改時間<br>
+                                例:2024-05-31 00:00:00</td>
+                            <td>時間格式</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                    <h3>列設置功能</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>功能說明:</strong><br>
+                        點擊表格右上方的「列設置」按鈕,可調整表格顯示的欄位、順序和釘選位置。<br>
+                        設定會即時生效,並在當前頁面中保持。<br>
+                        導出則是原始欄位及順序不受列設置影響。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">功能項目</th>
+                                <th width="60%">功能說明</th>
+                                <th width="25%">操作方式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>全選控制</td>
+                                <td>
+                                    一鍵選擇或取消選擇所有欄位<br>
+                                    當部分欄位被選中時,顯示半選狀態<br>
+                                </td>
+                                <td>點擊「全選」勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>欄位顯示控制</td>
+                                <td>
+                                    控制每個欄位是否在表格中顯示<br>
+                                    未勾選的欄位將在表格中隱藏<br>
+                                    表格中的第一欄為鎖定,不可隱藏
+                                </td>
+                                <td>點擊欄位名稱前的勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>拖曳排序</td>
+                                <td>
+                                    點擊左側的上下箭頭調整欄位在表格中的顯示順序<br>
+                                    調整後的順序會即時反映在表格中
+                                </td>
+                                <td>點擊左側的「☰」箭頭圖示</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到左側</td>
+                                <td>
+                                    將選中的欄位固定在表格最左側<br>
+                                    釘選的欄位在橫向滾動時保持可見
+                                </td>
+                                <td>點擊「釘選到左側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到右側</td>
+                                <td>
+                                    將選中的欄位固定在表格最右側<br>
+                                    釘選的欄位在橫向滾動時保持可見<br>
+                                </td>
+                                <td>點擊「釘選到右側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消釘選</td>
+                                <td>
+                                    移除欄位的左側或右側釘選狀態<br>
+                                    欄位將回到正常的滾動區域<br>
+                                </td>
+                                <td>點擊「取消釘選」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>重置設定</td>
+                                <td>
+                                    清除所有自定義的排序和釘選設定<br>
+                                    回到系統初始的欄位配置
+                                </td>
+                                <td>點擊「重置」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>保存設定</td>
+                                <td>
+                                    應用當前的欄位配置到表格顯示<br>
+                                    設定在當前瀏覽器頁面中保持有效<br>
+                                </td>
+                                <td>點擊「保存」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消操作</td>
+                                <td>
+                                    放棄當前的所有配置更改<br>
+                                    回到進入設定前的狀態
+                                </td>
+                                <td>點擊「取消」按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            <div class="info-card">
+                <h3>資料表說明</h3>
+                <div class="info-notice">
+                    <strong>重要提醒:</strong><br>
+                    系統預設的超級管理員帳號(Administrator)不可刪除。<br>
+                    新創的帳號會顯示在第一個。<br>
+                    帳號的權限來自「權限管理」頁面的模組。
+                </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 8%;">排序</th>
+                            <th style="width: 15%;">欄位</th>
+                            <th style="width: 57%;">內容說明</th>
+                            <th style="width: 20%;">顯示模式</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>-</td>
+                            <td>更新翻譯檔</td>
+                            <td>點擊立即更新多國表的翻譯檔<br>
+                                多國表連結：https://docs.google.com/spreadsheets/d/1CHbzc-OcTMJNZjjHCYPnf4fcFhngU8Vyc4lHxNb1Ek4/edit?gid=0#gid=0
+                            </td>
+                            <td>按鈕顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>ID</td>
+                            <td>顯示該帳號的ID,由系統自動產生</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>帳號</td>
+                            <td>顯示該帳號的登入帳號</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>名稱</td>
+                            <td>顯示該帳號的註記名稱</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>權限標識</td>
+                            <td>顯示該帳號的權限角色,以標籤形式呈現</td>
+                            <td>標籤顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>所屬代理</td>
+                            <td>顯示該帳號所使用的代理帳號<br>
+                                管理員一率顯示為system</td>
+                            <td>文字顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>身份</td>
+                            <td>顯示該帳號的身份類型<br>
+                                管理員（開發、運營、財務...等公司人員）<br>
+                                子帳號（總代理、子代理、店舖...等代理線人員）<br>
+                                以標籤形式呈現</td>
+                            <td>標籤顯示</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>狀態</td>
+                            <td>顯示該帳號的啟用/停用狀態</td>
+                            <td>開關切換</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>創建時間</td>
+                            <td>顯示該帳號的建立時間<br>
+                                例:2024-05-31 00:00:00</td>
+                            <td>時間格式</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>更新時間</td>
+                            <td>顯示該帳號的最後修改時間<br>
+                                例:2024-05-31 00:00:00</td>
+                            <td>時間格式</td>
+                        </tr>
+                        <tr>
+                            <td>-</td>
+                            <td>操作</td>
+                            <td>提供查看、編輯和刪除、重置密碼的功能按鈕<br>
+                                系統預設帳號僅顯示查看和編輯</td>
+                            <td>按鈕</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增管理員彈窗 -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">新增管理帳號</div>
+                <span class="close" onclick="closeAddModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">身份<span class="required">*</span></label>
+                    <select id="addIdentity" class="form-select" onchange="toggleAgentField('add')">
+                        <option value="">請選擇身份</option>
+                        <option value="管理員">管理員</option>
+                        <option value="子帳號">子帳號</option>
+                    </select>
+                    <div class="error-message" id="addIdentityError">請選擇身份</div>
+                </div>
+                <div class="form-group" id="addAgentGroup">
+                    <label class="form-label">所屬代理<span class="required">*</span></label>
+                    <input type="text" id="addAgent" class="form-input" placeholder="請輸入所屬代理">
+                    <div class="error-message" id="addAgentError">請輸入所屬代理</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">帳號<span class="required">*</span></label>
+                    <input type="text" id="addAccount" class="form-input" placeholder="請輸入帳號(6-20個英數字)">
+                    <div class="error-message" id="addAccountError">請輸入帳號</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">名稱<span class="required">*</span></label>
+                    <input type="text" id="addName" class="form-input" placeholder="請輸入名稱">
+                    <div class="error-message" id="addNameError">請輸入名稱</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密碼<span class="required">*</span></label>
+                    <input type="password" id="addPassword" class="form-input" placeholder="請輸入密碼(8-20個字符)">
+                    <div class="error-message" id="addPasswordError">請輸入密碼</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">確認密碼<span class="required">*</span></label>
+                    <input type="password" id="addConfirmPassword" class="form-input" placeholder="請再次輸入密碼">
+                    <div class="error-message" id="addConfirmPasswordError">請輸入確認密碼</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">權限角色<span class="required">*</span></label>
+                    <select id="addRole" class="form-select">
+                        <option value="">請選擇權限</option>
+                        <option value="超級管理員">超級管理員</option>
+                        <option value="系統管理員">系統管理員</option>
+                        <option value="財務人員">財務人員</option>
+                        <option value="代理商">代理商</option>
+                    </select>
+                    <div class="error-message" id="addRoleError">請選擇權限</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddModal()">取消</button>
+                <button class="btn btn-primary" onclick="submitAdd()">確認新增</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 編輯管理員彈窗 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">編輯帳號設定</div>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">身份</label>
+                    <select id="editIdentity" class="form-select" disabled>
+                        <option value="">請選擇身份</option>
+                        <option value="管理員">管理員</option>
+                        <option value="子帳號">子帳號</option>
+                    </select>
+                </div>
+                <div class="form-group" id="editAgentGroup">
+                    <label class="form-label">所屬代理<span class="required">*</span></label>
+                    <input type="text" id="editAgent" class="form-input" placeholder="請輸入所屬代理" disabled>
+                    <div class="error-message" id="editAgentError">請輸入所屬代理</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ID</label>
+                    <input type="text" id="editId" class="form-input" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">帳號</label>
+                    <input type="text" id="editAccount" class="form-input" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">名稱<span class="required">*</span></label>
+                    <input type="text" id="editName" class="form-input" placeholder="請輸入名稱">
+                    <div class="error-message" id="editNameError">請輸入名稱</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密碼</label>
+                    <input type="password" id="editPassword" class="form-input" placeholder="留空表示不修改密碼">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">權限角色<span class="required">*</span></label>
+                    <select id="editRole" class="form-select">
+                        <option value="">請選擇權限</option>
+                        <option value="超級管理員">超級管理員</option>
+                        <option value="系統管理員">系統管理員</option>
+                        <option value="財務人員">財務人員</option>
+                        <option value="代理商">代理商</option>
+                    </select>
+                    <div class="error-message" id="editRoleError">請選擇</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditModal()">取消</button>
+                <button class="btn btn-primary" onclick="submitEdit()">確認修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 查看管理員彈窗 -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">查看帳號詳情</div>
+                <span class="close" onclick="closeViewModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">身份</label>
+                    <select id="viewIdentity" class="form-select" disabled>
+                        <option value="">請選擇身份</option>
+                        <option value="管理員">管理員</option>
+                        <option value="子帳號">子帳號</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">所屬代理</label>
+                    <input type="text" id="viewAgent" class="form-input" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ID</label>
+                    <input type="text" id="viewId" class="form-input" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">帳號</label>
+                    <input type="text" id="viewAccount" class="form-input" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">名稱</label>
+                    <input type="text" id="viewName" class="form-input" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">權限標識</label>
+                    <select id="viewRole" class="form-select" disabled>
+                        <option value="">請選擇權限</option>
+                        <option value="超級管理員">超級管理員</option>
+                        <option value="系統管理員">系統管理員</option>
+                        <option value="財務人員">財務人員</option>
+                        <option value="代理商">代理商</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeViewModal()">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 刪除確認對話框 -->
+    <div id="deleteDialog" class="modal">
+        <div style="background: white; margin: 15% auto; border-radius: 8px; width: 400px; max-width: 90%; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
+            <div style="background: #fff2e8; padding: 20px 24px; border-bottom: 1px solid #e8e8e8; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 24px;">⚠️</span>
+                <div style="font-size: 16px; font-weight: 600; color: #333;">提示</div>
+            </div>
+            <div style="padding: 24px; color: #666; font-size: 14px; line-height: 1.5;">
+                確定要刪除帳號 "<span id="deleteAdminName" style="font-weight: 600; color: #333;"></span>" 嗎?
+            </div>
+            <div style="padding: 16px 24px; border-top: 1px solid #e8e8e8; display: flex; justify-content: flex-end; gap: 12px; background: #fafafa; border-radius: 0 0 8px 8px;">
+                <button class="btn btn-secondary" onclick="closeDeleteDialog()">取消</button>
+                <button class="btn" style="background: #f56c6c; color: white; border-color: #f56c6c;" onclick="confirmDelete()">確認</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 重置密碼確認對話框 -->
+    <div id="resetPasswordDialog" class="modal">
+        <div style="background: white; margin: 15% auto; border-radius: 8px; width: 400px; max-width: 90%; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
+            <div style="background: #f0f9ff; padding: 20px 24px; border-bottom: 1px solid #e8e8e8; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 24px;">🔑</span>
+                <div style="font-size: 16px; font-weight: 600; color: #333;">提示</div>
+            </div>
+            <div style="padding: 24px; color: #666; font-size: 14px; line-height: 1.5;">
+                確定要重置帳號 "<span id="resetPasswordAdminName" style="font-weight: 600; color: #333;"></span>" 的密碼嗎?<br>
+            </div>
+            <div style="padding: 16px 24px; border-top: 1px solid #e8e8e8; display: flex; justify-content: flex-end; gap: 12px; background: #fafafa; border-radius: 0 0 8px 8px;">
+                <button class="btn btn-secondary" onclick="closeResetPasswordDialog()">取消</button>
+                <button class="btn btn-primary" onclick="confirmResetPassword()">確認重置</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 列設置彈窗 -->
+    <div id="columnSettingsModal" class="modal column-settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">列設置</div>
+                <span class="close" onclick="closeColumnSettings()">&times;</span>
+            </div>
+            <div class="column-settings-header">
+                <label>
+                    <input type="checkbox" id="selectAllColumns" onchange="toggleAllColumns(this)">
+                    <span>全選</span>
+                </label>
+                <button class="btn btn-secondary" style="padding: 4px 12px; min-width: auto;" onclick="resetColumns()">重置</button>
+            </div>
+            <div class="modal-body" style="padding: 0; max-height: 500px; overflow-y: auto;" id="columnSettingsList">
+                <!-- 列設置項目 -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeColumnSettings()">取消</button>
+                <button class="btn btn-primary" onclick="saveColumnSettings()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentRow = null;
+        let deleteTargetRow = null;
+        let resetPasswordTargetRow = null;
+
+        // 列設置數據
+        const defaultColumns = [
+            { id: 'id', name: 'ID', visible: true, pinned: null },
+            { id: 'account', name: '帳號', visible: true, pinned: null },
+            { id: 'name', name: '名稱', visible: true, pinned: null },
+            { id: 'role', name: '權限標識', visible: true, pinned: null },
+            { id: 'agent', name: '所屬代理', visible: true, pinned: null },
+            { id: 'identity', name: '身份', visible: true, pinned: null },
+            { id: 'status', name: '狀態', visible: true, pinned: null },
+            { id: 'createTime', name: '創建時間', visible: true, pinned: null },
+            { id: 'updateTime', name: '更新時間', visible: true, pinned: null },
+            { id: 'actions', name: '操作', visible: true, pinned: null }
+        ];
+
+        let columnSettings = JSON.parse(JSON.stringify(defaultColumns));
+
+        // 代理視圖狀態
+        let isAgentOverview = true;
+
+        function getRowData(row) {
+            const data = {};
+            const cells = row.querySelectorAll('td[data-field]');
+            cells.forEach(cell => {
+                const field = cell.getAttribute('data-field');
+                data[field] = cell.innerHTML;
+            });
+            return data;
+        }
+
+        function openAddModal() {
+            document.getElementById('addAccount').value = '';
+            document.getElementById('addName').value = '';
+            document.getElementById('addPassword').value = '';
+            document.getElementById('addConfirmPassword').value = '';
+            document.getElementById('addRole').value = '';
+            document.getElementById('addIdentity').value = '';
+            document.getElementById('addAgent').value = '';
+            document.getElementById('addAgent').disabled = false;
+            hideAllErrors('add');
+            document.getElementById('addModal').style.display = 'block';
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').style.display = 'none';
+        }
+
+        function toggleAgentField(prefix) {
+            const identity = document.getElementById(`${prefix}Identity`).value;
+            const agentInput = document.getElementById(`${prefix}Agent`);
+            
+            if (identity === '管理員') {
+                agentInput.value = 'system';
+                agentInput.disabled = true;
+            } else if (identity === '子帳號') {
+                agentInput.disabled = false;
+                if (agentInput.value === 'system') {
+                    agentInput.value = '';
+                }
+            } else {
+                agentInput.value = '';
+                agentInput.disabled = false;
+            }
+        }
+
+        function hideAllErrors(prefix) {
+            const errors = ['AccountError', 'NameError', 'PasswordError', 'ConfirmPasswordError', 'RoleError', 'IdentityError', 'AgentError'];
+            errors.forEach(error => {
+                const elem = document.getElementById(`${prefix}${error}`);
+                if (elem) elem.style.display = 'none';
+            });
+        }
+
+        function submitAdd() {
+            const account = document.getElementById('addAccount').value.trim();
+            const name = document.getElementById('addName').value.trim();
+            const password = document.getElementById('addPassword').value.trim();
+            const confirmPassword = document.getElementById('addConfirmPassword').value.trim();
+            const role = document.getElementById('addRole').value;
+            const identity = document.getElementById('addIdentity').value;
+            let agent = document.getElementById('addAgent').value.trim();
+
+            hideAllErrors('add');
+            let hasError = false;
+
+            if (!account) {
+                document.getElementById('addAccountError').style.display = 'block';
+                hasError = true;
+            }
+            if (!name) {
+                document.getElementById('addNameError').style.display = 'block';
+                hasError = true;
+            }
+            if (!password) {
+                document.getElementById('addPasswordError').style.display = 'block';
+                hasError = true;
+            }
+            if (!confirmPassword) {
+                document.getElementById('addConfirmPasswordError').style.display = 'block';
+                hasError = true;
+            } else if (password !== confirmPassword) {
+                document.getElementById('addConfirmPasswordError').style.display = 'block';
+                document.getElementById('addConfirmPasswordError').textContent = '兩次密碼輸入不一致';
+                hasError = true;
+            }
+            if (!role) {
+                document.getElementById('addRoleError').style.display = 'block';
+                hasError = true;
+            }
+            if (!identity) {
+                document.getElementById('addIdentityError').style.display = 'block';
+                hasError = true;
+            }
+            if (identity === '子帳號' && !agent) {
+                document.getElementById('addAgentError').style.display = 'block';
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            if (identity === '管理員') {
+                agent = 'system';
+            }
+
+            const adminId = 'A' + String(Date.now()).slice(-3);
+            const identityClass = identity === '管理員' ? 'identity-admin' : 'identity-agent';
+            
+            const tbody = document.getElementById('tableBody');
+            const row = tbody.insertRow(0);
+            row.innerHTML = `
+                <td data-field="id">${adminId}</td>
+                <td data-field="account">${account}</td>
+                <td data-field="name">${name}</td>
+                <td data-field="role"><span class="role-tag">${role}</span></td>
+                <td data-field="agent">${agent}</td>
+                <td data-field="identity"><span class="identity-tag ${identityClass}">${identity}</span></td>
+                <td data-field="status">
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </td>
+                <td data-field="createTime">${getCurrentTime()}</td>
+                <td data-field="updateTime">${getCurrentTime()}</td>
+                <td data-field="actions">
+                    <button class="action-btn" onclick="openViewModal(this)">查看</button>
+                    <button class="action-btn" onclick="openEditModal(this)">編輯</button>
+                    <button class="action-btn" onclick="resetPassword(this)">重置密碼</button>
+                    <button class="action-btn" onclick="deleteAdmin(this)">刪除</button>
+                </td>
+            `;
+            
+            closeAddModal();
+            alert('管理員新增成功');
+        }
+
+        function openEditModal(btn) {
+            currentRow = btn.closest('tr');
+            const data = getRowData(currentRow);
+            
+            const identityText = data.identity.match(/>([^<]+)</)[1];
+            
+            document.getElementById('editIdentity').value = identityText;
+            document.getElementById('editAgent').value = data.agent;
+            document.getElementById('editId').value = data.id;
+            document.getElementById('editAccount').value = data.account;
+            document.getElementById('editName').value = data.name;
+            document.getElementById('editPassword').value = '';
+            document.getElementById('editRole').value = data.role.match(/>([^<]+)</)[1];
+            
+            hideAllErrors('edit');
+            
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            currentRow = null;
+        }
+
+        function submitEdit() {
+            const name = document.getElementById('editName').value.trim();
+            const role = document.getElementById('editRole').value;
+
+            hideAllErrors('edit');
+            let hasError = false;
+
+            if (!name) {
+                document.getElementById('editNameError').style.display = 'block';
+                hasError = true;
+            }
+            if (!role) {
+                document.getElementById('editRoleError').style.display = 'block';
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            if (currentRow) {
+                currentRow.querySelector('[data-field="name"]').textContent = name;
+                currentRow.querySelector('[data-field="role"]').innerHTML = `<span class="role-tag">${role}</span>`;
+                currentRow.querySelector('[data-field="updateTime"]').textContent = getCurrentTime();
+            }
+            
+            closeEditModal();
+            alert('管理員修改成功');
+        }
+
+        function openViewModal(btn) {
+            const row = btn.closest('tr');
+            const data = getRowData(row);
+            
+            document.getElementById('viewId').value = data.id;
+            document.getElementById('viewAccount').value = data.account;
+            document.getElementById('viewName').value = data.name;
+            document.getElementById('viewRole').value = data.role.match(/>([^<]+)</)[1];
+            document.getElementById('viewIdentity').value = data.identity.match(/>([^<]+)</)[1];
+            document.getElementById('viewAgent').value = data.agent;
+            
+            document.getElementById('viewModal').style.display = 'block';
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').style.display = 'none';
+        }
+
+        function deleteAdmin(btn) {
+            const row = btn.closest('tr');
+            const data = getRowData(row);
+            
+            if (data.account === 'Administrator') {
+                alert('系統預設的超級管理員帳號不可刪除!');
+                return;
+            }
+            
+            deleteTargetRow = row;
+            document.getElementById('deleteAdminName').textContent = data.name;
+            document.getElementById('deleteDialog').style.display = 'block';
+        }
+
+        function closeDeleteDialog() {
+            document.getElementById('deleteDialog').style.display = 'none';
+            deleteTargetRow = null;
+        }
+
+        function confirmDelete() {
+            if (deleteTargetRow) {
+                const data = getRowData(deleteTargetRow);
+                deleteTargetRow.remove();
+                closeDeleteDialog();
+                alert(`管理員 "${data.name}" 已刪除`);
+            }
+        }
+
+        function resetPassword(btn) {
+            const row = btn.closest('tr');
+            const data = getRowData(row);
+            
+            resetPasswordTargetRow = row;
+            document.getElementById('resetPasswordAdminName').textContent = data.name;
+            document.getElementById('resetPasswordDialog').style.display = 'block';
+        }
+
+        function closeResetPasswordDialog() {
+            document.getElementById('resetPasswordDialog').style.display = 'none';
+            resetPasswordTargetRow = null;
+        }
+
+        function confirmResetPassword() {
+            if (resetPasswordTargetRow) {
+                const data = getRowData(resetPasswordTargetRow);
+                closeResetPasswordDialog();
+                alert(`管理員 "${data.name}" (${data.account}) 的密碼已重置\n新密碼: 12345678`);
+            }
+        }
+
+        function searchAdmins() {
+            const searchAccount = document.getElementById('searchAccount').value.toLowerCase();
+            const searchRole = document.getElementById('searchRole').value;
+            const searchAgent = document.getElementById('searchAgent').value.toLowerCase();
+            const rows = document.querySelectorAll('#tableBody tr');
+            
+            rows.forEach(row => {
+                const data = getRowData(row);
+                const account = data.account.toLowerCase();
+                const roleMatch = data.role.match(/>([^<]+)</);
+                const role = roleMatch ? roleMatch[1] : '';
+                const agent = data.agent.toLowerCase();
+                
+                const accountMatch = !searchAccount || account.includes(searchAccount);
+                const roleMatchResult = !searchRole || role === searchRole;
+                const agentMatch = !searchAgent || agent.includes(searchAgent);
+                
+                row.style.display = (accountMatch && roleMatchResult && agentMatch) ? '' : 'none';
+            });
+        }
+
+        function resetSearch() {
+            document.getElementById('searchAccount').value = '';
+            document.getElementById('searchRole').value = '';
+            document.getElementById('searchAgent').value = '';
+            document.querySelectorAll('#tableBody tr').forEach(row => {
+                row.style.display = '';
+            });
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+        }
+
+        // 更新翻譯檔功能
+        function updateTranslation() {
+            const btn = document.getElementById('updateTranslationBtn');
+            btn.disabled = true;
+            btn.textContent = '更新中...';
+            
+            // 模擬更新過程(2秒)
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = '更新翻譯檔';
+                alert('翻譯檔更新完成!');
+            }, 2000);
+        }
+
+        // 切換代理視圖
+        function switchAgentView(view) {
+            const overviewBtn = document.getElementById('agentOverviewBtn');
+            const currentBtn = document.getElementById('currentAgentBtn');
+            
+            if (view === 'overview') {
+                overviewBtn.classList.add('active');
+                currentBtn.classList.remove('active');
+                isAgentOverview = true;
+                // 這裡可以加載代理總覽的數據
+                console.log('切換到: 代理總覽');
+            } else {
+                overviewBtn.classList.remove('active');
+                currentBtn.classList.add('active');
+                isAgentOverview = false;
+                // 這裡可以加載當前代理的數據
+                console.log('切換到: 當前代理');
+            }
+        } 
+
+        // 列設置相關函數
+        function openColumnSettings() {
+            renderColumnSettings();
+            document.getElementById('columnSettingsModal').style.display = 'block';
+        }
+
+        function closeColumnSettings() {
+            document.getElementById('columnSettingsModal').style.display = 'none';
+        }
+
+        function renderColumnSettings() {
+            const container = document.getElementById('columnSettingsList');
+            container.innerHTML = '';
+
+            columnSettings.forEach((column, index) => {
+                const item = document.createElement('div');
+                item.className = 'column-item';
+                item.draggable = index !== 0;
+                item.dataset.columnId = column.id;
+                item.dataset.index = index;
+                
+                const pinnedLeftActive = column.pinned === 'left' ? 'active' : '';
+                const pinnedRightActive = column.pinned === 'right' ? 'active' : '';
+                const disabled = index === 0 ? 'disabled' : '';
+                
+                item.innerHTML = `
+                    <span class="column-drag-handle" style="${index === 0 ? 'opacity: 0.3; cursor: not-allowed;' : ''}">☰</span>
+                    <input type="checkbox" class="column-checkbox" ${column.visible ? 'checked' : ''} 
+                           ${disabled}
+                           onchange="toggleColumnVisibility('${column.id}', this.checked)">
+                    <span class="column-name">${column.name}</span>
+                    <div class="column-actions">
+                        <button class="column-action-btn ${pinnedLeftActive}" 
+                                onclick="pinColumn('${column.id}', 'left')">釘選到左側</button>
+                        <button class="column-action-btn" 
+                                onclick="unpinColumn('${column.id}')">取消釘選</button>
+                        <button class="column-action-btn ${pinnedRightActive}" 
+                                onclick="pinColumn('${column.id}', 'right')">釘選到右側</button>
+                    </div>
+                `;
+
+                if (index !== 0) {
+                    item.addEventListener('dragstart', handleDragStart);
+                    item.addEventListener('dragover', handleDragOver);
+                    item.addEventListener('dragenter', handleDragEnter);
+                    item.addEventListener('dragleave', handleDragLeave);
+                    item.addEventListener('drop', handleDrop);
+                    item.addEventListener('dragend', handleDragEnd);
+                }
+
+                container.appendChild(item);
+            });
+
+            updateSelectAllCheckbox();
+        }
+
+        function toggleColumnVisibility(columnId, visible) {
+            const column = columnSettings.find(col => col.id === columnId);
+            if (column && columnId !== 'id') {
+                column.visible = visible;
+                updateSelectAllCheckbox();
+            }
+        }
+
+        function pinColumn(columnId, position) {
+            const column = columnSettings.find(col => col.id === columnId);
+            if (column) {
+                column.pinned = position;
+                renderColumnSettings();
+            }
+        }
+
+        function unpinColumn(columnId) {
+            const column = columnSettings.find(col => col.id === columnId);
+            if (column) {
+                column.pinned = null;
+                renderColumnSettings();
+            }
+        }
+
+        function toggleAllColumns(checkbox) {
+            const isChecked = checkbox.checked;
+            columnSettings.forEach((col, index) => {
+                if (index !== 0) {
+                    col.visible = isChecked;
+                }
+            });
+            renderColumnSettings();
+        }
+
+        function updateSelectAllCheckbox() {
+            const visibleColumns = columnSettings.filter((col, idx) => idx !== 0);
+            const allChecked = visibleColumns.every(col => col.visible);
+            const someChecked = visibleColumns.some(col => col.visible);
+            const selectAllCheckbox = document.getElementById('selectAllColumns');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = allChecked;
+                selectAllCheckbox.indeterminate = someChecked && !allChecked;
+            }
+        }
+
+        function resetColumns() {
+            columnSettings = JSON.parse(JSON.stringify(defaultColumns));
+            renderColumnSettings();
+            alert('列設置已重置!');
+        }
+
+        function saveColumnSettings() {
+            applyColumnSettings();
+            closeColumnSettings();
+            alert('列設置已保存!');
+        }
+
+        function applyColumnSettings() {
+            const table = document.querySelector('.table-container table');
+            const thead = table.querySelector('thead tr');
+            const tbody = table.querySelector('tbody');
+            
+            const allRowsData = [];
+            tbody.querySelectorAll('tr').forEach(row => {
+                allRowsData.push(getRowData(row));
+            });
+
+            thead.innerHTML = '';
+            columnSettings.forEach(col => {
+                if (col.visible) {
+                    const th = document.createElement('th');
+                    th.textContent = col.name;
+                    if (col.pinned === 'left') {
+                        th.style.position = 'sticky';
+                        th.style.left = '0';
+                        th.style.zIndex = '10';
+                        th.style.backgroundColor = '#f8f9fa';
+                    } else if (col.pinned === 'right') {
+                        th.style.position = 'sticky';
+                        th.style.right = '0';
+                        th.style.zIndex = '10';
+                        th.style.backgroundColor = '#f8f9fa';
+                    }
+                    thead.appendChild(th);
+                }
+            });
+
+            tbody.innerHTML = '';
+            allRowsData.forEach(data => {
+                const row = tbody.insertRow();
+                columnSettings.forEach(col => {
+                    if (col.visible) {
+                        const cell = row.insertCell();
+                        cell.setAttribute('data-field', col.id);
+                        cell.innerHTML = data[col.id] || '';
+                        if (col.pinned === 'left') {
+                            cell.style.position = 'sticky';
+                            cell.style.left = '0';
+                            cell.style.zIndex = '9';
+                            cell.style.backgroundColor = 'inherit';
+                        } else if (col.pinned === 'right') {
+                            cell.style.position = 'sticky';
+                            cell.style.right = '0';
+                            cell.style.zIndex = '9';
+                            cell.style.backgroundColor = 'inherit';
+                        }
+                    }
+                });
+            });
+        }
+
+        let draggedItem = null;
+
+        function handleDragStart(e) {
+            draggedItem = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDragEnter(e) {
+            if (this !== draggedItem && this.dataset.index !== '0') {
+                this.style.borderTop = '2px solid #409eff';
+            }
+        }
+
+        function handleDragLeave(e) {
+            this.style.borderTop = '';
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+
+            if (draggedItem !== this && this.dataset.index !== '0') {
+                const draggedId = draggedItem.dataset.columnId;
+                const targetId = this.dataset.columnId;
+                
+                const draggedIndex = columnSettings.findIndex(col => col.id === draggedId);
+                const targetIndex = columnSettings.findIndex(col => col.id === targetId);
+
+                if (draggedIndex !== 0 && targetIndex !== 0) {
+                    const [removed] = columnSettings.splice(draggedIndex, 1);
+                    columnSettings.splice(targetIndex, 0, removed);
+                    renderColumnSettings();
+                }
+            }
+
+            this.style.borderTop = '';
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.column-item').forEach(item => {
+                item.style.borderTop = '';
+            });
+        }
+
+        window.onclick = function(event) {
+            const modals = ['addModal', 'editModal', 'viewModal', 'deleteDialog', 'resetPasswordDialog', 'columnSettingsModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                    if (modalId === 'editModal') currentRow = null;
+                    if (modalId === 'deleteDialog') deleteTargetRow = null;
+                    if (modalId === 'resetPasswordDialog') resetPasswordTargetRow = null;
+                }
+            });
+        };
+    </script>
+</body>
+</html>

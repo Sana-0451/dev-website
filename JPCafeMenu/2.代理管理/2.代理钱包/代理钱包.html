@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>代理錢包</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .search-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .search-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-label {
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .search-input, .search-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 150px;
+        }
+
+        .search-input:focus, .search-select:focus {
+            outline: none;
+            border-color: #409eff;
+        }
+
+        .search-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+            min-width: 80px;
+        }
+
+        .btn-primary {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .btn-primary:hover {
+            background: #66b1ff;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .btn-secondary:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .btn-success {
+            background: #67c23a;
+            color: white;
+            border-color: #67c23a;
+        }
+
+        .btn-success:hover {
+            background: #85ce61;
+        }
+
+        .btn-danger {
+            background: #f56c6c;
+            color: white;
+            border-color: #f56c6c;
+        }
+
+        .btn-danger:hover {
+            background: #f78989;
+        }
+
+        .table-header {
+            background: #fafafa;
+            border-radius: 8px 8px 0 0;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            gap: 12px;
+        }
+
+        .toggle-view-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid #dcdfe6;
+            background: white;
+            color: #606266;
+            user-select: none;
+        }
+
+        .toggle-view-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .toggle-view-btn.active {
+            background: #409eff;
+            border-color: #409eff;
+            color: white;
+        }
+
+        .toggle-view-btn svg {
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 0 0 8px 8px;
+            overflow-x: auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 1000px;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #e8e8e8;
+            border-right: 1px solid #e8e8e8;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #606266;
+        }
+
+        tbody tr:nth-child(odd) {
+            background: #fafafa;
+        }
+
+        tbody tr:hover {
+            background: #f0f9ff;
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            font-size: 12px;
+            margin-right: 4px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            background: white;
+            color: #606266;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .action-btn.deposit {
+            border-color: #67c23a;
+            color: #67c23a;
+        }
+
+        .action-btn.deposit:hover {
+            background: #f0f9ff;
+            border-color: #67c23a;
+        }
+
+        .action-btn.withdraw {
+            border-color: #f56c6c;
+            color: #f56c6c;
+        }
+
+        .action-btn.withdraw:hover {
+            background: #fef0f0;
+            border-color: #f56c6c;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            border-radius: 8px;
+            width: 500px;
+            max-width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e8e8e8;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .close {
+            font-size: 28px;
+            color: #999;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .required {
+            color: #f56c6c;
+            margin-left: 2px;
+        }
+
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: #fafafa;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .error-message {
+            color: #f56c6c;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .id-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .copy-btn {
+            padding: 4px;
+            background: white;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+        }
+
+        .copy-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: #606266;
+        }
+
+        .copy-btn:hover svg {
+            fill: #409eff;
+        }
+
+        .balance-highlight {
+            font-weight: 600;
+            color: #409eff;
+        }
+
+        .info-box {
+            background: #f0f9ff;
+            border: 1px solid #b3d8ff;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #1565c0;
+        }
+
+        .amount-input-group {
+            position: relative;
+        }
+
+        .currency-symbol {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #909399;
+            font-weight: 500;
+        }
+
+        .amount-input-group input {
+            padding-left: 28px;
+        }
+
+        .quick-amount-btns {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .quick-btn {
+            flex: 1;
+            padding: 6px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            background: white;
+            color: #606266;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .column-modal .modal-content {
+            width: 600px;
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .select-all {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .select-all input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .select-all label {
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .reset-btn {
+            padding: 6px 16px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            background: white;
+            color: #606266;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .reset-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .column-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .column-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .column-item:last-child {
+            border-bottom: none;
+        }
+
+        .drag-handle {
+            cursor: move;
+            color: #c0c4cc;
+            margin-right: 12px;
+            font-size: 16px;
+        }
+
+        .column-checkbox {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            margin-right: 12px;
+        }
+
+        .column-name {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .column-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .column-action-btn {
+            padding: 4px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            background: white;
+            color: #606266;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .column-action-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .modal-footer-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .system-info-section {
+            margin-top: 30px;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .info-card h3 {
+            background: #f8f9fa;
+            margin: 0;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .info-table thead th {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            text-align: center;
+            font-weight: 600;
+            color: #606266;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table tbody td {
+            padding: 16px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #666;
+            line-height: 1.8;
+            vertical-align: top;
+            text-align: left;
+        }
+
+        .info-table tbody td:first-child {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .info-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .info-box-highlight {
+            background: #f0f9ff;
+            border: 1px solid #b3d8ff;
+            border-radius: 4px;
+            padding: 12px;
+            margin: 16px;
+            font-size: 13px;
+            color: #1565c0;
+        }
+
+        .merchant-code {
+            color: #ba6cf5;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>代理錢包</h1>
+        </div>
+
+        <div class="search-section">
+            <div class="search-row">
+                <!--<div class="search-item">
+                    <label class="search-label">代理ID:</label>
+                    <input type="text" id="searchAgentId" class="search-input" placeholder="">
+                </div>
+                <div class="search-item">
+                    <label class="search-label">代理名稱:</label>
+                    <input type="text" id="searchAgentName" class="search-input" placeholder="">
+                </div>-->
+                <div class="search-item">
+                    <label class="search-label">代理名稱:</label>
+                    <select id="searchAgentName" class="search-select">
+                        <option value=""></option>
+                        <option value="agent001">agent001</option>
+                        <option value="agent002">agent002</option>
+                        <option value="agent003">agent003</option>
+                    </select>
+                </div>
+                <div class="search-item">
+                    <label class="search-label">所屬代理:</label>
+                    <select id="searchParentAgent" class="search-select">
+                        <option value=""></option>
+                        <option value="agent001">agent001</option>
+                        <option value="agent002">agent002</option>
+                        <option value="agent003">agent003</option>
+                    </select>
+                </div>
+            </div>
+            <div class="search-buttons">
+                <button class="btn btn-primary" onclick="doSearch()">🔍 搜索</button>
+                <button class="btn btn-secondary" onclick="doReset()">重置</button>
+            </div>
+        </div>
+
+        <div class="table-header">
+            <div class="header-left">
+                <button class="toggle-view-btn" id="toggleViewBtn" onclick="toggleView()">
+                    <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                    </svg>
+                    <span id="toggleViewLabel">下級代理會員</span>
+                </button>
+            </div>
+            <button class="btn btn-secondary" onclick="showColumnMsg()">列設置</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>代理ID</th>
+                        <th>代理商號</th>
+                        <th>代理名稱</th>
+                        <th>上級代理</th>
+                        <th>幣種</th>
+                        <th>餘額</th>
+                        <th>創建時間</th>
+                        <th>最後異動時間</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td>
+                            <div class="id-cell">
+                                <button class="copy-btn" onclick="doCopy('00000000000000000000000000000000')" title="複製ID">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                </button>
+                                <span>00000000000000000000000000000000</span>
+                            </div>
+                        </td>
+                        <td><span class="merchant-code">1001</span></td>
+                        <td>System</td>
+                        <td>-</td>
+                        <td>JPY</td>
+                        <td>158,580.00</td>
+                        <td>2024-01-15 10:30</td>
+                        <td>2025-12-05 14:22</td>
+                        <td>-
+                            <!--<button class="action-btn deposit" onclick="singleDeposit(this)">系統上分</button>
+                            <button class="action-btn withdraw" onclick="singleWithdraw(this)">系統下分</button>-->
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="id-cell">
+                                <button class="copy-btn" onclick="doCopy('6903a38f-aa02-4012-94ff-b20e884eb0c9')" title="複製ID">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                </button>
+                                <span>6903a38f-aa02-4012-94ff-b20e884eb0c9</span>
+                            </div>
+                        </td>
+                        <td><span class="merchant-code">1002</span></td>
+                        <td>agent002</td>
+                        <td>System</td>
+                        <td>JPY</td>
+                        <td>85,230.50</td>
+                        <td>2025-10-15 09:15</td>
+                        <td>2025-12-05 16:45</td>
+                        <td>
+                            <button class="action-btn deposit" onclick="singleDeposit(this)">系統上分</button>
+                            <button class="action-btn withdraw" onclick="singleWithdraw(this)">系統下分</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="id-cell">
+                                <button class="copy-btn" onclick="doCopy('c3b80bb3-83a9-49aa-86f6-c49526784dc1')" title="複製ID">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                </button>
+                                <span>c3b80bb3-83a9-49aa-86f6-c49526784dc1</span>
+                            </div>
+                        </td>
+                        <td><span class="merchant-code">1003</span></td>
+                        <td>agent003</td>
+                        <td>System</td>
+                        <td>JPY</td>
+                        <td>128,450.25</td>
+                        <td>2024-06-20 11:22</td>
+                        <td>2025-12-04 09:18</td>
+                        <td>
+                            <button class="action-btn deposit" onclick="singleDeposit(this)">系統上分</button>
+                            <button class="action-btn withdraw" onclick="singleWithdraw(this)">系統下分</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="id-cell">
+                                <button class="copy-btn" onclick="doCopy('11bb382a-1e62-4f89-927f-670eaceead5d')" title="複製ID">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                </button>
+                                <span>11bb382a-1e62-4f89-927f-670eaceead5d</span>
+                            </div>
+                        </td>
+                        <td><span class="merchant-code">2001</span></td>
+                        <td>agent004</td>
+                        <td>System</td>
+                        <td>JPY</td>
+                        <td>45,950.00</td>
+                        <td>2025-08-03 14:35</td>
+                        <td>2025-12-03 13:27</td>
+                        <td>
+                            <button class="action-btn deposit" onclick="singleDeposit(this)">系統上分</button>
+                            <button class="action-btn withdraw" onclick="singleWithdraw(this)">系統下分</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="id-cell">
+                                <button class="copy-btn" onclick="doCopy('d46f5748-b169-4184-a8de-45e37623d89b')" title="複製ID">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                </button>
+                                <span>d46f5748-b169-4184-a8de-45e37623d89b</span>
+                            </div>
+                        </td>
+                        <td><span class="merchant-code">2002</span></td>
+                        <td>agent005</td>
+                        <td>System</td>
+                        <td>JPY</td>
+                        <td>325,680.75</td>
+                        <td>2023-12-10 16:44</td>
+                        <td>2025-12-05 10:32</td>
+                        <td>
+                            <button class="action-btn deposit" onclick="singleDeposit(this)">系統上分</button>
+                            <button class="action-btn withdraw" onclick="singleWithdraw(this)">系統下分</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="pagination">
+                <div class="pagination-info">共 1 頁 5 條,共計 5 條</div>
+            </div>
+        </div>
+
+        <div class="system-info-section">
+            <div class="info-card">
+                <h3>系統規則</h3>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th width="15%">規則類型</th>
+                            <th width="85%">規則內容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>錢包功能</td>
+                            <td>該功能可以讓使用者管理「代理錢包」,並協助代理上下分。</td>
+                        </tr>
+                        <tr>
+                            <td>預設狀態</td>
+                            <td>每個代理創立時,預設餘額為 $0.00。<br>
+                                系統會自動記錄創建時間和最後異動時間。<br>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>上下分規則</td>
+                            <td>系統管理員可透過此對特定代理進行上分或下分操作。<br>
+                                每次操作系統會自動記錄操作時間。
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>搜尋功能列</h3>
+                <div class="info-box-highlight">
+                    <strong>重要提醒:</strong><br>
+                    一進畫面就帶入預設值,並顯示搜索出來的資料。<br>
+                    點擊「重置」按鈕回到預設值,如果按下搜尋時是空值,則自動帶入預設值。
+                </div>
+                
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th width="15%">欄位</th>
+                            <th width="60%">內容說明</th>
+                            <th width="25%">模式</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>代理名稱</td>
+                            <td>可輸入代理名稱或ID進行搜尋<br>
+                                預設<strong style="color: #ba6cf5;">自己(當前登入的代理帳號)</strong>,空值代表查詢全部<br>
+                            </td>
+                            <td>下拉選單,非必填</td>
+                        </tr>
+                        <tr>
+                            <td>所屬代理</td>
+                            <td>
+                               點擊選擇上級代理<br>
+                               預設空值,代表全部<br>
+                                <strong style="color: #ba6cf5;">選單僅顯示當前用戶有權限查看的代理列表(他的直屬下線代理含自己)</strong>
+                             </td>
+                            <td>下拉選單,非必填</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>資料表說明</h3>
+                <div class="info-box-highlight">
+                    <strong>重要提醒:</strong><br>
+                    一進畫面就帶入預設值,並顯示搜索出來的資料。<br>
+                    點擊「重置」按鈕回到預設值,如果按下搜尋時是空值,則自動帶入預設值。
+                </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th width="15%">欄位名稱</th>
+                            <th width="60%">欄位說明</th>
+                            <th width="25%">資料類型</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>下級代理會員</td>
+                            <td>
+                                位於表格左上角的切換按鈕，用於切換資料顯示範圍<br>
+                                <strong>當前代理會員（預設）：</strong>僅顯示代理自己的錢包資料<br>
+                                <strong>下級代理會員（可切換）：</strong>顯示下線所有代理的錢包資料<br>
+                                再次點擊可切回自己的錢包視圖
+                            </td>
+                            <td>功能按鈕<br>介面操作欄</td>
+                        </tr>
+                        <tr>
+                            <td>代理ID</td>
+                            <td>
+                                系統自動生成的唯一識別碼<br>
+                                格式為32位數字<br>
+                                可點擊複製按鈕快速複製ID
+                            </td>
+                            <td>文字<br>唯一值,不可重複</td>
+                        </tr>
+                        <tr>
+                            <td>代理商號</td>
+                            <td>
+                                代理的商號識別碼<br>
+                                格式為4位數字<br>
+                            </td>
+                            <td>文字<br>唯一值,不可重複</td>
+                        </tr>
+                        <tr>
+                            <td>代理名稱</td>
+                            <td>
+                                代理的帳號名稱<br>
+                                和登入後台使用的帳號名稱相同
+                            </td>
+                            <td>文字<br>唯一值,不可重複</td>
+                        </tr>
+                        <tr>
+                            <td>上級代理</td>
+                            <td>
+                                顯示該代理隸屬的直屬上級代理帳
+                            </td>
+                            <td>文字</td>
+                        </tr>
+                        <tr>
+                            <td>幣種</td>
+                            <td>
+                                該代理所使用的錢包幣種
+                            </td>
+                            <td>文字</td>
+                        </tr>
+                        <tr>
+                            <td>餘額</td>
+                            <td>
+                                代理當前錢包的可用金額<br>
+                                格式為貨幣格式,保留兩位小數<br>
+                                每次上下分操作會即時更新此欄位
+                            </td>
+                            <td>數字 (小數點後兩位)</td>
+                        </tr>
+                        <tr>
+                            <td>創建時間</td>
+                            <td>
+                                代理帳號首次建立的時間<br>
+                                格式: YYYY-MM-DD HH:mm:ss<br>
+                                此欄位建立後不會變動
+                            </td>
+                            <td>日期時間<br>系統自動記錄</td>
+                        </tr>
+                        <tr>
+                            <td>最後異動時間</td>
+                            <td>
+                                代理錢包最後一次異動的時間<br>
+                                包含上分、下分等所有異動操作<br>
+                                每次操作都會自動更新為當前時間
+                            </td>
+                            <td>日期時間<br>系統自動更新</td>
+                        </tr>
+                        <tr>
+                            <td>操作</td>
+                            <td>
+                                提供系統上分和系統下分兩個操作按鈕<br>
+                                點擊後會彈出對應的操作視窗<br>
+                            </td>
+                            <td>功能按鈕<br>介面操作欄</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>上下分操作說明</h3>
+                <div class="info-box-highlight">
+                    <strong>操作提醒:</strong><br>
+                    系統上分和下分操作會即時影響代理錢包餘額,請謹慎操作。<br>
+                    每次操作都需要填寫備註說明,以便後續追蹤和稽核。
+                </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th width="15%">操作類型</th>
+                            <th width="60%">操作說明</th>
+                            <th width="25%">使用方式</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>系統上分</td>
+                            <td>
+                                點擊該代理列表操作欄的「系統上分」按鈕<br>
+                                會自動帶入該代理資訊,無需再選擇<br>
+                                視窗頂部會顯示當前操作的代理名稱
+                            </td>
+                            <td>
+                                1. 點擊代理列的「系統上分」<br>
+                                2. 輸入金額<br>
+                                3. 填寫備註<br>
+                                4. 確認上分
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>系統下分</td>
+                            <td>
+                                點擊該代理列表操作欄的「系統下分」按鈕<br>
+                                操作流程與系統上分相同<br>
+                            </td>
+                            <td>
+                                1. 點擊代理列的「系統下分」<br>
+                                2. 輸入金額<br>
+                                3. 填寫備註<br>
+                                4. 確認下分
+                            </td>
+                        </tr>
+                        <!--<tr>
+                            <td>快速金額</td>
+                            <td>
+                                上下分視窗都提供快速金額按鈕<br>
+                                包含 +100、+500、+1000、+5000 四個選項<br>
+                                點擊後會自動填入金額欄位<br>
+                                也可以手動輸入任意金額
+                            </td>
+                            <td>
+                                不可輸入小數點
+                            </td>
+                        </tr>-->
+                        <tr>
+                            <td>備註說明</td>
+                            <td>
+                                每次操作都必須填寫備註說明<br>
+                                備註內容用於記錄操作原因和相關說明<br>
+                                有助於後續稽核和問題追蹤<br>
+                                未填寫備註無法完成操作
+                            </td>
+                            <td>
+                                必填
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>操作結果</td>
+                            <td>
+                                操作成功後會顯示成功提示訊息<br>
+                                代理列表中的餘額會即時更新<br>
+                                最後異動時間會更新為當前操作時間<br>
+                                更新後的資料會即時顯示在表格中
+                            </td>
+                            <td>
+                                成功提示顯示<br>
+                                餘額即時更新<br>
+                                時間自動記錄<br>
+                                視窗自動關閉
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h3>列設置功能</h3>
+                <div class="info-box-highlight">
+                    <strong>功能說明:</strong><br>
+                    點擊表格右上方的「列設置」按鈕,可調整表格顯示的欄位、順序和釘選位置。<br>
+                    設定會即時生效,並在當前頁面中保持。<br>
+                    匯出則是原始欄位及順序不受列設置影響。
+                </div>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th width="15%">功能項目</th>
+                            <th width="60%">功能說明</th>
+                            <th width="25%">操作方式</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>全選控制</td>
+                            <td>
+                                一鍵選擇或取消選擇所有欄位<br>
+                                當部分欄位被選中時,顯示半選狀態<br>
+                            </td>
+                            <td>點擊「全選」勾選框</td>
+                        </tr>
+                        <tr>
+                            <td>欄位顯示控制</td>
+                            <td>
+                                控制每個欄位是否在表格中顯示<br>
+                                未勾選的欄位將在表格中隱藏<br>
+                                表格中的第一欄為鎖定,不可隱藏
+                            </td>
+                            <td>點擊欄位名稱前的勾選框</td>
+                        </tr>
+                        <tr>
+                            <td>拖拽排序</td>
+                            <td>
+                                點擊左側的上下箭頭調整欄位在表格中的顯示順序<br>
+                                調整後的順序會即時反應在表格中
+                            </td>
+                            <td>點擊左側的「⋮⋮」箭頭圖示</td>
+                        </tr>
+                        <tr>
+                            <td>釘選到左側</td>
+                            <td>
+                                將選中的欄位固定在表格最左側<br>
+                                釘選的欄位在橫向滾動時保持可見
+                            </td>
+                            <td>點擊「釘選到左側」按鈕</td>
+                        </tr>
+                        <tr>
+                            <td>釘選到右側</td>
+                            <td>
+                                將選中的欄位固定在表格最右側<br>
+                                釘選的欄位在橫向滾動時保持可見<br>
+                            </td>
+                            <td>點擊「釘選到右側」按鈕</td>
+                        </tr>
+                        <tr>
+                            <td>取消釘選</td>
+                            <td>
+                                移除欄位的左側或右側釘選狀態<br>
+                                欄位將回到正常的滾動區域<br>
+                            </td>
+                            <td>點擊「取消釘選」按鈕</td>
+                        </tr>
+                        <tr>
+                            <td>重置設定</td>
+                            <td>
+                                清除所有自定義的排序和釘選設定<br>
+                                回到系統初始的欄位配置
+                            </td>
+                            <td>點擊「重置」按鈕</td>
+                        </tr>
+                        <tr>
+                            <td>保存設定</td>
+                            <td>
+                                應用當前的欄位配置到表格顯示<br>
+                                設定在當前瀏覽器頁面中保持有效<br>
+                            </td>
+                            <td>點擊「保存」按鈕</td>
+                        </tr>
+                        <tr>
+                            <td>取消操作</td>
+                            <td>
+                                放棄當前的所有配置更改<br>
+                                回到進入設定前的狀態
+                            </td>
+                            <td>點擊「取消」按鈕</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="singleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="sTitle"></div>
+                <span class="close" onclick="closeSingle()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="info-box">
+                    <strong>代理名稱:</strong> <span id="sAgent"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">金額<span class="required">*</span></label>
+                    <div class="amount-input-group">
+                        <span class="currency-symbol">$</span>
+                        <input type="number" id="sAmt" class="form-input" placeholder="請輸入金額" min="0" step="0.01">
+                    </div>
+                    <!--<div class="quick-amount-btns">
+                        <button class="quick-btn" onclick="setSAmt(100)">+100</button>
+                        <button class="quick-btn" onclick="setSAmt(500)">+500</button>
+                        <button class="quick-btn" onclick="setSAmt(1000)">+1000</button>
+                        <button class="quick-btn" onclick="setSAmt(5000)">+5000</button>
+                    </div>-->
+                    <div class="error-message" id="sAmtErr">請輸入有效金額</div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">備註說明<span class="required">*</span></label>
+                    <textarea id="sRmk" class="form-textarea" placeholder="請輸入調整原因或備註"></textarea>
+                    <div class="error-message" id="sRmkErr">請輸入備註說明</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeSingle()">取消</button>
+                <button class="btn btn-primary" id="sBtn" onclick="confirmSingle()">確認</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="columnModal" class="modal column-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">列設置</div>
+                <span class="close" onclick="closeColumn()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="column-header">
+                    <div class="select-all">
+                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" checked>
+                        <label for="selectAll">全選</label>
+                    </div>
+                    <button class="reset-btn" onclick="resetColumns()">重置</button>
+                </div>
+                
+                <div class="column-list" id="columnList">
+                    <div class="column-item" data-column="id">
+                        <span class="drag-handle">⋮⋮</span>
+                        <input type="checkbox" class="column-checkbox" data-column="id" onchange="updateColumns()" checked disabled>
+                        <span class="column-name">代理ID</span>
+                        <div class="column-actions">
+                            <button class="column-action-btn" onclick="moveColumn('id', 'left')">釘選到左側</button>
+                            <button class="column-action-btn" onclick="moveColumn('id', 'none')">取消釘選</button>
+                            <button class="column-action-btn" onclick="moveColumn('id', 'right')">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item" data-column="merchantCode">
+                        <span class="drag-handle">⋮⋮</span>
+                        <input type="checkbox" class="column-checkbox" data-column="merchantCode" onchange="updateColumns()" checked>
+                        <span class="column-name">代理商號</span>
+                        <div class="column-actions">
+                            <button class="column-action-btn" onclick="moveColumn('merchantCode', 'left')">釘選到左側</button>
+                            <button class="column-action-btn" onclick="moveColumn('merchantCode', 'none')">取消釘選</button>
+                            <button class="column-action-btn" onclick="moveColumn('merchantCode', 'right')">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item" data-column="name">
+                        <span class="drag-handle">⋮⋮</span>
+                        <input type="checkbox" class="column-checkbox" data-column="name" onchange="updateColumns()" checked>
+                        <span class="column-name">代理名稱</span>
+                        <div class="column-actions">
+                            <button class="column-action-btn" onclick="moveColumn('name', 'left')">釘選到左側</button>
+                            <button class="column-action-btn" onclick="moveColumn('name', 'none')">取消釘選</button>
+                            <button class="column-action-btn" onclick="moveColumn('name', 'right')">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item" data-column="parent">
+                        <span class="drag-handle">⋮⋮</span>
+                        <input type="checkbox" class="column-checkbox" data-column="parent" onchange="updateColumns()" checked>
+                        <span class="column-name">上級代理</span>
+                        <div class="column-actions">
+                            <button class="column-action-btn" onclick="moveColumn('parent', 'left')">釘選到左側</button>
+                            <button class="column-action-btn" onclick="moveColumn('parent', 'none')">取消釘選</button>
+                            <button class="column-action-btn" onclick="moveColumn('parent', 'right')">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item" data-column="balance">
+                        <span class="drag-handle">⋮⋮</span>
+                        <input type="checkbox" class="column-checkbox" data-column="balance" onchange="updateColumns()" checked>
+                        <span class="column-name">餘額</span>
+                        <div class="column-actions">
+                            <button class="column-action-btn" onclick="moveColumn('balance', 'left')">釘選到左側</button>
+                            <button class="column-action-btn" onclick="moveColumn('balance', 'none')">取消釘選</button>
+                            <button class="column-action-btn" onclick="moveColumn('balance', 'right')">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item" data-column="created">
+                        <span class="drag-handle">⋮⋮</span>
+                        <input type="checkbox" class="column-checkbox" data-column="created" onchange="updateColumns()" checked>
+                        <span class="column-name">創建時間</span>
+                        <div class="column-actions">
+                            <button class="column-action-btn" onclick="moveColumn('created', 'left')">釘選到左側</button>
+                            <button class="column-action-btn" onclick="moveColumn('created', 'none')">取消釘選</button>
+                            <button class="column-action-btn" onclick="moveColumn('created', 'right')">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item" data-column="updated">
+                        <span class="drag-handle">⋮⋮</span>
+                        <input type="checkbox" class="column-checkbox" data-column="updated" onchange="updateColumns()" checked>
+                        <span class="column-name">最後異動時間</span>
+                        <div class="column-actions">
+                            <button class="column-action-btn" onclick="moveColumn('updated', 'left')">釘選到左側</button>
+                            <button class="column-action-btn" onclick="moveColumn('updated', 'none')">取消釘選</button>
+                            <button class="column-action-btn" onclick="moveColumn('updated', 'right')">釘選到右側</button>
+                        </div>
+                    </div>
+                    <div class="column-item" data-column="actions">
+                        <span class="drag-handle">⋮⋮</span>
+                        <input type="checkbox" class="column-checkbox" data-column="actions" onchange="updateColumns()" checked>
+                        <span class="column-name">操作</span>
+                        <div class="column-actions">
+                            <button class="column-action-btn" onclick="moveColumn('actions', 'left')">釘選到左側</button>
+                            <button class="column-action-btn" onclick="moveColumn('actions', 'none')">取消釘選</button>
+                            <button class="column-action-btn" onclick="moveColumn('actions', 'right')">釘選到右側</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="modal-footer-buttons">
+                    <button class="btn btn-secondary" onclick="closeColumn()">取消</button>
+                    <button class="btn btn-primary" onclick="saveColumns()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var sType = '';
+        var sRow = null;
+        var viewMode = 'self'; // 'self' = 代理自己, 'sub' = 下線所有代理
+
+        function toggleView() {
+            var btn = document.getElementById('toggleViewBtn');
+            var label = document.getElementById('toggleViewLabel');
+
+            if (viewMode === 'self') {
+                viewMode = 'sub';
+                btn.classList.add('active');
+                label.textContent = '下級代理會員';
+                // 顯示全部代理（模擬下線代理視圖）
+                document.querySelectorAll('#tableBody tr').forEach(function(r) {
+                    r.style.display = '';
+                });
+                msg('已切換：顯示下線所有代理的錢包', 'info');
+            } else {
+                viewMode = 'self';
+                btn.classList.remove('active');
+                label.textContent = '下級代理會員';
+                // 只顯示 System 那一列（模擬自己的錢包）
+                document.querySelectorAll('#tableBody tr').forEach(function(r) {
+                    var name = r.cells[2].textContent.trim();
+                    r.style.display = (name === 'System') ? '' : 'none';
+                });
+                msg('已切換：顯示代理自己的錢包', 'info');
+            }
+        }
+
+        function singleDeposit(btn) {
+            openSingle(btn, 'deposit');
+        }
+
+        function singleWithdraw(btn) {
+            openSingle(btn, 'withdraw');
+        }
+
+        function openSingle(btn, type) {
+            sRow = btn.closest('tr');
+            sType = type;
+            
+            var c = sRow.cells;
+            var agentName = c[2].textContent;
+            
+            document.getElementById('sTitle').textContent = type === 'deposit' ? '💰 系統上分' : '💸 系統下分';
+            document.getElementById('sAgent').textContent = agentName;
+            document.getElementById('sAmt').value = '';
+            document.getElementById('sRmk').value = '';
+            document.getElementById('sAmtErr').style.display = 'none';
+            document.getElementById('sRmkErr').style.display = 'none';
+            
+            var btn2 = document.getElementById('sBtn');
+            btn2.className = type === 'deposit' ? 'btn btn-success' : 'btn btn-danger';
+            btn2.textContent = type === 'deposit' ? '確認上分' : '確認下分';
+            
+            document.getElementById('singleModal').style.display = 'block';
+        }
+
+        function closeSingle() {
+            document.getElementById('singleModal').style.display = 'none';
+            sRow = null;
+            sType = '';
+        }
+
+        function setSAmt(v) {
+            document.getElementById('sAmt').value = v;
+        }
+
+        function confirmSingle() {
+            var amt = parseFloat(document.getElementById('sAmt').value);
+            var rmk = document.getElementById('sRmk').value.trim();
+            
+            document.getElementById('sAmtErr').style.display = 'none';
+            document.getElementById('sRmkErr').style.display = 'none';
+            
+            var ok = true;
+            
+            if (!amt || amt <= 0) {
+                document.getElementById('sAmtErr').style.display = 'block';
+                ok = false;
+            }
+            
+            if (!rmk) {
+                document.getElementById('sRmkErr').style.display = 'block';
+                ok = false;
+            }
+            
+            if (sType === 'withdraw') {
+                var bal = parseFloat(sRow.cells[5].textContent.replace(/,/g, ''));
+                if (amt > bal) {
+                    document.getElementById('sAmtErr').textContent = '下分金額不能超過當前餘額 ' + sRow.cells[5].textContent;
+                    document.getElementById('sAmtErr').style.display = 'block';
+                    ok = false;
+                }
+            }
+            
+            if (!ok) return;
+            
+            var oldBal = parseFloat(sRow.cells[5].textContent.replace(/,/g, ''));
+            var newBal = sType === 'deposit' ? oldBal + amt : oldBal - amt;
+            
+            sRow.cells[5].innerHTML = '<span class="balance-highlight">' + newBal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</span>';
+            
+            var now = new Date();
+            var t = now.getFullYear() + '-' + 
+                   String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                   String(now.getDate()).padStart(2, '0') + ' ' + 
+                   String(now.getHours()).padStart(2, '0') + ':' + 
+                   String(now.getMinutes()).padStart(2, '0');
+            sRow.cells[7].textContent = t;
+            
+            closeSingle();
+            msg((sType === 'deposit' ? '上分成功! ' : '下分成功! ') + '金額: $' + amt.toFixed(2), 'success');
+        }
+
+        function doSearch() {
+            var id = document.getElementById('searchAgentId').value.toLowerCase();
+            var name = document.getElementById('searchAgentName').value.toLowerCase();
+            var parent = document.getElementById('searchParentAgent').value;
+            
+            var rows = document.querySelectorAll('#tableBody tr');
+            var cnt = 0;
+            
+            rows.forEach(function(r) {
+                var c = r.cells;
+                var rId = c[0].querySelector('span').textContent.toLowerCase();
+                var rName = c[2].textContent.toLowerCase();
+                var rParent = c[3].textContent;
+                
+                var match = (!id || rId.includes(id)) && (!name || rName.includes(name)) && (!parent || rParent === parent);
+                
+                if (match) {
+                    r.style.display = '';
+                    cnt++;
+                } else {
+                    r.style.display = 'none';
+                }
+            });
+            
+            msg(cnt > 0 ? '找到 ' + cnt + ' 個符合條件的錢包' : '未找到符合條件的錢包', cnt > 0 ? 'success' : 'info');
+        }
+
+        function doReset() {
+            document.getElementById('searchAgentId').value = '';
+            document.getElementById('searchAgentName').value = '';
+            document.getElementById('searchParentAgent').value = '';
+            
+            document.querySelectorAll('#tableBody tr').forEach(function(r) {
+                r.style.display = '';
+            });
+            
+            msg('搜索已重置', 'success');
+        }
+
+        function showColumnMsg() {
+            document.getElementById('columnModal').style.display = 'block';
+            updateSelectAllCheckbox();
+        }
+
+        function closeColumn() {
+            document.getElementById('columnModal').style.display = 'none';
+        }
+
+        function toggleSelectAll() {
+            var checked = document.getElementById('selectAll').checked;
+            var checkboxes = document.querySelectorAll('.column-checkbox');
+            checkboxes.forEach(function(cb) {
+                if (!cb.disabled) {
+                    cb.checked = checked;
+                }
+            });
+            updateColumns();
+        }
+
+        function updateSelectAllCheckbox() {
+            var checkboxes = document.querySelectorAll('.column-checkbox:not([disabled])');
+            var allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            document.getElementById('selectAll').checked = allChecked;
+        }
+
+        function updateColumns() {
+            updateSelectAllCheckbox();
+        }
+
+        function resetColumns() {
+            var checkboxes = document.querySelectorAll('.column-checkbox');
+            checkboxes.forEach(function(cb) {
+                if (!cb.disabled) {
+                    cb.checked = true;
+                }
+            });
+            updateSelectAllCheckbox();
+            msg('已重置為預設列設置', 'success');
+        }
+
+        function moveColumn(column, direction) {
+            var directionText = direction === 'left' ? '左側' : direction === 'right' ? '右側' : '無';
+            msg('列 "' + column + '" 已' + (direction === 'none' ? '取消釘選' : '釘選到' + directionText), 'info');
+        }
+
+        function saveColumns() {
+            var visibleColumns = [];
+            var checkboxes = document.querySelectorAll('.column-checkbox');
+            checkboxes.forEach(function(cb) {
+                if (cb.checked) {
+                    visibleColumns.push(cb.dataset.column);
+                }
+            });
+            
+            closeColumn();
+            msg('列設置已保存', 'success');
+        }
+
+        function doCopy(txt) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(txt).then(function() {
+                    msg('已複製: ' + txt, 'success');
+                });
+            } else {
+                var t = document.createElement('textarea');
+                t.value = txt;
+                t.style.position = 'fixed';
+                t.style.left = '-9999px';
+                document.body.appendChild(t);
+                t.select();
+                document.execCommand('copy');
+                document.body.removeChild(t);
+                msg('已複製: ' + txt, 'success');
+            }
+        }
+
+        function msg(txt, type) {
+            var d = document.createElement('div');
+            d.style.cssText = 'position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:6px;color:white;font-size:14px;z-index:10001;transition:opacity 0.3s;';
+            d.style.background = type === 'success' ? '#67c23a' : type === 'info' ? '#409eff' : '#f56c6c';
+            d.textContent = txt;
+            document.body.appendChild(d);
+            
+            setTimeout(function() {
+                d.style.opacity = '0';
+                setTimeout(function() {
+                    document.body.removeChild(d);
+                }, 300);
+            }, 3000);
+        }
+
+        window.onclick = function(e) {
+            var m2 = document.getElementById('singleModal');
+            var m3 = document.getElementById('columnModal');
+            if (e.target === m2) closeSingle();
+            if (e.target === m3) closeColumn();
+        };
+    </script>
+</body>
+</html>
+                
