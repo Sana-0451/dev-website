@@ -1,0 +1,3452 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支付订单</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .main-content {
+            margin-left: 0;
+            margin-top: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .search-first-row {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .search-additional-rows {
+            padding: 0 20px 20px 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            transition: all 0.3s ease;
+        }
+
+        .search-section.collapsed .search-additional-rows {
+            display: none;
+        }
+
+        .collapse-toggle {
+            font-size: 14px;
+            color: #409eff;
+            cursor: pointer;
+            transition: color 0.2s;
+            margin-left: auto;
+        }
+
+        .collapse-toggle:hover {
+            color: #337ecc;
+        }
+
+        .search-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-label {
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .search-input, .search-select {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 120px;
+            transition: all 0.2s ease;
+            background: white;
+            color: #606266;
+            outline: none;
+        }
+
+        .search-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23909399' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 8px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 32px;
+        }
+
+        .search-input:hover, .search-select:hover {
+            border-color: #c0c4cc;
+        }
+
+        .search-input:focus, .search-select:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+
+        .date-range {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .date-input {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 150px;
+        }
+
+        .search-buttons {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+            padding: 0 20px 20px 20px;
+        }
+
+        .search-btn, .reset-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+            min-width: 70px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .search-btn {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .search-btn:hover {
+            background: #66b1ff;
+            border-color: #66b1ff;
+        }
+
+        .reset-btn {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .reset-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        /* Statistics Cards Section */
+        .stats-section {
+            margin-bottom: 10px;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 0;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e8e8e8;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            font-family: 'Courier New', monospace;
+            line-height: 1.2;
+        }
+
+        .stat-value.profit {
+            color: #67c23a;
+        }
+
+        .stat-value.success-orders {
+            color: #67c23a;
+        }
+
+        .stat-value.failed-orders {
+            color: #f56c6c;
+        }
+
+        /* Inline Order Statistics */
+        .stat-value-inline {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .order-stat {
+            font-size: 18px;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+            line-height: 1.2;
+        }
+
+        .order-stat.success {
+            color: #67c23a;
+        }
+
+        .order-stat.failed {
+            color: #f56c6c;
+        }
+
+        /* Copy Icon Styles */
+        .copy-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            cursor: pointer;
+            vertical-align: middle;
+            opacity: 0.6;
+            transition: opacity 0.2s ease;
+        }
+
+        .copy-icon:hover {
+            opacity: 1;
+        }
+
+        .copy-icon svg {
+            width: 14px;
+            height: 14px;
+            fill: #666;
+            vertical-align: middle;
+        }
+
+        .copy-icon:hover svg {
+            fill: #409eff;
+        }
+
+        .copy-cell {
+            text-align: center !important;
+            white-space: nowrap;
+        }
+
+        .copy-cell .game-id {
+            vertical-align: middle;
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 1400px) {
+            .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Table Header */
+        .table-header {
+            background: #fafafa;
+            border-radius: 8px 8px 0 0;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8e8e8;
+            margin-bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .status-summary {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+        }
+
+        .status-item.processing .status-label {
+            color: #f57c00;
+        }
+
+        .status-item.cancelled .status-label {
+            color: #c62828;
+        }
+
+        .status-item.failed .status-label {
+            color: #d32f2f;
+        }
+
+        .status-item.rejected .status-label {
+            color: #7b1fa2;
+        }
+
+        .status-item.expired .status-label {
+            color: #f57c00;
+        }
+
+        .status-count {
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 13px;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .status-item.processing .status-count {
+            background: #fff8e1;
+            color: #f57c00;
+        }
+
+        .status-item.cancelled .status-count {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .status-item.failed .status-count {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        .status-item.rejected .status-count {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .status-item.expired .status-count {
+            background: #fff8e1;
+            color: #f57c00;
+        }
+
+        .header-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .table-header-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid;
+            min-width: 70px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .table-header-btn:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 8px;
+            height: 8px;
+            background: #f56c6c;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .table-header-btn {
+            position: relative;
+        }
+
+        /* Report Table */
+        .report-table {
+            background: white;
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #e8e8e8;
+            border-right: 1px solid #e8e8e8;
+            font-size: 12px !important;
+            line-height: 1.4;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #606266;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 12px !important;
+        }
+
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            font-size: 12px !important;
+        }
+
+        .sortable:hover {
+            color: #409eff;
+        }
+
+        .sortable::after {
+            content: '⇅';
+            position: absolute;
+            right: 5px;
+            color: #ccc;
+            font-size: 10px;
+        }
+
+        .game-name {
+            color: #333;
+            font-weight: 500;
+            font-size: 12px !important;
+        }
+
+        .game-id {
+            color: #409eff;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 12px !important;
+        }
+
+        .game-id:hover {
+            text-decoration: underline;
+        }
+
+        .provider-name {
+            font-weight: 500;
+            color: #333;
+            font-size: 12px !important;
+        }
+
+        .status-tag {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px !important;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .status-failed {
+            background: #ffebee;
+            color: #d32f2f;
+            position: relative;
+        }
+
+        .status-rejected {
+            background: #f3e5f5;
+            color: #7b1fa2;
+            position: relative;
+        }
+
+        .status-expired {
+            background: #fff8e1;
+            color: #f57c00;
+        }
+
+        .status-with-warning {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-warning-icon {
+            color: #ff9800;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .status-warning-icon:hover::after {
+            content: attr(data-reason);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            margin-bottom: 5px;
+        }
+
+        .status-warning-icon:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid #333;
+            z-index: 1000;
+        }
+
+        .payment-type {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px !important;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .payment-type.deposit {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .payment-type.withdraw {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        /* Drawer中的支付類型標籤 - 較大尺寸 */
+        .drawer-body .payment-type {
+            padding: 6px 12px;
+            font-size: 14px !important;
+        }
+
+        .amount {
+            font-weight: 600;
+            text-align: right !important;
+            color: #333;
+            font-size: 12px !important;
+        }
+
+        .total-row {
+            background: #666 !important;
+            color: white;
+            font-weight: 600;
+        }
+
+        .total-row td {
+            color: white;
+            font-size: 12px !important;
+            font-weight: 600;
+        }
+
+        .timezone {
+            color: #666;
+            font-size: 12px !important;
+            font-weight: 500;
+        }
+
+        .date-range-display {
+            color: #666;
+            font-size: 12px !important;
+            font-weight: 500;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .page-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .page-btn.active {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-size-selector, .jump-page {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 20px;
+        }
+
+        .page-size-select, .jump-input {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .jump-input {
+            width: 60px;
+            text-align: center;
+        }
+
+        /* Data Row Hover Effect */
+        .data-row {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .data-row:hover {
+            background-color: #f8f9fa;
+        }
+
+        .data-row.selected {
+            background-color: #e6f7ff;
+            border-left: 3px solid #409eff;
+        }
+
+        .detail-btn {
+            padding: 4px 12px;
+            border: 1px solid #409eff;
+            background: #409eff;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .detail-btn:hover {
+            background: #66b1ff;
+            border-color: #66b1ff;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            z-index: 10001;
+            transition: all 0.3s ease;
+            background: #67c23a;
+        }
+
+        .notification.error {
+            background: #f56c6c;
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 8px;
+            width: 900px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8e8e8;
+            background: #fafafa;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 16px 20px;
+            border-top: 1px solid #e8e8e8;
+            background: #fafafa;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1px solid;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #606266;
+            border-color: #dcdfe6;
+        }
+
+        .btn-secondary:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .btn-primary {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .btn-primary:hover {
+            background: #66b1ff;
+            border-color: #66b1ff;
+        }
+
+        /* Report Generation Modal Styles */
+        .form-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .form-section {
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            padding: 16px;
+            background: #fafafa;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-item.full-width {
+            flex: 1 1 100%;
+        }
+
+        .form-label {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .form-input, .form-select {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+            color: #606266;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23909399' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 8px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 32px;
+        }
+
+        .form-input:hover, .form-select:hover {
+            border-color: #c0c4cc;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+        }
+
+        /* History Reports Modal */
+        .history-table-container {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+            background: white;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: white;
+        }
+
+        .history-table thead {
+            background: #f8f9fa;
+        }
+
+        .history-table th {
+            background: #f8f9fa;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: 600;
+            color: #606266;
+            border-bottom: 1px solid #e8e8e8;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .history-table td {
+            padding: 12px 8px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+            color: #666;
+            background: white;
+        }
+
+        .history-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .action-btn-small {
+            padding: 3px 8px;
+            border: 1px solid #dcdfe6;
+            background: white;
+            color: #606266;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn-small:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .action-btn-small.download {
+            background: #67c23a;
+            color: white;
+            border-color: #67c23a;
+        }
+
+        .action-btn-small.download:hover {
+            background: #85ce61;
+            border-color: #85ce61;
+        }
+
+        /* Column Settings Modal */
+        .column-settings-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .column-settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .column-items-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .column-list-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .column-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .drag-handle {
+            width: 20px;
+            text-align: center;
+            font-size: 16px;
+            color: #999;
+            margin-right: 12px;
+            cursor: grab;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .column-order-number {
+            display: none;
+        }
+
+        .column-checkbox-container {
+            margin-right: 16px;
+        }
+
+        .column-name-display {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .column-action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-left: 16px;
+        }
+
+        .column-action-btn {
+            padding: 4px 12px;
+            border: 1px solid #d9d9d9;
+            background: white;
+            color: #666;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .column-action-btn:hover {
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .column-action-btn.active {
+            background: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            user-select: none;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            display: none;
+        }
+
+        .checkmark {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #dcdfe6;
+            border-radius: 3px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-wrapper input[type="checkbox"]:checked + .checkmark {
+            background: #409eff;
+            border-color: #409eff;
+        }
+
+        .checkbox-wrapper input[type="checkbox"]:checked + .checkmark::after {
+            content: '✓';
+            position: absolute;
+            top: -2px;
+            left: 2px;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .checkbox-wrapper input[type="checkbox"]:indeterminate + .checkmark {
+            background: #409eff;
+            border-color: #409eff;
+        }
+
+        .checkbox-wrapper input[type="checkbox"]:indeterminate + .checkmark::after {
+            content: '−';
+            position: absolute;
+            top: -4px;
+            left: 3px;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .btn-outline {
+            background: white;
+            color: #606266;
+            border: 1px solid #dcdfe6;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-outline:hover {
+            background: #ecf5ff;
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        /* Detail Drawer */
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .drawer-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .detail-drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 500px;
+            height: 100vh;
+            background: white;
+            box-shadow: -2px 0 20px rgba(0, 0, 0, 0.15);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+            z-index: 10001;
+        }
+
+        .drawer-overlay.show .detail-drawer {
+            transform: translateX(0);
+        }
+
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid #e8e8e8;
+            background: #fafafa;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .drawer-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .drawer-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+            transition: color 0.2s ease;
+        }
+
+        .drawer-close:hover {
+            color: #666;
+        }
+
+        .drawer-body {
+            padding: 24px;
+        }
+
+        .payment-summary-card {
+            background: linear-gradient(135deg, #409eff, #66b1ff);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+            color: white;
+        }
+
+        .payment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .payment-id {
+            font-size: 16px;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+
+        .payment-amount {
+            text-align: center;
+        }
+
+        .amount-value {
+            font-size: 24px;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+            display: inline;
+            line-height: 1;
+        }
+
+        .currency-code {
+            font-size: 16px;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-left: 8px;
+            display: inline;
+        }
+
+        .info-section {
+            background: white;
+            margin-bottom: 16px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .info-section-title {
+            background: #f8f9fa;
+            padding: 10px 20px;
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-list {
+            padding: 16px 20px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-size: 14px;
+            color: #666;
+            min-width: 80px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #333;
+            text-align: right;
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .info-value-with-copy {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .copy-icon-small {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .copy-icon-small:hover {
+            opacity: 1;
+        }
+
+        .copy-icon-small svg {
+            width: 16px;
+            height: 16px;
+            fill: #666;
+        }
+
+        .copy-icon-small:hover svg {
+            fill: #409eff;
+        }
+
+        .order-status-section {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .status-display {
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        .status-display.success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .status-display.failed {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        .status-details {
+            padding: 16px 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .status-details.success {
+            background: #f0f9ff;
+            border-left: 4px solid #67c23a;
+        }
+
+        .status-details.failed {
+            background: #fff5f5;
+            border-left: 4px solid #f56c6c;
+        }
+
+        .status-details.rejected {
+            background: #fdf2f8;
+            border-left: 4px solid #d946ef;
+        }
+
+        .status-details.expired {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .status-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .status-content {
+            flex: 1;
+        }
+
+        .status-reason-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .status-reason-title.success {
+            color: #2e7d32;
+        }
+
+        .status-reason-title.failed {
+            color: #c53030;
+        }
+
+        .status-reason-title.rejected {
+            color: #97266d;
+        }
+
+        .status-reason-title.expired {
+            color: #c2410c;
+        }
+
+        .status-reason-message {
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .status-reason-message.success {
+            color: #2d5016;
+        }
+
+        .status-reason-message.failed {
+            color: #744210;
+        }
+
+        .status-reason-message.rejected {
+            color: #553c9a;
+        }
+
+        .status-reason-message.expired {
+            color: #92400e;
+        }
+
+        /* System Info Section */
+        .system-info-section {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .info-card h3 {
+            background: #f8f9fa;
+            margin: 0;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: white;
+        }
+
+        .info-table th {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            text-align: center;
+            font-weight: 600;
+            color: #606266;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .info-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #666;
+            line-height: 1.6;
+            vertical-align: top;
+        }
+
+        .info-table td:first-child {
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .info-table td:nth-child(2) {
+            text-align: left;
+        }
+
+        .info-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .highlight-text {
+            color: #ba6cf5;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <main class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>支付訂單</h1>
+            </div>
+
+            <!-- Search Section -->
+            <div class="search-section" id="searchSection">
+                <div class="search-first-row">
+                    <div class="search-item">
+                        <label class="search-label">時間類型:</label>
+                        <select id="timeType" class="search-select">
+                            <option value="bet_time" selected>創建時間</option>
+                            <option value="update_time">更新時間</option>
+                        </select>
+                    </div>
+
+                    <div class="search-item">
+                        <label class="search-label">訂單統計時區:</label>
+                        <select id="timezone" class="search-select">
+                            <option value="">  </option>
+                            <option value="UTC-4">UTC-4</option>
+                            <option value="UTC+0">UTC+0</option>
+                            <option value="UTC+4">UTC+4</option>
+                            <option value="UTC+7">UTC+7</option>
+                            <option value="UTC+8">UTC+8</option>
+                            <option value="UTC+9">UTC+9</option>
+                        </select>
+                    </div>
+                    
+                    <div class="search-item">
+                        <label class="search-label">🕒</label>
+                        <div class="date-range">
+                            <input type="date" id="startDate" class="date-input" value="2025-05-25">
+                            <span>~</span>
+                            <input type="date" id="endDate" class="date-input" value="2025-05-25">
+                        </div>
+                    </div>
+                    
+                    <div class="search-item">
+                        <label class="search-label">後台單號:</label>
+                        <input type="text" id="gameRoundId" class="search-input" placeholder=" ">
+                    </div>
+
+                    <div class="search-item">
+                        <label class="search-label">支付單號:</label>
+                        <input type="text" id="gameRoundId" class="search-input" placeholder=" ">
+                    </div>
+                    
+                    <div class="collapse-toggle" id="collapseToggle" onclick="toggleSearchSection()">收起</div>
+                </div>
+                
+                <div class="search-additional-rows">
+                    <div class="search-item">
+                        <label class="search-label">所屬代理:</label>
+                        <select id="agent" class="search-select">
+                            <option value="">  </option>
+                            <option value="ivLv4UAT">ivLv4UAT</option>
+                            <option value="System">System</option>
+                            <option value="Agent001">Agent001</option>
+                        </select>
+                    </div>
+                    
+                    <div class="search-item">
+                        <label class="search-label">玩家賬號:</label>
+                        <input type="text" id="playerAccount" class="search-input" placeholder=" ">
+                    </div>
+                    
+                    <div class="search-item">
+                        <label class="search-label">支付方式:</label>
+                        <select id="paymentMethod" class="search-select">
+                            <option value="">  </option>
+                            <option value="銀行轉賬">銀行轉賬</option>
+                            <option value="信用卡">信用卡</option>
+                            <option value="虛擬貨幣">虛擬貨幣</option>
+                            <option value="現金">現金</option>
+                        </select>
+                    </div>
+                    
+                    <div class="search-item">
+                        <label class="search-label">支付渠道:</label>
+                        <select id="paymentChannel" class="search-select">
+                            <option value="">  </option>
+                            <option value="MatchPlay">MatchPlay</option>
+                            <option value="GoldAnt">GoldAnt</option>
+                            <option value="8v">8v</option>
+                            <option value="線下">線下</option>
+                        </select>
+                    </div>
+                    
+                    <div class="search-item">
+                        <label class="search-label">支付種類:</label>
+                        <select id="paymentType" class="search-select">
+                            <option value="">  </option>
+                            <option value="充值">充值</option>
+                            <option value="提款">提款</option>
+                        </select>
+                    </div>
+
+                    <div class="search-item">
+                        <label class="search-label">狀態:</label>
+                        <select id="status" class="search-select">
+                            <option value="">  </option>
+                            <option value="成功">成功</option>
+                            <option value="失敗">失敗</option>
+                            <option value="拒絕">拒絕</option>
+                            <option value="過期">過期</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="search-buttons">
+                    <button class="search-btn" onclick="searchReports()">🔍 搜索</button>
+                    <button class="reset-btn" onclick="resetSearch()">重置</button>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="stats-section">
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-label">總充值金額(JPY)</div>
+                        <div class="stat-value success-orders" id="totalDeposit">1,823,450,000.00</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">總提款金額(JPY)</div>
+                        <div class="stat-value failed-orders" id="totalWithdraw">1,756,320,500.00</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">充提差(JPY)</div>
+                        <div class="stat-value profit" id="depositWithdrawDiff">+67,129,500.00</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">訂單統計</div>
+                        <div class="stat-value-inline">
+                            <span class="order-stat success">成功 9,576</span>
+                            <span class="order-stat failed">失敗 4</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Header -->
+            <div class="table-header">
+                <div class="status-summary">
+                    <span class="status-item rejected">
+                        <span class="status-label">拒絕注單:</span>
+                        <span class="status-count" id="rejectedCount">1</span>
+                    </span>
+                    <span class="status-item expired">
+                        <span class="status-label">過期注單:</span>
+                        <span class="status-count" id="expiredCount">1</span>
+                    </span>
+                </div>
+                <div class="header-buttons">
+                    <button class="table-header-btn" onclick="generateReport()">報表生成</button>
+                    <button class="table-header-btn" onclick="downloadHistory()">報表下載</button>
+                    <button class="table-header-btn" onclick="openColumnSettings()">列設置</button>
+                </div>
+            </div>
+
+            <div class="report-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>後台單號</th>
+                            <th>玩家賬號</th>
+                            <th>支付種類</th>
+                            <th>支付方式</th>
+                            <th>支付渠道</th>
+                            <th>幣種</th>
+                            <th class="sortable" onclick="sortTable('amount')">實際金額</th>
+                            <th class="sortable" onclick="sortTable('amount')">轉換JPY</th>
+                            <th>狀態</th>
+                            <th class="sortable" onclick="sortTable('createTime')">創建時間</th>
+                            <th class="sortable" onclick="sortTable('updateTime')">更新時間</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTableBody">
+                        <tr class="data-row" onclick="showBetDetails('PAY2025081101')">
+                            <td class="copy-cell">
+                                <span class="copy-icon" onclick="copyToClipboard('PAY2025081101'); event.stopPropagation();" title="複製ID">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                    </svg>
+                                </span>
+                                <a href="javascript:void(0)" class="game-id">PAY2025081101</a>
+                            </td>
+                            <td>testnorman</td>
+                            <td><span class="payment-type deposit">充值</span></td>
+                            <td>銀行轉賬</td>
+                            <td>MatchPlay</td>
+                            <td>JPY</td>
+                            <td class="amount">2,000.00</td>
+                            <td class="amount">2,000.00</td>
+                            <td><span class="status-tag status-success">成功</span></td>
+                            <td class="date-range-display">2025-08-11 13:20:58</td>
+                            <td class="date-range-display">2025-08-11 13:21:05</td>
+                        </tr>
+                        <tr class="data-row" onclick="showBetDetails('PAY2025081102')">
+                            <td class="copy-cell">
+                                <span class="copy-icon" onclick="copyToClipboard('PAY2025081102'); event.stopPropagation();" title="複製ID">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                    </svg>
+                                </span>
+                                <a href="javascript:void(0)" class="game-id">PAY2025081102</a>
+                            </td>
+                            <td>testnorman</td>
+                            <td><span class="payment-type withdraw">提款</span></td>
+                            <td>銀行轉賬</td>
+                            <td>GoldAnt</td>
+                            <td>USD</td>
+                            <td class="amount">20.00</td>
+                            <td class="amount">2,400.00</td>
+                            <td>
+                                <span class="status-tag status-failed status-with-warning">
+                                    失敗
+                                    <span class="status-warning-icon" data-reason="銀行系統維護中,暫停服務">⚠ </span>
+                                </span>
+                            </td>
+                            <td class="date-range-display">2025-08-11 13:11:10</td>
+                            <td class="date-range-display">2025-08-11 13:11:14</td>
+                        </tr>
+                        <tr class="data-row" onclick="showBetDetails('PAY2025081103')">
+                            <td class="copy-cell">
+                                <span class="copy-icon" onclick="copyToClipboard('PAY2025081103'); event.stopPropagation();" title="複製ID">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                    </svg>
+                                </span>
+                                <a href="javascript:void(0)" class="game-id">PAY2025081103</a>
+                            </td>
+                            <td>Zombie01A03</td>
+                            <td><span class="payment-type withdraw">提款</span></td>
+                            <td>銀行轉賬</td>
+                            <td>MatchPlay</td>
+                            <td>JPY</td>
+                            <td class="amount">15,000.00</td>
+                            <td class="amount">15,000.00</td>
+                            <td>
+                                <span class="status-tag status-rejected status-with-warning">
+                                    拒絕
+                                    <span class="status-warning-icon" data-reason="超過單日提款限額">⚠ </span>
+                                </span>
+                            </td>
+                            <td class="date-range-display">2025-08-11 13:11:10</td>
+                            <td class="date-range-display">2025-08-11 13:11:10</td>
+                        </tr>
+                        <tr class="data-row" onclick="showBetDetails('PAY2025081104')">
+                            <td class="copy-cell">
+                                <span class="copy-icon" onclick="copyToClipboard('PAY2025081104'); event.stopPropagation();" title="複製ID">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                    </svg>
+                                </span>
+                                <a href="javascript:void(0)" class="game-id">PAY2025081104</a>
+                            </td>
+                            <td>Zombie01A03</td>
+                            <td><span class="payment-type deposit">充值</span></td>
+                            <td>虛擬貨幣</td>
+                            <td>v8</td>
+                            <td>USDT</td>
+                            <td class="amount">500.00</td>
+                            <td class="amount">60,000.00</td>
+                            <td><span class="status-tag status-expired">過期</span></td>
+                            <td class="date-range-display">2025-08-11 13:11:00</td>
+                            <td class="date-range-display">2025-08-11 13:11:04</td>
+                        </tr>
+                        <tr class="data-row" onclick="showBetDetails('PAY2025081105')">
+                            <td class="copy-cell">
+                                <span class="copy-icon" onclick="copyToClipboard('PAY2025081105'); event.stopPropagation();" title="複製ID">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                    </svg>
+                                </span>
+                                <a href="javascript:void(0)" class="game-id">PAY2025081105</a>
+                            </td>
+                            <td>testiven01</td>
+                            <td><span class="payment-type deposit">充值</span></td>
+                            <td>虛擬貨幣</td>
+                            <td>v8</td>
+                            <td>USDT</td>
+                            <td class="amount">1,000.00</td>
+                            <td class="amount">120,000.00</td>
+                            <td><span class="status-tag status-success">成功</span></td>
+                            <td class="date-range-display">2025-08-11 13:10:58</td>
+                            <td class="date-range-display">2025-08-11 13:11:02</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="pagination">
+                    <div class="pagination-info">
+                        共 1 頁 10 條,合計 9580 條
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" disabled>‹</button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn">3</button>
+                        <button class="page-btn">4</button>
+                        <button class="page-btn">5</button>
+                        <span>...</span>
+                        <button class="page-btn">958</button>
+                        <button class="page-btn">›</button>
+                        <div class="page-size-selector">
+                            <select class="page-size-select">
+                                <option value="10" selected>10</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                        <div class="jump-page">
+                            <input type="number" class="jump-input" placeholder="1" min="1" max="958">
+                            <button class="page-btn">跳轉</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 系統說明區域 -->
+            <div class="system-info-section">
+                <div class="info-card">
+                    <h3>系統規則</h3>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="20%">規則類型</th>
+                                <th width="80%">規則內容</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>資料來源</td>
+                                <td>
+                                    支付報告的資料為每一筆金流交易的紀錄。<br>
+                                    不論成功或失敗,只要完成的訂單就會呈現在此列表中。<br>
+                                    所有資料皆為即時更新,確保資訊準確性。
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>搜尋限制</td>
+                                <td>
+                                    最多僅限查詢3個月(含本月),一次最多查詢31天。<br>
+                                    超過限制範圍將無法進行查詢,請調整時間範圍後重試。
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>資料權限</td>
+                                <td>
+                                    使用者僅能查看自己所屬代理及其下級代理的支付資料。<br>
+                                    系統管理員可查看所有代理的支付記錄。
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>搜尋功能說明</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>重要提醒:</strong><br>
+                        一進畫面就帶入預設值,並顯示搜索出來的資料。<br>
+                        點擊「重置」按鈕回到預設值,如果按下搜尋時是空值,則自動帶入預設值。<br>
+                        <strong class="highlight-text">部分條件預設顯示為空值,空值≠預設值。可參考下方說明。</strong><br>
+                        搜尋條件如在二行以上,右方會出現「展開/收起」按鈕(一行則不顯示按鈕)。<br>
+                        收起時為一行搜尋條件＋一行搜尋、重置按鈕。
+                    </div>
+
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">欄位</th>
+                                <th width="60%">內容說明</th>
+                                <th width="25%">模式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>時間類型</td>
+                                <td>
+                                    點擊可選擇查詢的時間維度<br>
+                                    <strong class="highlight-text">預設為創建時間</strong><br>
+                                    下拉選單: 創建時間、更新時間<br>
+                                    • 創建時間: 玩家發起支付申請的時間<br>
+                                    • 更新時間: 支付訂單最後一次狀態變更的時間
+                                </td>
+                                <td>下拉選單,必填</td>
+                            </tr>
+                            <tr>
+                                <td>訂單統計時區</td>
+                                <td>
+                                    點擊可選擇不同時區進行數據統計<br>
+                                    預設空值,代表當前電腦時區<br>
+                                    下拉選單: UTC-4、UTC+0、UTC+4、UTC+7、UTC+8、UTC+9<br>
+                                    影響範圍: 時間顯示、統計卡片計算、報表生成
+                                </td>
+                                <td>下拉選單,非必填</td>
+                            </tr>
+                            <tr>
+                                <td>時間範圍</td>
+                                <td>
+                                    點擊選擇搜尋的時間範圍<br>
+                                    預設為今天 00:00 ~ 23:59<br>
+                                    例: 今天2025/5/26顯示: 2025/5/26 00:00 ~ 2025/5/26 23:59<br>
+                                    時間範圍最多31天,超過將無法查詢
+                                </td>
+                                <td>日期選擇器,必填</td>
+                            </tr>
+                            <tr>
+                                <td>後台單號</td>
+                                <td>
+                                    點擊輸入網咖後台的單號進行精確查詢<br>
+                                    預設空值,代表查詢全部<br>
+                                </td>
+                                <td>輸入框,非必填</td>
+                            </tr>
+                            <tr>
+                                <td>支付單號</td>
+                                <td>
+                                    點擊輸入支付系統的單號進行精確查詢<br>
+                                    預設空值,代表查詢全部<br>
+                                </td>
+                                <td>輸入框,非必填</td>
+                            </tr>
+                            <tr>
+                                <td>狀態</td>
+                                <td>
+                                    點擊可選擇不同支付狀態進行查詢<br>
+                                    預設空值,代表查詢全部<br>
+                                    下拉選單: 成功、失敗、拒絕、過期<br>
+                                    • 成功: 支付已完成,資金已到賬<br>
+                                    • 失敗: 三方或系統處理失敗<br>
+                                    • 拒絕: 人工審批操作,申請被駁回<br>
+                                    • 過期: 支付請求超時未入帳
+                                </td>
+                                <td>下拉選單,非必填</td>
+                            </tr>
+                            <tr>
+                                <td>所屬代理</td>
+                                <td>
+                                    點擊選擇所屬代理<br>
+                                    預設空值,代表查詢全部代理<br>
+                                    僅顯示當前用戶有權限查看的代理列表<br>
+                                </td>
+                                <td>下拉選單,非必填</td>
+                            </tr>
+                            <tr>
+                                <td>玩家賬號</td>
+                                <td>
+                                    點擊輸入玩家賬號進行精確查詢<br>
+                                    預設空值,代表查詢全部玩家<br>
+                                </td>
+                                <td>輸入框,非必填</td>
+                            </tr>
+                            <tr>
+                                <td>支付方式</td>
+                                <td>
+                                    點擊選擇支付方式<br>
+                                    預設空值,代表查詢全部方式<br>
+                                    下拉選單: 銀行轉賬、信用卡、虛擬貨幣、現金...等<br>
+                                    不同支付方式的手續費率可能不同
+                                </td>
+                                <td>下拉選單,非必填</td>
+                            </tr>
+                            <tr>
+                                <td>支付渠道</td>
+                                <td>
+                                    點擊選擇支付渠道<br>
+                                    預設空值,代表查詢全部渠道<br>
+                                    下拉選單: MatchPlay、GoldAnt、8v、線下<br>
+                                    每個渠道對應不同的第三方支付廠商
+                                </td>
+                                <td>下拉選單,非必填</td>
+                            </tr>
+                            <tr>
+                                <td>支付種類</td>
+                                <td>
+                                    點擊選擇支付種類<br>
+                                    預設空值,代表查詢全部種類<br>
+                                    下拉選單: 充值、提款<br>
+                                    • 充值: 玩家存入資金到遊戲帳戶<br>
+                                    • 提款: 玩家從遊戲帳戶提取資金
+                                </td>
+                                <td>下拉選單,非必填</td>
+                            </tr>
+                            <tr>
+                                <td>搜索</td>
+                                <td>點擊觸發搜尋</td>
+                                <td>按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>重置</td>
+                                <td>點擊將搜尋條件回到預設值</td>
+                                <td>按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>統計卡片說明</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>重要提醒:</strong><br>
+                        統計卡片為固定顯示,不可拖動或隱藏。<br>
+                        統計數據僅計算<strong class="highlight-text">「成功」</strong>狀態的支付訂單。<br>
+                        <strong style="color: #f56c6c;">統計數據為實際轉換到系統內的JPY金額。</strong><br>
+                        失敗、拒絕、過期的支付訂單不納入統計計算。<br>
+                        統計結果會根據搜尋條件即時更新。
+                    </div>
+
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="20%">卡片名稱</th>
+                                <th width="60%">統計說明</th>
+                                <th width="20%">計算方式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>總充值金額(JPY)</td>
+                                <td>
+                                    搜尋條件內,所有「充值」且「成功」的訂單金額總和<br>
+                                    顯示為綠色,代表資金流入<br>
+                                    幣種統一轉換為JPY顯示
+                                </td>
+                                <td>SUM(充值成功訂單)</td>
+                            </tr>
+                            <tr>
+                                <td>總提款金額(JPY)</td>
+                                <td>
+                                    搜尋條件內,所有「提款」且「成功」的訂單金額總和<br>
+                                    顯示為紅色,代表資金流出<br>
+                                    幣種統一轉換為JPY顯示
+                                </td>
+                                <td>SUM(提款成功訂單)</td>
+                            </tr>
+                            <tr>
+                                <td>充提差(JPY)</td>
+                                <td>
+                                    總充值金額 - 總提款金額<br>
+                                    正數(綠色): 充值大於提款,資金淨流入<br>
+                                    負數(紅色): 提款大於充值,資金淨流出<br>
+                                </td>
+                                <td>充值總額 - 提款總額</td>
+                            </tr>
+                            <tr>
+                                <td>訂單統計</td>
+                                <td>
+                                    顯示成功和失敗訂單的數量<br>
+                                    • 成功(綠色): 所有狀態為「成功」的訂單數<br>
+                                    • 失敗(紅色): 所有狀態為「失敗」的訂單數，不含「拒絕」「過期」的訂單數<br>
+                                </td>
+                                <td>COUNT(各狀態訂單)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>列設置功能</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>功能說明：</strong><br>
+                        點擊表格右上方的「列設置」按鈕，可調整表格顯示的欄位、順序和釘選位置。<br>
+                        設定會即時生效，並在當前頁面中保持。<br>
+                        導出則是原始欄位及順序不受列設置影響。
+                    </div>
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">功能項目</th>
+                                <th width="60%">功能說明</th>
+                                <th width="25%">操作方式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>全選控制</td>
+                                <td>
+                                    一鍵選擇或取消選擇所有欄位<br>
+                                    當部分欄位被選中時，顯示半選狀態<br>
+                                </td>
+                                <td>點擊「全選」勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>欄位顯示控制</td>
+                                <td>
+                                    控制每個欄位是否在表格中顯示<br>
+                                    未勾選的欄位將在表格中隱藏<br>
+                                    表格中的第一欄為鎖定，不可隱藏
+                                </td>
+                                <td>點擊欄位名稱前的勾選框</td>
+                            </tr>
+                            <tr>
+                                <td>拖拽排序</td>
+                                <td>
+                                    點擊左側的上下箭頭調整欄位在表格中的顯示順序<br>
+                                    調整後的順序會即時反映在表格中
+                                </td>
+                                <td>點擊左側的「↑↓」箭頭圖示</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到左側</td>
+                                <td>
+                                    將選中的欄位固定在表格最左側<br>
+                                    釘選的欄位在橫向捲動時保持可見
+                                </td>
+                                <td>點擊「釘選到左側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>釘選到右側</td>
+                                <td>
+                                    將選中的欄位固定在表格最右側<br>
+                                    釘選的欄位在橫向捲動時保持可見<br>
+                                </td>
+                                <td>點擊「釘選到右側」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消釘選</td>
+                                <td>
+                                    移除欄位的左側或右側釘選狀態<br>
+                                    欄位將回到正常的捲動區域<br>
+                                </td>
+                                <td>點擊「取消釘選」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>重置設定</td>
+                                <td>
+                                    清除所有自定義的排序和釘選設定<br>
+                                    回到系統初始的欄位配置
+                                </td>
+                                <td>點擊「重置」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>保存設定</td>
+                                <td>
+                                    應用當前的欄位配置到表格顯示<br>
+                                    設定在當前瀏覽器頁面中保持有效<br>
+                                </td>
+                                <td>點擊「保存」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>取消操作</td>
+                                <td>
+                                    放棄當前的所有配置更改<br>
+                                    回到進入設定前的狀態
+                                </td>
+                                <td>點擊「取消」按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>報表生成與下載</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>功能說明:</strong><br>
+                        匯出功能為兩步驟匯出: 生成報表和歷史下載。<br>
+                        1. 篩選資料後點擊「報表生成」,按鈕會呈現生成中狀態,此時不可生成第二份報表。<br>
+                        2. 報表生成完成,可在報表下載列表中取得。<br>
+                        <br>
+                        提示: 當有「新生成且未被瀏覽」的資料產生時,報表下載按鈕會有紅點提示。<br>
+                        保留: 生成後的資料會保留在系統中供後續下載,最多保存10份。
+                    </div>
+
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="20%">功能項目</th>
+                                <th width="60%">功能說明</th>
+                                <th width="20%">操作方式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>報表生成</td>
+                                <td>
+                                    根據當前搜尋條件生成Excel格式的支付報表<br>
+                                    • 可自訂時間範圍、時區、篩選條件<br>
+                                    • 生成時間視資料量而定: 1-5分鐘不等<br>
+                                    • 生成中無法再次生成,需等待完成<br>
+                                    • 報表包含表格所有欄位的完整資訊，不包含統計卡片
+                                </td>
+                                <td>點擊「報表生成」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>報表下載</td>
+                                <td>
+                                    查看和下載已生成的歷史報表<br>
+                                    • 顯示最近10份報表記錄<br>
+                                    • 每份報表顯示: 編號、生成時間、時間範圍、狀態<br>
+                                    • 狀態包含: 已完成、生成中、失敗<br>
+                                    • 失敗的報表可點擊「重試」重新生成<br>
+                                    • 超過10份時,最舊的會自動刪除
+                                </td>
+                                <td>點擊「報表下載」按鈕</td>
+                            </tr>
+                            <tr>
+                                <td>報表格式</td>
+                                <td>
+                                    報表以Excel(.xlsx)格式匯出<br>
+                                    檔名格式: [開始日期]-[結束日期] 支付明細<br>
+                                    例: 2025-08-11-2025-08-20 支付明細.xlsx<br>
+                                </td>
+                                <td>自動命名</td>
+                            </tr>
+                            <tr>
+                                <td>查看報表狀態</td>
+                                <td>
+                                    在報表下載列表中查看各報表的狀態:<br>
+                                    • 已完成: 可點擊「下載」按鈕直接下載<br>
+                                    • 生成中: 顯示「生成中」<br>
+                                    • 失敗: 顯示「失敗」，可點「重試」重新生成
+                                </td>
+                                <td>按鈕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>資料表格說明</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>功能提醒:</strong><br>
+                        • 點擊表格任一行可查看該訂單的詳細資訊<br>
+                        • 點擊支付ID旁的<svg viewBox="0 0 24 24" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; fill: #409eff;"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>圖標可快速複製訂單編號<br>
+                        • 失敗/拒絕訂單旁的 ⚠ 圖標,滑鼠移上可查看失敗原因<br>
+                    </div>
+
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="15%">欄位</th>
+                                <th width="60%">內容說明</th>
+                                <th width="25%">顯示模式</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>未成功統計</td>
+                                <td>
+                                    表格左上方顯示搜索條件內,未成功的支付單數量<br>
+                                    • 拒絕注單: 系統審核後拒絕的支付申請<br>
+                                    • 過期注單: 超時未完成的支付請求<br>
+                                    點擊數字可快速篩選對應狀態的訂單
+                                </td>
+                                <td>彩色數字標籤</td>
+                            </tr>
+                            <tr>
+                                <td>後台單號</td>
+                                <td>
+                                    顯示該訂單的唯一識別號，此為網咖系統產出的單號<br>
+                                    點擊可開啟詳情抽屜查看完整資訊<br>
+                                    旁邊的複製圖標可快速複製單號
+                                </td>
+                                <td>藍色連結+複製功能</td>
+                            </tr>
+                            <tr>
+                                <td>玩家賬號</td>
+                                <td>
+                                    顯示發起支付申請的玩家帳號
+                                </td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>支付種類</td>
+                                <td>
+                                    顯示該筆交易的類型<br>
+                                    • 充值(綠色標籤): 玩家存入資金<br>
+                                    • 提款(橙色標籤): 玩家提取資金
+                                </td>
+                                <td>彩色標籤</td>
+                            </tr>
+                            <tr>
+                                <td>支付方式</td>
+                                <td>
+                                    顯示玩家選擇的支付方式<br>
+                                    包含: 銀行轉賬、信用卡、虛擬貨幣、現金等
+                                </td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>支付渠道</td>
+                                <td>
+                                    顯示處理該筆交易的第三方支付平台<br>
+                                    不同渠道的處理速度和手續費可能不同
+                                </td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>幣種</td>
+                                <td>
+                                    顯示該筆交易的貨幣類型<br>
+                                    支援: JPY、USTD、KRW等多種幣種
+                                </td>
+                                <td>文字顯示</td>
+                            </tr>
+                            <tr>
+                                <td>金額</td>
+                                <td>
+                                    顯示該筆交易的金額<br>
+                                    格式: 千分位分隔,保留兩位小數<br>
+                                    點擊欄位標題可進行金額排序(升序/降序)
+                                </td>
+                                <td>數字右對齊,可排序</td>
+                            </tr>
+                            <tr>
+                                <td>狀態</td>
+                                <td>
+                                    顯示該支付單的處理狀態<br>
+                                    • 成功(綠色): 交易完成<br>
+                                    • 失敗(紅色+警告): 處理失敗,滑鼠移上查看原因<br>
+                                    • 拒絕(紫色+警告): 申請被駁回,滑鼠移上查看原因<br>
+                                    • 過期(橙色): 請求超時
+                                </td>
+                                <td>彩色標籤+警告提示</td>
+                            </tr>
+                            <tr>
+                                <td>創建時間</td>
+                                <td>
+                                    顯示玩家發起支付申請的時間<br>
+                                    格式: YYYY-MM-DD HH:mm:ss<br>
+                                    根據選擇的時區顯示對應時間<br>
+                                    點擊欄位標題可進行時間排序
+                                </td>
+                                <td>時間格式,可排序</td>
+                            </tr>
+                            <tr>
+                                <td>更新時間</td>
+                                <td>
+                                    顯示該訂單最後一次狀態變更的時間<br>
+                                    格式: YYYY-MM-DD HH:mm:ss<br>
+                                    可判斷訂單處理的時效性<br>
+                                    點擊欄位標題可進行時間排序
+                                </td>
+                                <td>時間格式,可排序</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-card">
+                    <h3>訂單詳情查看</h3>
+                    <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin: 16px; font-size: 13px; color: #1565c0;">
+                        <strong>功能說明:</strong><br>
+                        點擊表格中任意一行,會從右側滑出詳情抽屜,顯示該訂單的完整資訊。<br>
+                        抽屜包含: 處理狀態、基本資訊、申請資訊、支付資訊、時間資訊五大區塊。<br>
+                        點擊遮罩或右上角 × 按鈕可關閉抽屜。
+                    </div>
+
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th width="20%">資訊區塊</th>
+                                <th width="60%">內容說明</th>
+                                <th width="20%">特殊功能</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>處理狀態</td>
+                                <td>
+                                    顯示訂單當前的處理狀態和支付類型<br>
+                                    • 充值/提款標籤: 識別交易方向<br>
+                                    • 狀態標籤: 成功/失敗/拒絕/過期<br>
+                                    • 狀態詳情: 綠色/紅色/紫色/橙色區塊<br>
+                                    • 成功: 顯示"交易成功,資金已到賬"<br>
+                                    • 失敗/拒絕/過期: 顯示具體失敗原因和建議
+                                </td>
+                                <td>彩色狀態卡片</td>
+                            </tr>
+                            <tr>
+                                <td>基本資訊</td>
+                                <td>
+                                    • 支付系統ID: 系統內部唯一識別碼,可複製<br>
+                                    • 支付廠商ID: 第三方支付平台的訂單編號,可複製<br>
+                                    • 玩家帳號: 發起支付的玩家帳號<br>
+                                    • 所屬代理: 該玩家所屬的代理商<br>
+                                    • 玩家錢包位址: 該玩家所屬的錢包位置,可複製
+                                </td>
+                                <td>ID快速複製</td>
+                            </tr>
+                            <tr>
+                                <td>申請資訊</td>
+                                <td>
+                                    • 支付方式: 銀行轉賬/信用卡/虛擬貨幣等<br>
+                                    • 支付渠道: 處理該筆交易的第三方平台<br>
+                                    • 支付錢包: 玩家付款的錢包位置/銀行帳號/銀行卡號,可複製<br>
+                                    • 申請幣種: 玩家發起申請時的貨幣類型<br>
+                                    • 申請金額: 玩家申請的原始金額<br>
+                                    • 匯率: 玩家申請當下，幣種轉換的匯率<br>
+                                    • 手續費: 該筆交易產生的手續費
+                                </td>
+                                <td>完整支付申請的資訊</td>
+                            </tr>
+                            <tr>
+                                <td>支付資訊</td>
+                                <td>
+                                    • 實收幣種: 實際到帳的貨幣類型<br>
+                                    • 實收金額: 扣除手續費後的實收金額<br>
+                                    • 轉換JPY: 換算成日圓後的金額<br>
+                                </td>
+                                <td>銷賬金額的確認</td>
+                            </tr>
+                            <tr>
+                                <td>時間資訊</td>
+                                <td>
+                                    • 申請時間: 玩家發起支付申請的時間<br>
+                                    • 更新時間: 訂單最後一次狀態變更的時間<br>
+                                    • 審核人: 處理該訂單的人員或系統<br>
+                                </td>
+                                <td>處理時效追蹤</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- History Reports Modal -->
+    <div class="modal-overlay" id="historyReportsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">報表下載</div>
+                <button class="modal-close" onclick="closeHistoryReports()">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #1565c0;">
+                    <strong>提示:</strong>最多10筆資料,超出則從最舊的自動刪除
+                </div>
+                
+                <div class="history-table-container">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 10%;">編號</th>
+                                <th style="width: 20%;">生成時間</th>
+                                <th style="width: 40%;">時間範圍</th>
+                                <th style="width: 15%;">狀態</th>
+                                <th style="width: 15%;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyReportsBody">
+                            <tr>
+                                <td>01</td>
+                                <td>2025-08-20<br>14:30:25</td>
+                                <td style="text-align: left; line-height: 1.6;">
+                                    統計時區: UTC+8<br>
+                                    時間範圍: 2025-08-11 ~ 2025-08-20<br>
+                                    <small style="color: #999;">共 2,847 筆資料</small>
+                                </td>
+                                <td><span style="color: #67c23a; font-weight: 600;">已完成</span></td>
+                                <td>
+                                    <button class="action-btn-small download" onclick="downloadReport('RPT001')">下載</button>
+                                    <br><small style="color: #999; font-size: 11px;">1.8MB</small>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>02</td>
+                                <td>2025-08-19<br>10:15:42</td>
+                                <td style="text-align: left; line-height: 1.6;">
+                                    統計時區: UTC+8<br>
+                                    時間範圍: 2025-08-01 ~ 2025-08-31
+                                </td>
+                                <td><span style="color: #409eff; font-weight: 600;">生成中</span></td>
+                                <td><span style="color: #409eff;">-</span></td>
+                            </tr>
+                            <tr>
+                                <td>03</td>
+                                <td>2025-08-17<br>13:28:17</td>
+                                <td style="text-align: left; line-height: 1.6;">
+                                    統計時區: UTC+7<br>
+                                    時間範圍: 2025-08-12 ~ 2025-08-19
+                                </td>
+                                <td><span style="color: #f56c6c; font-weight: 600;">失敗</span></td>
+                                <td><button class="action-btn-small" onclick="showNotification('重試生成報表')">重試</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Column Settings Modal -->
+    <div class="modal-overlay" id="columnSettingsModal">
+        <div class="modal" style="width: 650px;">
+            <div class="modal-header">
+                <div class="modal-title">列設置</div>
+                <button class="modal-close" onclick="closeColumnSettings()">×</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div class="column-settings-container">
+                    <div class="column-settings-header">
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="selectAllColumns" checked onchange="toggleSelectAll()">
+                            <span class="checkmark"></span>
+                            全選
+                        </label>
+                        <button class="btn-outline" onclick="resetColumnSettings()">重置</button>
+                    </div>
+
+                    <div class="column-items-list" id="columnItemsList">
+                        <!-- 支付單號 -->
+                        <div class="column-list-item">
+                            <div class="drag-handle">≡</div>
+                            <div class="column-checkbox-container">
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" checked onchange="updateSelectAllState()">
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                            <div class="column-name-display">支付單號</div>
+                            <div class="column-action-buttons">
+                                <button class="column-action-btn" onclick="togglePin(this, 'left')">釘選到左側</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'none')">取消釘選</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'right')">釘選到右側</button>
+                            </div>
+                        </div>
+
+                        <!-- 玩家賬號 -->
+                        <div class="column-list-item">
+                            <div class="drag-handle">≡</div>
+                            <div class="column-checkbox-container">
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" checked onchange="updateSelectAllState()">
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                            <div class="column-name-display">玩家賬號</div>
+                            <div class="column-action-buttons">
+                                <button class="column-action-btn" onclick="togglePin(this, 'left')">釘選到左側</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'none')">取消釘選</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'right')">釘選到右側</button>
+                            </div>
+                        </div>
+
+                        <!-- 支付種類 -->
+                        <div class="column-list-item">
+                            <div class="drag-handle">≡</div>
+                            <div class="column-checkbox-container">
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" checked onchange="updateSelectAllState()">
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                            <div class="column-name-display">支付種類</div>
+                            <div class="column-action-buttons">
+                                <button class="column-action-btn" onclick="togglePin(this, 'left')">釘選到左側</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'none')">取消釘選</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'right')">釘選到右側</button>
+                            </div>
+                        </div>
+
+                        <!-- 支付方式 -->
+                        <div class="column-list-item">
+                            <div class="drag-handle">≡</div>
+                            <div class="column-checkbox-container">
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" checked onchange="updateSelectAllState()">
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                            <div class="column-name-display">支付方式</div>
+                            <div class="column-action-buttons">
+                                <button class="column-action-btn" onclick="togglePin(this, 'left')">釘選到左側</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'none')">取消釘選</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'right')">釘選到右側</button>
+                            </div>
+                        </div>
+
+                        <!-- 支付渠道 -->
+                        <div class="column-list-item">
+                            <div class="drag-handle">≡</div>
+                            <div class="column-checkbox-container">
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" checked onchange="updateSelectAllState()">
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                            <div class="column-name-display">支付渠道</div>
+                            <div class="column-action-buttons">
+                                <button class="column-action-btn" onclick="togglePin(this, 'left')">釘選到左側</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'none')">取消釘選</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'right')">釘選到右側</button>
+                            </div>
+                        </div>
+
+                        <!-- 幣種 -->
+                        <div class="column-list-item">
+                            <div class="drag-handle">≡</div>
+                            <div class="column-checkbox-container">
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" checked onchange="updateSelectAllState()">
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                            <div class="column-name-display">幣種</div>
+                            <div class="column-action-buttons">
+                                <button class="column-action-btn" onclick="togglePin(this, 'left')">釘選到左側</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'none')">取消釘選</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'right')">釘選到右側</button>
+                            </div>
+                        </div>
+
+                        <!-- 金額 -->
+                        <div class="column-list-item">
+                            <div class="drag-handle">≡</div>
+                            <div class="column-checkbox-container">
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" checked onchange="updateSelectAllState()">
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                            <div class="column-name-display">金額</div>
+                            <div class="column-action-buttons">
+                                <button class="column-action-btn" onclick="togglePin(this, 'left')">釘選到左側</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'none')">取消釘選</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'right')">釘選到右側</button>
+                            </div>
+                        </div>
+
+                        <!-- 狀態 -->
+                        <div class="column-list-item">
+                            <div class="drag-handle">≡</div>
+                            <div class="column-checkbox-container">
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" checked onchange="updateSelectAllState()">
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                            <div class="column-name-display">狀態</div>
+                            <div class="column-action-buttons">
+                                <button class="column-action-btn" onclick="togglePin(this, 'left')">釘選到左側</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'none')">取消釘選</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'right')">釘選到右側</button>
+                            </div>
+                        </div>
+
+                        <!-- 創建時間 -->
+                        <div class="column-list-item">
+                            <div class="drag-handle">≡</div>
+                            <div class="column-checkbox-container">
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" checked onchange="updateSelectAllState()">
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                            <div class="column-name-display">創建時間</div>
+                            <div class="column-action-buttons">
+                                <button class="column-action-btn" onclick="togglePin(this, 'left')">釘選到左側</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'none')">取消釘選</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'right')">釘選到右側</button>
+                            </div>
+                        </div>
+
+                        <!-- 更新時間 -->
+                        <div class="column-list-item">
+                            <div class="drag-handle">≡</div>
+                            <div class="column-checkbox-container">
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" checked onchange="updateSelectAllState()">
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                            <div class="column-name-display">更新時間</div>
+                            <div class="column-action-buttons">
+                                <button class="column-action-btn" onclick="togglePin(this, 'left')">釘選到左側</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'none')">取消釘選</button>
+                                <button class="column-action-btn" onclick="togglePin(this, 'right')">釘選到右側</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeColumnSettings()">取消</button>
+                <button class="btn btn-primary" onclick="applyColumnSettings()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Drawer -->
+    <div class="drawer-overlay" id="detailDrawer">
+        <div class="detail-drawer">
+            <div class="drawer-header">
+                <div class="drawer-title">訂單詳情</div>
+                <button class="drawer-close" onclick="closeDetailDrawer()">×</button>
+            </div>
+            <div class="drawer-body">
+                <!-- Order Status -->
+                <div class="order-status-section">
+                    <div class="status-header">
+                        <span class="status-label">處理狀態</span>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span class="payment-type deposit" id="paymentTypeTag">充值</span>
+                            <span class="status-display success" id="statusDisplay">成功</span>
+                        </div>
+                    </div>
+                    <div class="status-details success" id="statusDetailsSection">
+                        <div class="status-icon">✅</div>
+                        <div class="status-content">
+                            <div class="status-reason-title success" id="statusReasonTitle">交易成功</div>
+                            <div class="status-reason-message success" id="statusReasonMessage">支付已完成處理，資金已到賬。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Basic Info -->
+                <div class="info-section">
+                    <h4 class="info-section-title">基本資訊</h4>
+                    <div class="info-list">
+                        <div class="info-item">
+                            <span class="info-label">支付系統ID:</span>
+                            <div class="info-value-with-copy">
+                                <span class="info-value" id="paymentSystemId">PAY2025081101</span>
+                                <span class="copy-icon-small" onclick="copyToClipboard(document.getElementById('paymentSystemId').textContent)" title="複製">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">支付廠商ID:</span>
+                            <div class="info-value-with-copy">
+                                <span class="info-value" id="paymentVendorId">MP-20250811-001</span>
+                                <span class="copy-icon-small" onclick="copyToClipboard(document.getElementById('paymentVendorId').textContent)" title="複製">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">玩家帳號:</span>
+                            <span class="info-value" id="playerName">testnorman</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">所屬代理:</span>
+                            <span class="info-value" id="agentName">ivLv4UAT</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">玩家錢包位置:</span>
+                            <div class="info-value-with-copy">
+                                <span class="info-value" id="playerWalletAddress" style="word-break: break-all; font-size: 12px;">0x742d35Cc6634C44Bc7595f0bEb</span>
+                                <span class="copy-icon-small" onclick="copyToClipboard(document.getElementById('playerWalletAddress').textContent)" title="複製">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Info -->
+                <div class="info-section">
+                    <h4 class="info-section-title">申請資訊</h4>
+                    <div class="info-list">
+                        <div class="info-item">
+                            <span class="info-label">支付方式:</span>
+                            <span class="info-value" id="paymentMethod">銀行轉賬</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">支付渠道:</span>
+                            <span class="info-value" id="paymentChannel">MatchPlay</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">付款錢包:</span>
+                            <div class="info-value-with-copy">
+                                <span class="info-value" id="paymentWallet" style="word-break: break-all; font-size: 12px;">台灣銀行 1234-5678-9012-3456</span>
+                                <span class="copy-icon-small" onclick="copyToClipboard(document.getElementById('paymentWallet').textContent)" title="複製">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">申請幣種:</span>
+                            <span class="info-value" id="applyCurrency">JPY</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">申請金額:</span>
+                            <span class="info-value" id="applyAmount">2,000.00</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">匯率:</span>
+                            <span class="info-value" id="exchangeRate">1.0000</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">手續費:</span>
+                            <span class="info-value" id="processingFee">10.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Info -->
+                <div class="info-section">
+                    <h4 class="info-section-title">支付資訊</h4>
+                    <div class="info-list">
+                        <div class="info-item">
+                            <span class="info-label">實收幣種:</span>
+                            <span class="info-value" id="actualCurrency">JPY</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">實收金額:</span>
+                            <span class="info-value" id="actualAmount">1,990.00</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">轉換JPY:</span>
+                            <span class="info-value" id="convertedJPY">1,990.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Time Info -->
+                <div class="info-section">
+                    <h4 class="info-section-title">時間資訊</h4>
+                    <div class="info-list">
+                        <div class="info-item">
+                            <span class="info-label">申請時間:</span>
+                            <span class="info-value" id="applyTime">2025-08-11 13:20:58</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">更新時間:</span>
+                            <span class="info-value" id="updateTime">2025-08-11 13:21:05</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">審核人:</span>
+                            <span class="info-value" id="reviewer">系統自動審核</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Generation Modal -->
+    <div class="modal-overlay" id="reportGenerationModal">
+        <div class="modal" style="width: 600px;">
+            <div class="modal-header">
+                <div class="modal-title">報表生成設置</div>
+                <button class="modal-close" onclick="closeReportGeneration()">×</button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <div style="background: #f0f9ff; border: 1px solid #b3d8ff; border-radius: 4px; padding: 12px; margin-bottom: 20px; font-size: 13px; color: #1565c0;">
+                    <strong>說明:</strong>請配置報表生成的時間範圍和條件,系統將根據您的設置生成相應的支付報表。
+                </div>
+
+                <form id="reportGenerationForm">
+                    <div class="form-grid">
+                        <!-- 時間設置 -->
+                        <div class="form-section">
+                            <h4 class="section-title">時間範圍設置</h4>
+                            <div class="form-row">
+                                <div class="form-item">
+                                    <label class="form-label">時間類型:</label>
+                                    <select id="reportTimeType" class="form-select">
+                                        <option value="bet_time">創建時間</option>
+                                        <option value="update_time">更新時間</option>
+                                    </select>
+                                </div>
+                                <div class="form-item">
+                                    <label class="form-label">統計時區:</label>
+                                    <select id="reportTimezone" class="form-select">
+                                        <option value="">當前時區</option>
+                                        <option value="UTC-4">UTC-4</option>
+                                        <option value="UTC+0">UTC+0</option>
+                                        <option value="UTC+4">UTC+4</option>
+                                        <option value="UTC+7">UTC+7</option>
+                                        <option value="UTC+8" selected>UTC+8</option>
+                                        <option value="UTC+9">UTC+9</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-item">
+                                    <label class="form-label">開始時間:</label>
+                                    <input type="date" id="reportStartDate" class="form-input">
+                                </div>
+                                <div class="form-item">
+                                    <label class="form-label">結束時間:</label>
+                                    <input type="date" id="reportEndDate" class="form-input">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 篩選條件 -->
+                        <div class="form-section">
+                            <h4 class="section-title">篩選條件</h4>
+                            <div class="form-row">
+                                <div class="form-item">
+                                    <label class="form-label">支付狀態:</label>
+                                    <select id="reportStatus" class="form-select">
+                                        <option value="">全部狀態</option>
+                                        <option value="成功">成功</option>
+                                        <option value="失敗">失敗</option>
+                                        <option value="拒絕">拒絕</option>
+                                        <option value="過期">過期</option>
+                                    </select>
+                                </div>
+                                <div class="form-item">
+                                    <label class="form-label">支付類型:</label>
+                                    <select id="reportPaymentType" class="form-select">
+                                        <option value="">全部類型</option>
+                                        <option value="充值">充值</option>
+                                        <option value="提款">提款</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeReportGeneration()">取消</button>
+                <button class="btn btn-primary" onclick="startReportGeneration()">開始生成</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSearchSection() {
+            const searchSection = document.getElementById('searchSection');
+            const collapseToggle = document.getElementById('collapseToggle');
+            
+            searchSection.classList.toggle('collapsed');
+            
+            if (searchSection.classList.contains('collapsed')) {
+                collapseToggle.textContent = '展開';
+            } else {
+                collapseToggle.textContent = '收起';
+            }
+        }
+
+        function generateReport() {
+            document.getElementById('reportGenerationModal').classList.add('show');
+            const today = new Date();
+            const lastWeek = new Date();
+            lastWeek.setDate(today.getDate() - 7);
+            
+            document.getElementById('reportStartDate').value = lastWeek.toISOString().split('T')[0];
+            document.getElementById('reportEndDate').value = today.toISOString().split('T')[0];
+        }
+
+        function closeReportGeneration() {
+            document.getElementById('reportGenerationModal').classList.remove('show');
+        }
+
+        function startReportGeneration() {
+            const startDate = document.getElementById('reportStartDate').value;
+            const endDate = document.getElementById('reportEndDate').value;
+            
+            if (!startDate || !endDate) {
+                showNotification('請選擇開始和結束時間', 'error');
+                return;
+            }
+            
+            if (new Date(startDate) > new Date(endDate)) {
+                showNotification('開始時間不能晚於結束時間', 'error');
+                return;
+            }
+            
+            closeReportGeneration();
+            showNotification('報表生成中,預計需要1-2分鐘...', 'success');
+            
+            setTimeout(() => {
+                showNotification('報表生成完成!', 'success');
+            }, 2000);
+        }
+
+        function searchReports() {
+            showNotification('搜索完成', 'success');
+        }
+
+        function resetSearch() {
+            document.getElementById('timeType').value = 'bet_time';
+            document.getElementById('timezone').value = '';
+            document.getElementById('startDate').value = '2025-05-25';
+            document.getElementById('endDate').value = '2025-05-25';
+            document.getElementById('gameRoundId').value = '';
+            document.getElementById('status').value = '';
+            document.getElementById('agent').value = '';
+            document.getElementById('playerAccount').value = '';
+            document.getElementById('paymentMethod').value = '';
+            document.getElementById('paymentChannel').value = '';
+            document.getElementById('paymentType').value = '';
+            
+            showNotification('搜尋已重置', 'success');
+        }
+
+        function sortTable(column) {
+            let columnName = column;
+            if (column === 'createTime') {
+                columnName = '創建時間';
+            } else if (column === 'updateTime') {
+                columnName = '更新時間';
+            } else if (column === 'amount') {
+                columnName = '金額';
+            }
+            showNotification(`按 ${columnName} 排序`, 'success');
+        }
+
+        function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(function() {
+                    showNotification('已複製: ' + text, 'success');
+                }).catch(function(err) {
+                    fallbackCopyTextToClipboard(text);
+                });
+            } else {
+                fallbackCopyTextToClipboard(text);
+            }
+        }
+
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+            
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showNotification('已複製: ' + text, 'success');
+                } else {
+                    showNotification('複製失敗,請手動複製', 'error');
+                }
+            } catch (err) {
+                showNotification('複製失敗,請手動複製', 'error');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            if (type === 'error') notification.classList.add('error');
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // 點擊模態框外部關閉
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('reportGenerationModal');
+            if (e.target === modal) {
+                closeReportGeneration();
+            }
+        });
+
+        // 報表下載功能
+        function downloadHistory() {
+            document.getElementById('historyReportsModal').classList.add('show');
+        }
+
+        function closeHistoryReports() {
+            document.getElementById('historyReportsModal').classList.remove('show');
+        }
+
+        function downloadReport(reportId) {
+            showNotification('正在下載報表 ' + reportId + '...', 'success');
+            setTimeout(() => {
+                showNotification('報表下載完成!', 'success');
+            }, 1000);
+        }
+
+        // 列設置功能
+        function openColumnSettings() {
+            document.getElementById('columnSettingsModal').classList.add('show');
+        }
+
+        function closeColumnSettings() {
+            document.getElementById('columnSettingsModal').classList.remove('show');
+        }
+
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('selectAllColumns');
+            const allCheckboxes = document.querySelectorAll('.column-list-item input[type="checkbox"]');
+            
+            allCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+        }
+
+        function updateSelectAllState() {
+            const selectAllCheckbox = document.getElementById('selectAllColumns');
+            const allCheckboxes = document.querySelectorAll('.column-list-item input[type="checkbox"]');
+            const checkedCount = Array.from(allCheckboxes).filter(cb => cb.checked).length;
+            
+            if (checkedCount === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (checkedCount === allCheckboxes.length) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            }
+        }
+
+        function togglePin(button, position) {
+            const buttons = button.parentElement.querySelectorAll('.column-action-btn');
+            
+            // 移除所有按鈕的 active 狀態
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // 如果不是取消釘選,則設置當前按鈕為 active
+            if (position !== 'none') {
+                button.classList.add('active');
+            }
+            
+            const columnName = button.closest('.column-list-item').querySelector('.column-name-display').textContent;
+            
+            if (position === 'left') {
+                showNotification(`${columnName} 已釘選到左側`, 'success');
+            } else if (position === 'right') {
+                showNotification(`${columnName} 已釘選到右側`, 'success');
+            } else {
+                showNotification(`${columnName} 已取消釘選`, 'success');
+            }
+        }
+
+        function resetColumnSettings() {
+            if (confirm('確定要重置為預設設置嗎?')) {
+                // 重置所有勾選框為選中
+                const allCheckboxes = document.querySelectorAll('.column-list-item input[type="checkbox"]');
+                allCheckboxes.forEach(checkbox => {
+                    checkbox.checked = true;
+                });
+                document.getElementById('selectAllColumns').checked = true;
+                document.getElementById('selectAllColumns').indeterminate = false;
+                
+                // 移除所有釘選狀態
+                const allButtons = document.querySelectorAll('.column-action-btn');
+                allButtons.forEach(btn => btn.classList.remove('active'));
+                
+                showNotification('列設置已重置為預設值', 'success');
+            }
+        }
+
+        function applyColumnSettings() {
+            closeColumnSettings();
+            showNotification('列設置已保存並應用', 'success');
+        }
+
+        // 訂單詳情功能
+        function showBetDetails(paymentId) {
+            // 模擬數據
+            const mockData = {
+                'PAY2025081101': {
+                    paymentSystemId: 'PAY2025081101',
+                    paymentVendorId: 'MP-20250811-001',
+                    playerName: 'testnorman',
+                    agentName: 'ivLv4UAT',
+                    playerWalletAddress: '0x742d35Cc6634C44Bc7595f0bEb',
+                    paymentMethod: '銀行轉賬',
+                    paymentChannel: 'MatchPlay',
+                    paymentWallet: '台灣銀行 1234-5678-9012-3456',
+                    applyCurrency: 'JPY',
+                    applyAmount: '2,000.00',
+                    exchangeRate: '1.0000',
+                    processingFee: '10.00',
+                    actualCurrency: 'JPY',
+                    actualAmount: '1,990.00',
+                    convertedJPY: '1,990.00',
+                    paymentType: '充值',
+                    status: '成功',
+                    applyTime: '2025-08-11 13:20:58',
+                    updateTime: '2025-08-11 13:21:05',
+                    reviewer: '系統自動審核'
+                },
+                'PAY2025081102': {
+                    paymentSystemId: 'PAY2025081102',
+                    paymentVendorId: 'GA-20250811-002',
+                    playerName: 'testnorman',
+                    agentName: 'ivLv4UAT',
+                    playerWalletAddress: '0x742d35Cc63eTH32634C44Bc7595f0bEb',
+                    paymentMethod: '信用卡',
+                    paymentChannel: 'GoldAnt',
+                    paymentWallet: 'VISA **** **** **** 1234',
+                    applyCurrency: 'USD',
+                    applyAmount: '20.00',
+                    exchangeRate: '0.0069',
+                    processingFee: '4.00',
+                    actualCurrency: 'USD',
+                    actualAmount: '0.00',
+                    convertedJPY: '0.00',
+                    paymentType: '提款',
+                    status: '失敗',
+                    failureReason: '銀行系統維護中,暫停服務',
+                    applyTime: '2025-08-11 13:11:10',
+                    updateTime: '2025-08-11 13:11:14',
+                    reviewer: '系統自動審核'
+                },
+                'PAY2025081103': {
+                    paymentSystemId: 'PAY2025081103',
+                    paymentVendorId: 'MP-20250811-003',
+                    playerName: 'Zombie01A03',
+                    agentName: 'Zombie01',
+                    playerWalletAddress: '0x8f3Cf7ad23Cd3735AFf958023239c6A063',
+                    paymentMethod: '銀行轉賬',
+                    paymentChannel: 'MatchPlay',
+                    paymentWallet: '大阪銀行 6228-4800-1234-5678',
+                    applyCurrency: 'JPY',
+                    applyAmount: '15,000.00',
+                    exchangeRate: '0.0465',
+                    processingFee: '300.00',
+                    actualCurrency: 'JPY',
+                    actualAmount: '15,000.00',
+                    convertedJPY: '15,000.00',
+                    paymentType: '充值',
+                    status: '拒絕',
+                    failureReason: '超過單日提款限額',
+                    applyTime: '2025-08-11 13:11:10',
+                    updateTime: '2025-08-11 13:11:10',
+                    reviewer: 'Admin_Zhang'
+                },
+                'PAY2025081104': {
+                    paymentSystemId: 'PAY2025081104',
+                    paymentVendorId: 'GA-20250811-004',
+                    playerName: 'Zombie01A03',
+                    agentName: 'Zombie01',
+                    playerWalletAddress: '0x8f3Cf7ad23Cd3CaDD97AFf9580239c6A063',
+                    paymentMethod: '虛擬貨幣',
+                    paymentChannel: '8v',
+                    paymentWallet: '0x742d35Cc6634C44Bc7595f0bEb',
+                    applyCurrency: 'USDT',
+                    applyAmount: '500.00',
+                    exchangeRate: '0.0069',
+                    processingFee: '10.00',
+                    actualCurrency: 'USDT',
+                    actualAmount: '500.00',
+                    convertedJPY: '60,000.00',
+                    paymentType: '提款',
+                    status: '過期',
+                    failureReason: '支付請求超過24小時未完成處理',
+                    applyTime: '2025-08-11 13:11:00',
+                    updateTime: '2025-08-11 13:11:04',
+                    reviewer: '系統自動審核'
+                },
+                'PAY2025081105': {
+                    paymentSystemId: 'PAY2025081105',
+                    paymentVendorId: 'MP-20250811-005',
+                    playerName: 'testiven01',
+                    agentName: 'ivLv4UAT',
+                    playerWalletAddress: '0x742d35Cc6634C44Bc7595f0bEb',
+                    paymentMethod: '虛擬貨幣',
+                    paymentChannel:'8v',
+                    paymentWallet: '台灣銀行 9876-5432-1098-7654',
+                    applyCurrency: 'USDT',
+                    applyAmount: '1,000.00',
+                    exchangeRate: '1.0000',
+                    processingFee: '0.00',
+                    actualCurrency: 'USDT',
+                    actualAmount: '1,000.00',
+                    convertedJPY: '120,000.00',
+                    paymentType: '充值',
+                    status: '成功',
+                    applyTime: '2025-08-11 13:10:58',
+                    updateTime: '2025-08-11 13:11:02',
+                    reviewer: '系統自動審核'
+                }
+            };
+
+            const data = mockData[paymentId] || mockData['PAY2025081101'];
+
+            // 設置支付類型標籤
+            const paymentTypeTag = document.getElementById('paymentTypeTag');
+            paymentTypeTag.textContent = data.paymentType;
+            paymentTypeTag.className = 'payment-type';
+            if (data.paymentType === '充值') {
+                paymentTypeTag.classList.add('deposit');
+            } else {
+                paymentTypeTag.classList.add('withdraw');
+            }
+
+            // 設置狀態
+            document.getElementById('statusDisplay').textContent = data.status;
+            
+            // 設置狀態樣式
+            const statusDisplay = document.getElementById('statusDisplay');
+            statusDisplay.className = 'status-display';
+            if (data.status === '成功') {
+                statusDisplay.classList.add('success');
+            } else if (data.status === '失敗') {
+                statusDisplay.classList.add('failed');
+            }
+
+            // 設置狀態詳情
+            const statusDetailsSection = document.getElementById('statusDetailsSection');
+            const statusReasonTitle = document.getElementById('statusReasonTitle');
+            const statusReasonMessage = document.getElementById('statusReasonMessage');
+            const statusIcon = document.querySelector('.status-icon');
+
+            // 移除所有狀態類
+            statusDetailsSection.className = 'status-details';
+            statusReasonTitle.className = 'status-reason-title';
+            statusReasonMessage.className = 'status-reason-message';
+
+            if (data.status === '成功') {
+                statusDetailsSection.classList.add('success');
+                statusReasonTitle.classList.add('success');
+                statusReasonMessage.classList.add('success');
+                statusIcon.textContent = '✅';
+                statusReasonTitle.textContent = '交易成功';
+                statusReasonMessage.textContent = '支付已完成處理，資金已到賬。';
+            } else if (data.status === '失敗') {
+                statusDetailsSection.classList.add('failed');
+                statusReasonTitle.classList.add('failed');
+                statusReasonMessage.classList.add('failed');
+                statusIcon.textContent = '❌';
+                statusReasonTitle.textContent = '處理失敗';
+                statusReasonMessage.textContent = data.failureReason || '系統處理異常，請聯絡客服';
+            } else if (data.status === '拒絕') {
+                statusDetailsSection.classList.add('rejected');
+                statusReasonTitle.classList.add('rejected');
+                statusReasonMessage.classList.add('rejected');
+                statusIcon.textContent = '🚫';
+                statusReasonTitle.textContent = '申請被拒絕';
+                statusReasonMessage.textContent = data.failureReason || '不符合支付條件要求';
+            } else if (data.status === '過期') {
+                statusDetailsSection.classList.add('expired');
+                statusReasonTitle.classList.add('expired');
+                statusReasonMessage.classList.add('expired');
+                statusIcon.textContent = '⏰';
+                statusReasonTitle.textContent = '支付過期';
+                statusReasonMessage.textContent = data.failureReason || '支付請求已超時，請重新發起交易';
+            }
+
+            // 填充基本資訊
+            document.getElementById('paymentSystemId').textContent = data.paymentSystemId;
+            document.getElementById('paymentVendorId').textContent = data.paymentVendorId;
+            document.getElementById('playerName').textContent = data.playerName;
+            document.getElementById('agentName').textContent = data.agentName;
+            document.getElementById('playerWalletAddress').textContent = data.playerWalletAddress;
+
+            // 填充支付資訊
+            document.getElementById('paymentMethod').textContent = data.paymentMethod;
+            document.getElementById('paymentChannel').textContent = data.paymentChannel;
+            document.getElementById('paymentWallet').textContent = data.paymentWallet;
+            document.getElementById('applyCurrency').textContent = data.applyCurrency;
+            document.getElementById('applyAmount').textContent = data.applyAmount;
+            document.getElementById('exchangeRate').textContent = data.exchangeRate;
+            document.getElementById('processingFee').textContent = data.processingFee;
+
+            // 填充財務資訊
+            document.getElementById('actualCurrency').textContent = data.actualCurrency;
+            document.getElementById('actualAmount').textContent = data.actualAmount;
+            document.getElementById('convertedJPY').textContent = data.convertedJPY;
+
+            // 填充時間資訊
+            document.getElementById('applyTime').textContent = data.applyTime;
+            document.getElementById('updateTime').textContent = data.updateTime;
+            document.getElementById('reviewer').textContent = data.reviewer;
+
+            // 顯示抽屜
+            document.getElementById('detailDrawer').classList.add('show');
+        }
+
+        function closeDetailDrawer() {
+            document.getElementById('detailDrawer').classList.remove('show');
+        }
+
+        // 點擊遮罩關閉抽屜
+        document.addEventListener('click', function(e) {
+            const drawer = document.getElementById('detailDrawer');
+            if (e.target === drawer) {
+                closeDetailDrawer();
+            }
+        });
+    </script>
+</body>
+</html>
